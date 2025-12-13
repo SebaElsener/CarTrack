@@ -4,22 +4,6 @@ import { clearScans } from '../database/Database';
 
 export default function HomeScreen({ navigation }) {
 
-	// useEffect(() => {
-    // 	initDB();
-    // }, []);
-
-	// // Sincronizar si hay conexión
-	// useEffect(() => {
-	// 	const unsubscribe = NetInfo.addEventListener(state => {
-	// 	if (state.isConnected) {
-	//   		syncPendingScans()
-	// 		syncPendingPicts()
-	// 	}
-  	// });
-
-  	// return () => unsubscribe();
-	// }, [])
-
 	return (
 		<View style={ styles.backContainer }>
 			<ImageBackground
