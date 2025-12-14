@@ -7,7 +7,6 @@ import { Button, Image, ScrollView, Text, TouchableOpacity, View } from "react-n
 import { savePict } from "../database/Database";
 import { supabase } from "../services/supabase";
 import { syncPendingPicts } from "../services/sync";
-//import { Button } from '@rneui/themed'
 
 export async function compressAndResize(uri) {
   const manipResult = await ImageManipulator.manipulateAsync(

@@ -1,7 +1,7 @@
 
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { IconButton, Text } from 'react-native-paper';
 import { deleteScan } from '../database/Database';
-//import { Button } from '@rneui/themed'
 
 export default function ScanItem({ item }) {
 
@@ -10,7 +10,6 @@ export default function ScanItem({ item }) {
       <Text style={styles.code}>{item.code}</Text>
         {item.area != null ? (
       <View style={styles.danosContainer}>
-      <Text>Tipo: {item.type}</Text>
       <Text>Fecha: {item.date}</Text>
       <Text>Area: {item.area}</Text>
       <Text>Avería: {item.averia}</Text>
@@ -21,8 +20,17 @@ export default function ScanItem({ item }) {
       ) : <Text></Text>
     }
       <View style={styles.buttonsContainer}>
+        <View style={styles.syncedContainer}>
         <Text>Sincronizado: {item.synced === 0 ? "PENDIENTE" : "SI"}</Text>
-        <Button title="Eliminar" buttonStyle={{backgroundColor: 'rgba(52, 49, 49, 0.12)', marginTop: 10}} onPress={() => deleteScan(item.id)} />
+        </View>
+        <View style={styles.deleteContainer}>
+        <IconButton style={styles.iconButton}
+          size={40}
+          icon= 'delete'
+				  iconColor='rgba(133, 207, 189, 0.98)'
+          onPress={() => deleteScan(item.id)}>
+        </IconButton>
+        </View>
       </View>
     </View>
   );
@@ -46,6 +54,14 @@ const styles = StyleSheet.create({
     margin: 15
   },
   buttonsContainer: {
-    margin: 15
+    margin: 15,
+    marginTop: 0,
+    marginBottom: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  syncedContainer: {
+    justifyContent: 'center',
   }
 });

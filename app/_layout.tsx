@@ -11,17 +11,14 @@ const theme = {
     primary: "#6200ee",
     secondary: "#03dac6",
   },
+  roundness: 1,
 };
 
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
     <AuthProvider>
-      {/* <Stack screenOptions={{
-        headerShown: false
-      }}/> */}
-              <RootStack />
-
+      <RootStack />
     </AuthProvider>
     </PaperProvider>
 

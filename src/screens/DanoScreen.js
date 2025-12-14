@@ -1,8 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { Button, Text, TextInput } from 'react-native-paper';
 import { addInfo, getScan } from '../database/Database';
-//import { Button } from '@rneui/themed'
 
 export default function DanoScreen({ navigation, route }) {
 
@@ -32,50 +32,55 @@ export default function DanoScreen({ navigation, route }) {
       <Text style={styles.code}>{vin}</Text>
       <TextInput
         value={area}
-        placeholder="Area: "
+        placeholder="Area"
         onChangeText={text => setArea(text)}
       />
       <TextInput
         value={averia}
-        placeholder="Avería: "
+        placeholder="Avería"
         onChangeText={text => setAveria(text)}
       />
       <TextInput
         value={grav}
-        placeholder="Gravedad: "
+        placeholder="Gravedad"
         onChangeText={text => setGrav(text)}
       />
       <TextInput
         value={obs}
-        placeholder="Observación: "
+        placeholder="Observación"
         onChangeText={text => setObs(text)}
       />
       <TextInput
         value={codigo}
-        placeholder="Código: "
+        placeholder="Código"
         onChangeText={text => setCodigo(text)}
       />
-      <Button title="GUARDAR"
-        // buttonStyle={{ 
-				// backgroundColor: 'rgba(75, 186, 44, 1)',
-        // marginBottom: 15,
-        // marginTop: 25,
-				// padding: 8}}
-				// titleStyle={{ fontSize: 16}}
-        onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)} />
-      <Button title="VOLVER"
-        // buttonStyle={{ 
-				// backgroundColor: 'rgba(222, 79, 79, 0.9)',
-				// padding: 8}}
-				// titleStyle={{ fontSize: 16}}
-        onPress={() => navigation.navigate("Escanear")} />
+      <View style={styles.buttonContainer}>
+      <Button
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(125, 200, 181, 0.88)'
+				textColor='rgba(41, 30, 30, 0.89)'
+        onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}>
+        GUARDAR
+      </Button>
+      </View>
+      <View style={styles.buttonContainer}>
+      <Button
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(125, 200, 181, 0.88)'
+				textColor='rgba(41, 30, 30, 0.89)'
+        onPress={() => navigation.navigate("Escanear")}>
+        VOLVER
+      </Button>
+      </View>
     </View>
   );
 }
 
 const updateInfo = async (vin, area, averia, grav, obs, codigo)=> {
   let result = await addInfo(vin, area, averia, grav, obs, codigo)
-  console.log(result)
   if (result === 'Información actualizada')
       Alert.alert("ACTUALIZADO OK! => ", vin, [
         {
@@ -102,6 +107,12 @@ const styles = StyleSheet.create({
   },
   code: {
     fontWeight: 'bold',
-    fontSize: 23
+    fontSize: 23,
+    color: "#312f2fce",
+    margin: 20,
+    marginBottom: 30
+  },
+  buttonContainer: {
+    marginTop: 30
   }
 });

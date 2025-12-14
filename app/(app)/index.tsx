@@ -1,6 +1,7 @@
 
 import NetInfo from '@react-native-community/netinfo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Appbar } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
@@ -12,7 +13,9 @@ import HomeScreen from '../../src/screens/HomeScreen';
 import ScannerScreen from '../../src/screens/ScannerScreen';
 import { syncPendingPicts, syncPendingScans } from '../../src/services/sync';
 
+
 const Stack = createNativeStackNavigator()
+const router = useRouter()
 
 export default function App() {
 
@@ -35,20 +38,14 @@ export default function App() {
 	}, [])
 
 	return (
-			<Stack.Navigator 	  screenOptions={{
-					// headerRight: () => (
-					//   <Pressable onPress={logout} style={{ marginRight: 15 }}>
-					// 	<Text style={{ color: "red", fontWeight: "bold" }}>
-					// 	  Salir
-					// 	</Text>
-					//   </Pressable>
-					// )
-					        header: () => (
-          <Appbar.Header>
-            <Appbar.Content title="CarTrack" />
-            <Appbar.Action icon="logout" onPress={logout} />
-          </Appbar.Header>
-	)}}>
+		<Stack.Navigator screenOptions={{
+			header: () => (
+          		<Appbar.Header>
+            		<Appbar.Content title="" />
+					<Appbar.Action icon="home" onPress={()=>router.replace('/(app)')} />
+            		<Appbar.Action icon="logout" onPress={logout} />
+          		</Appbar.Header>
+			)}}>
 				<Stack.Screen name='Inicio' component={HomeScreen} />
 				<Stack.Screen name='Escanear' component={ScannerScreen} />
         		<Stack.Screen name='Daños' component={DanoScreen} />

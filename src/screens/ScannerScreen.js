@@ -1,7 +1,8 @@
 
 import { Camera, CameraView } from 'expo-camera'
 import { useEffect, useState } from 'react'
-import { Alert, Button, StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, View } from 'react-native'
+import { Button, Text } from 'react-native-paper'
 import { getScan, saveScan } from '../database/Database'
 import { syncPendingScans } from '../services/sync'
 
@@ -70,42 +71,44 @@ export default function ScannerScreen({ navigation }) {
           <Text style={styles.resultText}>{lastResult}</Text>
 
 		  <View style={styles.button}>
-			<Button title="Daños"
-			    // buttonStyle={{ 
-				// backgroundColor: 'rgba(222, 79, 79, 0.9)',
-				// borderRadius: 5,
-				// marginBottom: 15,
-				// padding: 11 }}
-				// titleStyle={{ fontSize: 20}}
-				onPress={() => navigation.navigate("Daños", {lastResult})} />
+			<Button 
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='contained-tonal'
+				buttonColor='rgba(222, 101, 101, 0.95)'
+				textColor='rgba(41, 30, 30, 0.89)'
+				onPress={() => navigation.navigate("Daños", {lastResult})} >
+				Daños
+			</Button>
 		   </View>
 		  <View style={styles.button}>
-		    <Button title="Tomar fotos" 
-			    // buttonStyle={{ 
-				// backgroundColor: 'rgba(74, 119, 202, 0.93)',
-				// borderRadius: 5,
-				// marginBottom: 15,
-				// padding: 11 }}
-				// titleStyle={{ fontSize: 20}}
-				onPress={() => navigation.navigate("Fotos", {lastResult})} />
+		    <Button
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(104, 137, 198, 0.93)'
+				textColor='rgba(41, 30, 30, 0.89)'
+				onPress={() => navigation.navigate("Fotos", {lastResult})} >
+				Tomar fotos
+			</Button>
           </View>
 		  <View style={styles.button}>
 		    <Button title="Escanear otro"
-			    // buttonStyle={{ backgroundColor: 'rgba(75, 186, 44, 1)',
-				// borderRadius: 5,
-				// marginBottom: 15,
-				// padding: 11 }}
-				// titleStyle={{ fontSize: 20}}
-				onPress={() => setScanned(false)} />
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(115, 175, 98, 1)'
+				textColor='rgba(41, 30, 30, 0.89)'
+				onPress={() => setScanned(false)}>
+				Escanear otro
+			</Button>
 		  </View>
           <View style={styles.button}>
-		    <Button title="Ver historial"
-				// buttonStyle={{ 
-				// backgroundColor: 'rgba(122, 134, 131, 0.88)',
-				// borderRadius: 5,
-				// padding: 11 }}
-				// titleStyle={{ fontSize: 20}}
-				onPress={() => navigation.navigate("Historial")} />
+		    <Button
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(122, 134, 131, 0.88)'
+				textColor='rgba(41, 30, 30, 0.89)'
+				onPress={() => navigation.navigate("Historial")}>
+				Ver historial
+			</Button>
 		  </View>
 
         </View>
@@ -128,9 +131,10 @@ const styles = StyleSheet.create({
   resultText: {
     marginBottom: 30,
     fontSize: 28,
-	fontWeight: 'bold'
+	fontWeight: 'bold',
+	color: 'rgba(47, 47, 47, 0.89)',
   },
-  buttonText: {
-	fontSize: 25
+  button: {
+	marginTop: 20
   }
 })

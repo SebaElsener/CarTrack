@@ -1,5 +1,6 @@
 
-import { Button, ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { Button } from 'react-native-paper';
 import { clearScans } from '../database/Database';
 
 export default function HomeScreen({ navigation }) {
@@ -16,37 +17,34 @@ export default function HomeScreen({ navigation }) {
 			</View>
 		
 		<View style={styles.container}>
-			<Button
-				buttonStyle={{ 
-				backgroundColor: 'rgba(75, 186, 44, 0.73)',
-                borderRadius: 5,
-				width: 320,
-				padding: 20}}
-				titleStyle={{ fontSize: 28}}
-				title='📷  Escanear VIN'
+			<Button style={styles.button}
+				labelStyle={{ fontSize: 20 }}
+				icon='camera'
+				mode='elevated'
+				buttonColor='rgba(126, 249, 128, 0.85)'
+				textColor='rgba(42, 42, 42, 0.84)'
 				onPress={() => navigation.navigate('Escanear')}
-			/>
+			>Escanear VIN
+			</Button>
 
-			<Button
-				title='📜  Ver Historial'
-				buttonStyle={{ 
-				backgroundColor: 'rgba(122, 134, 131, 0.7)',
-                borderRadius: 5,
-				width: 320,
-				padding: 20}}
-				titleStyle={{ fontSize: 28}}
+			<Button style={styles.button}
+				labelStyle={{ fontSize: 20 }}
+				icon='tablet'
+				mode='elevated'
+				buttonColor='rgba(143, 156, 143, 0.88)'
+				textColor='rgba(42, 42, 42, 0.84)'
 				onPress={() => navigation.navigate('Historial')}
-			/>
-			<Button
-				buttonStyle={{ 
-				backgroundColor: 'rgba(242, 82, 82, 0.73)',
-                borderRadius: 5,
-				width: 320,
-				padding: 20}}
-				titleStyle={{ fontSize: 28}}
-				title='❌​ Eliminar tablas'
+			>Ver Historial
+			</Button>
+			<Button style={styles.button}
+				labelStyle={{ fontSize: 20 }}
+				icon='delete'
+				mode='elevated'
+				buttonColor='rgba(206, 104, 104, 0.7)'
+				textColor='rgba(42, 42, 42, 0.84)'
 				onPress={() => clearScans()}
-			/>
+			>Eliminar tablas
+			</Button>
 		</View>
 		</ImageBackground>
 		</View>
@@ -71,5 +69,9 @@ const styles = StyleSheet.create({
 	},
 	backContainer: {
 		minHeight: '100%'
+	},
+	button: {
+		padding: 8,
+		width: 300,
 	}
 })
