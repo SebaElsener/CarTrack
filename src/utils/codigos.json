@@ -1,0 +1,7 @@
+[
+  { "id": "TD", "descripcion": "Daño de tránsito" },
+  { "id": "NAGR", "descripcion": "Daño no acordado" },
+  { "id": "NT", "descripcion": "No es daño de tránsito" },
+  { "id": "OBS", "descripcion": "Observación - Leve" },
+  { "id": "BAT", "descripcion": "Daño producido en batea" }
+]

@@ -1,10 +1,16 @@
 
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { Button, Text, TextInput } from 'react-native-paper';
 import Areas from '../components/Areas';
+import Averias from '../components/Averias';
+import Codigos from '../components/Codigos';
+import Gravedades from '../components/Gravedades';
 import { addInfo, getScan } from '../database/Database';
 import areas from '../utils/areas.json' with { type: 'json' };
+import averias from '../utils/averias.json' with { type: 'json' };
+import codigos from '../utils/codigos.json' with { type: 'json' };
+import gravedades from '../utils/gravedades.json' with { type: 'json' };
 
 export default function DanoScreen({ navigation, route }) {
 
@@ -19,6 +25,21 @@ export default function DanoScreen({ navigation, route }) {
   /////////////////////////////////
 
   const areasDropdown = areas.map(p => ({
+    label: p.descripcion, // 👈 lo que se muestra
+    value: p.id,          // 👈 lo que se guarda
+  }))
+
+    const averiasDropdown = averias.map(p => ({
+    label: p.descripcion, // 👈 lo que se muestra
+    value: p.id,          // 👈 lo que se guarda
+  }))
+
+    const gravedadesDropdown = gravedades.map(p => ({
+    label: p.descripcion, // 👈 lo que se muestra
+    value: p.id,          // 👈 lo que se guarda
+  }))
+
+    const codigosDropdown = codigos.map(p => ({
     label: p.descripcion, // 👈 lo que se muestra
     value: p.id,          // 👈 lo que se guarda
   }))
@@ -48,32 +69,41 @@ export default function DanoScreen({ navigation, route }) {
         onSelect={(item) => setArea(item.value)}
       />
       </View>
-      {/* <TextInput
-        value={area}
-        placeholder="Area"
-        onChangeText={text => setArea(text)}
+      <View>
+      <Averias
+        averias={averiasDropdown}
+        selectedValue={averia}
+        onSelect={(item) => setAveria(item.value)}
       />
-
-      <TextInput
-        value={averia}
-        placeholder="Avería"
-        onChangeText={text => setAveria(text)}
+      </View>
+      <View>
+      <Gravedades
+        gravedades={gravedadesDropdown}
+        selectedValue={grav}
+        onSelect={(item) => setGrav(item.value)}
       />
-      <TextInput
-        value={grav}
-        placeholder="Gravedad"
-        onChangeText={text => setGrav(text)}
-      />
+      </View>
+      <View style={ styles.textInputContainer}>
       <TextInput
         value={obs}
+        mode='outlined'
+        autoCapitalize='characters'
+        outlineStyle={{ borderRadius: 6 }}
+        style={{ padding: 2, textAlign: 'center' }}  
+        outlineColor='white'
+        contentStyle={{ backgroundColor: 'white' }}
+        //label={ 'Observación' }
         placeholder="Observación"
         onChangeText={text => setObs(text)}
       />
-      <TextInput
-        value={codigo}
-        placeholder="Código"
-        onChangeText={text => setCodigo(text)}
-      /> */}
+      </View>
+      <View>
+      <Codigos
+        codigos={codigosDropdown}
+        selectedValue={codigo}
+        onSelect={(item) => setCodigo(item.value)}
+      />
+      </View>
       <View style={styles.buttonContainer}>
       <Button
 				labelStyle={{ fontSize: 20, padding: 5 }}
@@ -84,7 +114,7 @@ export default function DanoScreen({ navigation, route }) {
         GUARDAR
       </Button>
       </View>
-      <View style={styles.buttonContainer}>
+      <View style={styles.volverButtonContainer}>
       <Button
 				labelStyle={{ fontSize: 20, padding: 5 }}
 				mode='elevated'
@@ -127,12 +157,20 @@ const styles = StyleSheet.create({
   },
   code: {
     fontWeight: 'bold',
-    fontSize: 23,
+    fontSize: 25,
     color: "#312f2fce",
-    margin: 20,
-    marginBottom: 30
+    textAlign: 'center',
+    marginBottom: 30,
+    marginTop: 30
   },
   buttonContainer: {
-    marginTop: 30
+    marginTop: 70
+  },
+  volverButtonContainer: {
+    marginTop: 15
+  },
+  textInputContainer: {
+    marginBottom: 10,
+    boxShadow: '0px 2px 3px 0px #1a1a1a29',
   }
 });

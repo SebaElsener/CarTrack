@@ -1,0 +1,19 @@
+[
+  { "id": "A",  "descripcion": "Abollado" },
+  { "id": "B",  "descripcion": "Doblado" },
+  { "id": "DP", "descripcion": "Defecto de pintura" },
+  { "id": "F",  "descripcion": "Pinchado" },
+  { "id": "G",  "descripcion": "Rayado" },
+  { "id": "H",  "descripcion": "Oxidado" },
+  { "id": "I",  "descripcion": "Sucio" },
+  { "id": "K",  "descripcion": "Roto" },
+  { "id": "L",  "descripcion": "Suelto" },
+  { "id": "M",  "descripcion": "Faltante" },
+  { "id": "MB", "descripcion": "Defecto de fábrica" },
+  { "id": "P",  "descripcion": "Presencia de agua" },
+  { "id": "R",  "descripcion": "Abrasión" },
+  { "id": "S",  "descripcion": "Pintura saltada" },
+  { "id": "T",  "descripcion": "Cortado" },
+  { "id": "X",  "descripcion": "No funciona" },
+  { "id": "00", "descripcion": "Otros" }
+]

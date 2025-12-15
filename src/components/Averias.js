@@ -1,22 +1,23 @@
+
 import { useEffect, useState } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, View } from "react-native";
 import { Button, IconButton, List, Modal, Portal, Searchbar } from "react-native-paper";
 
-export default function Areas({ areas, onSelect, selectedValue }) {
+export default function Averias({ averias, onSelect, selectedValue }) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(
-    areas.find(a => a.value === selectedValue) || null
+    averias.find(a => a.value === selectedValue) || null
   );
 
   useEffect(() => {
     if (selectedValue) {
-      const item = areas.find(a => a.value === selectedValue);
+      const item = averias.find(a => a.value === selectedValue);
       if (item) setSelected(item);
     }
-  }, [selectedValue, areas]);
+  }, [selectedValue, averias]);
 
-  const filtered = areas.filter(a =>
+  const filtered = averias.filter(a =>
     a.label.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -42,7 +43,7 @@ export default function Areas({ areas, onSelect, selectedValue }) {
         buttonColor="#ffffffff"
         mode="elevated"
         onPress={() => setVisible(true)}>
-        {selected ? selected.label : "Seleccionar Area"}
+        {selected ? selected.label : "Seleccionar Avería"}
       </Button>
       </View>
 
@@ -54,7 +55,7 @@ export default function Areas({ areas, onSelect, selectedValue }) {
         >
           {/* Botón cerrar X */}
           <View style={styles.header}>
-            <Text style={styles.title}>Seleccionar Área</Text>
+            <Text style={styles.title}>Seleccionar Avería</Text>
             <IconButton icon="close" size={24} onPress={() => setVisible(false)} />
           </View>
 
@@ -104,9 +105,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
   },
-    buttonContainer: {
+  buttonContainer: {
     marginBottom: 10,
   }
 });

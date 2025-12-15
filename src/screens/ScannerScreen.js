@@ -68,8 +68,9 @@ export default function ScannerScreen({ navigation }) {
       {scanned && (
 		
         <View style={styles.result}>
-          <Text style={styles.resultText}>{lastResult}</Text>
-
+		  <View style={ styles.titleContainer}>
+            <Text style={styles.resultText}>{lastResult}</Text>
+		  </View>
 		  <View style={styles.button}>
 			<Button 
 				labelStyle={{ fontSize: 20, padding: 5 }}
@@ -121,20 +122,25 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   result: {
     position: 'absolute',
-    bottom: 130,
+    bottom: 150,
     alignSelf: 'center',
     backgroundColor: 'rgba(220, 220, 220, 1)',
     padding: 30,
     borderRadius: 8,
-	height: 500
+	height: 450
   },
   resultText: {
     marginBottom: 30,
-    fontSize: 28,
+    fontSize: 23,
 	fontWeight: 'bold',
 	color: 'rgba(47, 47, 47, 0.89)',
   },
   button: {
 	marginTop: 20
+  },
+  titleContainer: {
+	borderBottomWidth: 1,
+	borderBottomColor: '#737171ef',
+	marginBottom: 16
   }
 })

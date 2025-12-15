@@ -1,0 +1,8 @@
+[
+  { "id": "1", "descripcion": "0–2.5 cm" },
+  { "id": "2", "descripcion": "2.5–7.5 cm" },
+  { "id": "3", "descripcion": "7.5–15 cm" },
+  { "id": "4", "descripcion": "15–30 cm" },
+  { "id": "5", "descripcion": "Más de 30 cm" },
+  { "id": "0", "descripcion": "Otros" }
+]
