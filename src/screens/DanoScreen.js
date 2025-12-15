@@ -1,8 +1,10 @@
 
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
+import Areas from '../components/Areas';
 import { addInfo, getScan } from '../database/Database';
+import areas from '../utils/areas.json' with { type: 'json' };
 
 export default function DanoScreen({ navigation, route }) {
 
@@ -13,6 +15,15 @@ export default function DanoScreen({ navigation, route }) {
   const [grav, setGrav] = useState("")
   const [obs, setObs] = useState("")
   const [codigo, setCodigo] = useState("")
+
+  /////////////////////////////////
+
+  const areasDropdown = areas.map(p => ({
+    label: p.descripcion, // 👈 lo que se muestra
+    value: p.id,          // 👈 lo que se guarda
+  }))
+
+  ////////////////////////////////
 
   const getPreexistingDamages = async () => {
     const result = await getScan(vin)
@@ -30,11 +41,19 @@ export default function DanoScreen({ navigation, route }) {
   return (
     <View style={styles.card}>
       <Text style={styles.code}>{vin}</Text>
-      <TextInput
+      <View>
+      <Areas
+        areas={areasDropdown}
+        selectedValue={area}
+        onSelect={(item) => setArea(item.value)}
+      />
+      </View>
+      {/* <TextInput
         value={area}
         placeholder="Area"
         onChangeText={text => setArea(text)}
       />
+
       <TextInput
         value={averia}
         placeholder="Avería"
@@ -54,7 +73,7 @@ export default function DanoScreen({ navigation, route }) {
         value={codigo}
         placeholder="Código"
         onChangeText={text => setCodigo(text)}
-      />
+      /> */}
       <View style={styles.buttonContainer}>
       <Button
 				labelStyle={{ fontSize: 20, padding: 5 }}
@@ -100,6 +119,7 @@ const updateInfo = async (vin, area, averia, grav, obs, codigo)=> {
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     backgroundColor: "#eee",
     padding: 15,
     marginBottom: 10,
