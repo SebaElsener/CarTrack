@@ -1,6 +1,5 @@
 
 import * as SQLite from 'expo-sqlite';
-import { danoCloudUpdate } from '../services/sync';
 
 const db = SQLite.openDatabaseSync('scanner.db');
 
@@ -24,7 +23,8 @@ export const initDB = async () => {
         grav,
         obs,
         codigo,
-        synced INTEGER DEFAULT 0)
+        synced INTEGER DEFAULT 0,
+        pendingDamages INTEGER DEFAULT 0)
       `
   )
 
@@ -76,11 +76,11 @@ export const getScan = async (vin) => {
 // Añadir información al vin colectado
 export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
     await db.runAsync(
-        `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ? WHERE code = ?`,
-        area, averia, grav, obs, codigo, vin
+        `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ?, pendingDamages = ? WHERE code = ?`,
+        area, averia, grav, obs, codigo, 0, vin
     )
-    const infoToUpdate = [vin, area, averia, grav, obs, codigo]
-    return await danoCloudUpdate(infoToUpdate)
+    return "Información actualizada"
+    //return await danoCloudUpdate(infoToUpdate)
 };
 
 // Borrar un registro

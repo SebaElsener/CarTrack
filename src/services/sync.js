@@ -1,6 +1,6 @@
 
-import { supabase } from "./supabase";
 import db from "../database/Database";
+import { supabase } from "./supabase";
 
 
 // Sincronizar vin al escanear supabase
@@ -26,15 +26,22 @@ export const syncPendingScans = async () => {
 
 // Sincronizar daños supabase
 
-export const danoCloudUpdate = async (infoToUpdate) => {
-  const [vin, area, averia, grav, obs, codigo] = infoToUpdate
-  const { error } = await supabase.from("scans")
-    .update({ area: area, averia: averia, grav: grav, obs: obs, codigo: codigo })
-    .eq('code', vin)
-    
-    if (!error) return "Información actualizada"
-    
-    return error
+export const danoCloudUpdate = async () => {
+
+  const unsyncedDamages = await db.getAllAsync(`SELECT * FROM scans WHERE pendingDamages = 0`)
+  //const [vin, area, averia, grav, obs, codigo] = infoToUpdate || []
+console.log(unsyncedDamages)
+  for (const item of unsyncedDamages) {
+    console.log(item)
+    const { error } = await supabase.from("scans")
+      .update({ area: item.area, averia: item.averia, grav: item.grav, obs: item.obs, codigo: item.codigo })
+      .eq('code', item.code)
+
+  if (!error) {
+    await db.runAsync(`UPDATE scans SET pendingDamages = 1 WHERE id = ?`, item.id)
+    return "Información actualizada"
+  } else return "Error, la información no pudo ser actualizada"
+  }
 }
 
 // Sincronizar fotos + metadatos supabase

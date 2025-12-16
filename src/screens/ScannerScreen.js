@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Alert, StyleSheet, View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import { getScan, saveScan } from '../database/Database'
-import { syncPendingScans } from '../services/sync'
 
 export default function ScannerScreen({ navigation }) {
     const [hasPermission, setHasPermission] = useState(null)
@@ -42,7 +41,7 @@ export default function ScannerScreen({ navigation }) {
 
 		if (!alreadyScanned) {
 			await saveScan(data, type)
-			await syncPendingScans()
+//			await syncPendingScans()
 		}
 		  else {
 			scanExistsAlert(data)

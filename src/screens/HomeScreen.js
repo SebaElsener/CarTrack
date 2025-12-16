@@ -1,7 +1,7 @@
 
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
-import { clearScans } from '../database/Database';
+import { deleteTable } from '../database/Database';
 
 export default function HomeScreen({ navigation }) {
 
@@ -42,7 +42,7 @@ export default function HomeScreen({ navigation }) {
 				mode='elevated'
 				buttonColor='rgba(206, 104, 104, 0.7)'
 				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => clearScans()}
+				onPress={() => deleteTable()}
 			>Eliminar tablas
 			</Button>
 		</View>

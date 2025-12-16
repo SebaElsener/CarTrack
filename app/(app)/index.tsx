@@ -11,7 +11,7 @@ import DanoScreen from '../../src/screens/DanoScreen';
 import HistoryScreen from '../../src/screens/HistoryScreen';
 import HomeScreen from '../../src/screens/HomeScreen';
 import ScannerScreen from '../../src/screens/ScannerScreen';
-import { syncPendingPicts, syncPendingScans } from '../../src/services/sync';
+import { danoCloudUpdate, syncPendingPicts, syncPendingScans } from '../../src/services/sync';
 
 
 const Stack = createNativeStackNavigator()
@@ -32,6 +32,7 @@ export default function App() {
 		if (state.isConnected) {
 	  		syncPendingScans()
 			syncPendingPicts()
+			danoCloudUpdate()
 		}
   	});
   	return () => unsubscribe();
