@@ -5,7 +5,11 @@ const db = SQLite.openDatabaseSync('scanner.db');
 
 // Eliminar tabla
 export const deleteTable = async () => {
-    db.execAsync("DROP TABLE IF EXISTS scans")
+  await db.execAsync(`
+    DROP TABLE IF EXISTS pictures;
+    DROP TABLE IF EXISTS tableForPendingImages;
+    DROP TABLE IF EXISTS scans
+    `);
 }
 
 // Crear tabla al iniciar
@@ -34,7 +38,18 @@ export const initDB = async () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         code TEXT NOT NULL,
         metadata TEXT NOT NULL,
-        pictureurl TEXT NOT NULL,
+        pictureurl TEXT,
+        synced INTEGER DEFAULT 0)
+      `
+  )
+
+    await db.execAsync(
+        `PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS tableForPendingImages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        vin TEXT NOT NULL,
+        name TEXT NOT NULL,
+        binary BLOB NOT NULL,
         synced INTEGER DEFAULT 0)
       `
   )
@@ -49,11 +64,19 @@ export const saveScan = async (code, type) => {
     );
 };
 
-// Guardar fotos + metadata
-export const savePict = async (code, pictureurl, metadata) => {
+// Guardar name y binary foto para subir a supabase bucket
+export const savePendingImage = async (vin, nombre, binary) => {
     await db.runAsync(
-      `INSERT INTO pictures (code, pictureurl, metadata, synced) VALUES (?, ?, ?, 0);`,
-      code, pictureurl, metadata
+      `INSERT INTO tableForPendingImages (vin, name, binary, synced) VALUES (?, ?, ?, 0);`,
+      vin, nombre, binary
+    )
+};
+
+// Guardar fotos + metadata para subir a supabase
+export const savePict = async (code, metadata) => {
+    await db.runAsync(
+      `INSERT INTO pictures (code, metadata, synced) VALUES (?, ?, 0);`,
+      code, metadata
     );
 };
 
@@ -91,8 +114,8 @@ export const deleteScan = async (id) => {
 };
 
 // Borrar todo
-export const clearScans = async () => {
-  await db.deleteAsync('scanner.db')
+export const clearDb = async () => {
+  await SQLite.deleteDatabaseAsync('scanner.db')
 };
 
 export default db

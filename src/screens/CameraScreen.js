@@ -4,9 +4,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useEffect, useState } from "react";
 import { Button, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { savePict } from "../database/Database";
-import { supabase } from "../services/supabase";
-import { syncPendingPicts } from "../services/sync";
+import { savePendingImage, savePict } from "../database/Database";
 
 export async function compressAndResize(uri) {
   const manipResult = await ImageManipulator.manipulateAsync(
@@ -120,36 +118,16 @@ const imageUri = await compressAndResize(foto.uri)
 
 const base64 = await FileSystem.readAsStringAsync(imageUri, {
   encoding: FileSystem.EncodingType.Base64,
-});
+})
 
-  // 2. Convertir Base64 → Uint8Array (lo que Supabase acepta)
-  const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    // 2. Convertir Base64 → Uint8Array (lo que Supabase acepta)
+    const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
 
-  // Subir a Supabase Storage
-  const { data, error } = await supabase.storage
-    .from("pics")                 // ← tu bucket
-    .upload(nombre, binary, {
-      contentType: 'image/jpg',
-      upsert: true
-    });
-    if (error) {
-    console.log("ERROR SUBIENDO FOTO:", error);
-    return null;
-  }
-
-/////////////////////////
-
-    // // URL publica bucket
-    const { data: publicUrlData, error: urlError } = supabase.storage
-      .from("pics")
-      .getPublicUrl(nombre)
-    if (urlError) throw urlError
-    const publicUrl = publicUrlData.publicUrl
+    //  Guardar name + binary en tabla local para subir luego a supabase bucket
+    await savePendingImage(vin, nombre, binary)
 
     // Guardar en DB local
-    await savePict(vin, publicUrl, JSON.stringify(metadatos))
-    // Guardar en DB supabase
-    await syncPendingPicts()
+    await savePict(vin, JSON.stringify(metadatos))
 
     alert("Foto guardada ✔");
     await listarFotos();

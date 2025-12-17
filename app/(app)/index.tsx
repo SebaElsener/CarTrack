@@ -15,12 +15,11 @@ import { danoCloudUpdate, syncPendingPicts, syncPendingScans } from '../../src/s
 
 
 const Stack = createNativeStackNavigator()
-const router = useRouter()
 
 export default function App() {
 
   const { logout } = useAuth();
-
+  const router = useRouter()
 
 	useEffect(() => {
     	initDB();
