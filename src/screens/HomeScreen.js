@@ -36,6 +36,17 @@ export default function HomeScreen({ navigation }) {
 				onPress={() => navigation.navigate('Historial')}
 			>Ver Historial
 			</Button>
+
+			<Button style={styles.button}
+				labelStyle={{ fontSize: 20 }}
+				icon='search-web'
+				mode='elevated'
+				buttonColor='rgba(91, 116, 179, 0.88)'
+				textColor='rgba(42, 42, 42, 0.84)'
+				onPress={() => navigation.navigate('ConsultaDano')}
+			>Consulta daños
+			</Button>
+
 			<Button style={styles.button}
 				labelStyle={{ fontSize: 20 }}
 				icon='delete'

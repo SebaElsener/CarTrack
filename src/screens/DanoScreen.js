@@ -1,12 +1,12 @@
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
 import Areas from '../components/Areas';
 import Averias from '../components/Averias';
 import Codigos from '../components/Codigos';
 import Gravedades from '../components/Gravedades';
-import { addInfo, getScan } from '../database/Database';
+import { addInfo } from '../database/Database';
 import areas from '../utils/areas.json' with { type: 'json' };
 import averias from '../utils/averias.json' with { type: 'json' };
 import codigos from '../utils/codigos.json' with { type: 'json' };
@@ -46,18 +46,18 @@ export default function DanoScreen({ navigation, route }) {
 
   ////////////////////////////////
 
-  const getPreexistingDamages = async () => {
-    const result = await getScan(vin)
-    setArea(result[0].area)
-    setAveria(result[0].averia)
-    setGrav(result[0].grav)
-    setObs(result[0].obs)
-    setCodigo(result[0].codigo)
-  }
+  // const getPreexistingDamages = async () => {
+  //   const result = await getScan(vin)
+  //   setArea(result[0].area)
+  //   setAveria(result[0].averia)
+  //   setGrav(result[0].grav)
+  //   setObs(result[0].obs)
+  //   setCodigo(result[0].codigo)
+  // }
 
-    useEffect(() => {
-      getPreexistingDamages();
-    }, []);
+  //   useEffect(() => {
+  //     getPreexistingDamages();
+  //   }, []);
 
   return (
     <View style={styles.card}>
@@ -112,6 +112,14 @@ export default function DanoScreen({ navigation, route }) {
 				textColor='rgba(41, 30, 30, 0.89)'
         onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}>
         GUARDAR
+      </Button>
+      <Button
+				labelStyle={{ fontSize: 20, padding: 5 }}
+				mode='elevated'
+				buttonColor='rgba(125, 200, 181, 0.88)'
+				textColor='rgba(41, 30, 30, 0.89)'
+        onPress={() => navigation.navigate("Daños", { vin })}>
+        AGREGAR OTRO DAÑO
       </Button>
       </View>
       <View style={styles.volverButtonContainer}>

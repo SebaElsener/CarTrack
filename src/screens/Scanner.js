@@ -1,10 +1,9 @@
 
 import { Camera, CameraView } from 'expo-camera'
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
-import { Button, Text } from 'react-native-paper'
+import { Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
+import { Text } from 'react-native-paper'
 import playSound from "../components/plySound"
-import { getScan, saveScan } from '../database/Database'
 
 	///  Area de escaneo
 	const { width, height } = Dimensions.get('window');
@@ -36,14 +35,13 @@ export function isValidVIN(vin) {
   return vin[8] === checkChar;
 }
 
-export default function ScannerScreen({ navigation }) {
+export default function Scanner( { navigation }) {
     const [hasPermission, setHasPermission] = useState(null)
     const [scanned, setScanned] = useState(false)
-	const [lastResult, setLastResult] = useState("")
 	const scanLineAnim = useRef(new Animated.Value(0)).current;
 	const [torch, setTorch] = useState(false);
-  const [aligned, setAligned] = useState(false);
-const scanLock = useRef(false);
+    const [aligned, setAligned] = useState(false);
+    const scanLock = useRef(false);
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -54,7 +52,7 @@ const scanLock = useRef(false);
         getCameraPermissions()
     }, [])
 
-	  useEffect(() => {
+	useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanLineAnim, {
@@ -69,71 +67,61 @@ const scanLock = useRef(false);
         }),
       ])
     ).start();
-  }, []);
+    }, []);
 
-	const scanExistsAlert = (vin) => {
-		Alert.alert('VIN EXISTENTE', vin, [
-			{
-				text: 'IR A HISTORIAL',
-				style: 'default',
-				onPress: ()=> { navigation.navigate("Historial") }
-			},
-			{
-				text: 'VOLVER',
-				style: 'default',
-			}
-		])
-	}
+	// const scanExistsAlert = (vin) => {
+	// 	Alert.alert('VIN EXISTENTE', vin, [
+	// 		{
+	// 			text: 'IR A HISTORIAL',
+	// 			style: 'default',
+	// 			onPress: ()=> { navigation.navigate("Historial") }
+	// 		},
+	// 		{
+	// 			text: 'VOLVER',
+	// 			style: 'default',
+	// 		}
+	// 	])
+	// }
 
-	const handleScan = async ({ cornerPoints, type, data }) => {
-  if (!cornerPoints || scanLock.current) return;
-  if (!data || data.length < 6) return;
+	const handleScan = async ({ cornerPoints, data }) => {
+    if (!cornerPoints || scanLock.current) return;
+    if (!data || data.length < 6) return;
 
-  const centerX =
-    cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
-  const centerY =
-    cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
+    const centerX =
+        cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
+    const centerY =
+        cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
 
-  const inside =
+    const inside =
     centerX > LEFT &&
     centerX < LEFT + SCAN_SIZE &&
     centerY > TOP &&
     centerY < TOP + SCAN_SIZE;
 
-  setAligned(inside);
+    setAligned(inside);
 
     if (!inside) return;
 
-      scanLock.current = true;
+    scanLock.current = true;
 
-        const vin = data.trim().toUpperCase();
+    const vin = data.trim().toUpperCase();
 
-        if (!isValidVIN(vin)) {
+    if (!isValidVIN(vin)) {
     await playSound('error');
     scanLock.current = false;
     return;
-  }
+    }
 
-  setScanned(true);
-  setLastResult(vin);
-  Vibration.vibrate(120);
+    setScanned(true);
+    Vibration.vibrate(120);
 
+    await playSound('success');      	
+    setTimeout(() => {
+        scanLock.current = false;
+        setAligned(false)
+    }, 1200)
 
-		const alreadyScanned = await getScan(vin)
-
-		if (!alreadyScanned) {
-      await playSound('success');      	
-			await saveScan(vin, type)
-      setTimeout(() => {
-      scanLock.current = false;
-      setAligned(false)
-  }, 1200)
-		}
-		  else {
-			await playSound('error')
-			scanExistsAlert(data)
-      return
-		}
+    navigation.navigate("ConsultaDano", { lastResult: vin });
 	}
 
 	if (hasPermission === null) return <Text>Solicitando permisos...</Text>
@@ -144,33 +132,33 @@ const scanLock = useRef(false);
 
 	<View style={styles.container}>
 
-		 	<CameraView
-				onBarcodeScanned={scanned ? undefined : handleScan}
-		 		style={StyleSheet.absoluteFillObject}
-        autoFocus="off"
-				//flashMode={torch ? 2 : 0} // 2 = torch, 0 = off
-		 	/>
-	  <TouchableOpacity
-        style={styles.flashButton}
-        onPress={() => setTorch(!torch)}
-      >
+	    <CameraView
+			onBarcodeScanned={scanned ? undefined : handleScan}
+		 	style={StyleSheet.absoluteFillObject}
+            autoFocus="off"
+			//flashMode={torch ? 2 : 0} // 2 = torch, 0 = off
+		/>
+	    <TouchableOpacity
+            style={styles.flashButton}
+            onPress={() => setTorch(!torch)}
+        >
         <Text style={styles.flashText}>{torch ? '🔦 OFF' : '🔦 ON'}</Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
-	        {/* Overlay */}
-      <View style={styles.overlay}>
+	    {/* Overlay */}
+        <View style={styles.overlay}>
         <View style={[styles.mask, { height: TOP }]} />
 
         <View style={styles.centerRow}>
-          <View style={[styles.mask, { width: LEFT }]} />
+        <View style={[styles.mask, { width: LEFT }]} />
 
-          <View style={[
+        <View style={[
             styles.scanArea,
                 {
                   borderColor: aligned ? '#00ff88' : 'rgba(255,255,255,0.3)',
                   borderWidth: 2,
                 },
-          ]}>
+        ]}>
             <Animated.View
               style={[
                 styles.scanLine,
@@ -192,59 +180,6 @@ const scanLock = useRef(false);
           Alinee el código dentro del marco
         </Text>
       </View>
-
-      {scanned && (
-		
-        <View style={styles.result}>
-		  <View style={ styles.titleContainer}>
-            <Text style={styles.resultText}>{lastResult}</Text>
-		  </View>
-		  <View style={styles.button}>
-			<Button 
-				labelStyle={{ fontSize: 20, padding: 5 }}
-				mode='contained-tonal'
-				buttonColor='rgba(222, 101, 101, 0.95)'
-				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Daños", {lastResult})} >
-				Daños
-			</Button>
-		   </View>
-		  <View style={styles.button}>
-		    <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
-				mode='elevated'
-				buttonColor='rgba(104, 137, 198, 0.93)'
-				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Fotos", {lastResult})} >
-				Tomar fotos
-			</Button>
-          </View>
-		  <View style={styles.button}>
-		    <Button title="Escanear otro"
-				labelStyle={{ fontSize: 20, padding: 5 }}
-				mode='elevated'
-				buttonColor='rgba(115, 175, 98, 1)'
-				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => {setScanned(false)
-                        scanLock.current = false
-                        setAligned(false)
-          }}>
-				Escanear otro
-			</Button>
-		  </View>
-          <View style={styles.button}>
-		    <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
-				mode='elevated'
-				buttonColor='rgba(122, 134, 131, 0.88)'
-				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Historial")}>
-				Ver historial
-			</Button>
-		  </View>
-
-        </View>
-      )}
     </View>
   )
 }

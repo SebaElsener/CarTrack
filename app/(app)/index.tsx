@@ -7,9 +7,11 @@ import { Appbar } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
 import { initDB } from '../../src/database/Database';
 import CameraScreen from '../../src/screens/CameraScreen';
+import ConsultaDanoScreen from '../../src/screens/ConsultaDanoScreen';
 import DanoScreen from '../../src/screens/DanoScreen';
 import HistoryScreen from '../../src/screens/HistoryScreen';
 import HomeScreen from '../../src/screens/HomeScreen';
+import Scanner from '../../src/screens/Scanner';
 import ScannerScreen from '../../src/screens/ScannerScreen';
 import { danoCloudUpdate, syncPendingPicts, syncPendingScans } from '../../src/services/sync';
 
@@ -50,6 +52,8 @@ export default function App() {
 				<Stack.Screen name='Escanear' component={ScannerScreen} />
         		<Stack.Screen name='Daños' component={DanoScreen} />
        			<Stack.Screen name='Fotos' component={CameraScreen} />
+				<Stack.Screen name='ConsultaDano' component={ConsultaDanoScreen} />
+				<Stack.Screen name='Scanner' component={Scanner} />
 				<Stack.Screen name='Historial' component={HistoryScreen} />
 			</Stack.Navigator>
 	)
