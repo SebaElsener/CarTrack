@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true, // recomendado junto con el anterior
     "strict": true,
     "jsx": "react-jsx",
     "paths": {
