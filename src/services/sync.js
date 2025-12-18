@@ -6,17 +6,19 @@ import { supabase } from "./supabase";
 // Sincronizar vin al escanear supabase
 export const syncPendingScans = async () => {
   const unsyncedScans = await db.getAllAsync(`SELECT * FROM scans WHERE synced = 0`);
-  
         for (const item of unsyncedScans) {
-          const { error } = await supabase.from("scans").insert({
-            localSQL_id: item.id,
-            code: item.code,
-            type: item.type,
-            date: item.date
-          })
+          const { data, error } = await supabase
+            .from("scans")
+            .insert({
+              localSQL_id: item.id,
+              code: item.code,
+              type: item.type,
+              date: item.date
+            })
 
           if (!error) {
-            await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id) 
+            await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id)
+            return data
           } 
         }
 }

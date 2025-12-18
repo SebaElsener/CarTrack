@@ -1,10 +1,8 @@
 
-import { StyleSheet, View } from 'react-native';
+import { FlatList, Image, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 export default function ConsultaDanoItem({ item }) {
-
-  console.log("Rendering ConsultaDanoItem with item:", item);
 
   return (
     <View style={styles.card}>
@@ -17,6 +15,22 @@ export default function ConsultaDanoItem({ item }) {
       <Text>Observación: {item.obs}</Text>
       <Text>Código: {item.codigo}</Text>
       </View>
+
+      {item.pictures.length > 0 && (
+  <FlatList
+    data={item.pictures}
+    //horizontal
+    keyExtractor={(foto, index) =>
+      foto.id ? foto.id.toString() : index.toString()
+    }
+    renderItem={({ item }) => (
+      <Image
+        source={{ uri: item.pictureurl }}
+        style={{ width: 80, height: 80, marginRight: 8 }}
+      />
+    )}
+  />
+)}
     </View>
   )
 }

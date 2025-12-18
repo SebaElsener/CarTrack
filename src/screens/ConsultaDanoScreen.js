@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import ConsultaDanoItem from '../components/ConsultaDanoItem';
-import { fetchDamageInfo } from '../services/CRUD';
+import { fetchDamageInfo, fetchPicts } from '../services/CRUD';
 
 export default function ConsultaDanoScreen({ navigation, route }) {
   const [data, setData] = useState([]);
+  const [picts, setPicts] = useState([]);
   const [vin, setVin] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,8 @@ export default function ConsultaDanoScreen({ navigation, route }) {
   // 👉 Ejecutar búsqueda cuando cambia el VIN y ya hubo búsqueda
   useEffect(() => {
     if (hasSearched && vin) {
-      loadData();
+      loadData()
+      getPicts()
     }
   }, [vin, hasSearched]);
 
@@ -39,7 +41,21 @@ export default function ConsultaDanoScreen({ navigation, route }) {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+    const getPicts = async () => {
+    if (!vin) return;
+    try {
+      setLoading(true);
+      const pictsData = await fetchPicts(vin);
+      setPicts(pictsData); // incluso si viene []
+    } catch (error) {
+      console.error('Error fetching damage data:', error);
+      setPicts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
