@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useRouter } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import { useState } from 'react';
-import { View } from 'react-native';
 import { Appbar } from "react-native-paper";
 import { useAuth } from '../../src/context/AuthContext';
 import SyncManager from './SyncManager';
@@ -30,18 +29,20 @@ export default function App() {
       <Stack.Navigator screenOptions={{
         header: () => (
           <Appbar.Header>
-            <Appbar.Content title="" />
+            <Appbar.Action
+              icon="home"
+              onPress={() => router.replace("/(app)")}
+            />
+            <Appbar.Action icon="barcode-scan" onPress={() => router.replace("/(app)")} />
             {syncing && (
-              <View style={{ width: 40, height: 40, marginRight: 10 }}>
-                <LottieView
-                  source={require("../../src/utils/Sync.json")}
-                  autoPlay
-                  loop
-                  style={{ width: 40, height: 40 }}
-                />
-              </View>
+                  <LottieView
+                    source={require("../../src/utils/Sync.json")}
+                    autoPlay
+                    loop
+                    style={{ width: 34, height: 34, alignSelf: "center" }}
+                  />
             )}
-            <Appbar.Action icon="home" onPress={() => router.replace('/(app)')} />
+            <Appbar.Content title="" />
             <Appbar.Action icon="logout" onPress={logout} />
           </Appbar.Header>
         )
