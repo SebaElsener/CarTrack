@@ -2,15 +2,14 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import ConsultaDanoItem from '../components/ConsultaDanoItem';
-import { fetchDamageInfo, fetchPicts } from '../services/CRUD';
+import { fetchDamageInfo } from '../services/CRUD';
 
 export default function ConsultaDanoScreen({ navigation, route }) {
   const [data, setData] = useState([]);
-  const [picts, setPicts] = useState([]);
   const [vin, setVin] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [editing, setEditing] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   // 👉 Cargar VIN desde el scanner (UNA sola vez)
@@ -25,7 +24,6 @@ export default function ConsultaDanoScreen({ navigation, route }) {
   useEffect(() => {
     if (hasSearched && vin) {
       loadData()
-      getPicts()
     }
   }, [vin, hasSearched]);
 
@@ -43,20 +41,6 @@ export default function ConsultaDanoScreen({ navigation, route }) {
     }
   }
 
-    const getPicts = async () => {
-    if (!vin) return;
-    try {
-      setLoading(true);
-      const pictsData = await fetchPicts(vin);
-      setPicts(pictsData); // incluso si viene []
-    } catch (error) {
-      console.error('Error fetching damage data:', error);
-      setPicts([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Consulta de Daños por VIN</Text>
@@ -67,9 +51,11 @@ export default function ConsultaDanoScreen({ navigation, route }) {
         maxLength={17}
         mode="outlined"
         style={styles.input}
+        onBlur={() => setEditing(false)}
         onFocus={() => {
           setVin('');
           setHasInteracted(true);
+          setEditing(true);
         }}
         autoCapitalize="characters"
         onChangeText={(text) => setVin(text.toUpperCase())}
@@ -104,11 +90,11 @@ export default function ConsultaDanoScreen({ navigation, route }) {
       <View style={styles.cardContainer}>
         {loading && <ActivityIndicator size="large" />}
 
-        {!loading && hasSearched && (
+        {!loading && hasSearched && !editing && (
           data.length > 0 ? (
             <FlatList
               data={data}
-              keyExtractor={(item) => item.supabase_id.toString()}
+              keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <ConsultaDanoItem item={item} />
               )}

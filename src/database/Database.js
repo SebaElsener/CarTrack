@@ -1,20 +1,27 @@
 
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabaseSync('scanner.db');
+//const db = SQLite.openDatabaseSync('scanner.db');
+let db = null;
+let initializing = null;
 
-// Eliminar tabla
-export const deleteTable = async () => {
-  await db.execAsync(`
-    DROP TABLE IF EXISTS pictures;
-    DROP TABLE IF EXISTS tableForPendingImages;
-    DROP TABLE IF EXISTS scans
-    `);
+export async function getDb() {
+  if (db) return db;
+  if (!initializing) {
+    initializing = (async () => {
+      db = await SQLite.openDatabaseAsync("scanner.db");
+      return db;
+    })();
+  }
+  return initializing;
 }
 
-// Crear tabla al iniciar
+let dbReady = false;
+
+// Crear tablas al iniciar
 export const initDB = async () => {
 
+  const db = await getDb();
   await db.execAsync(
       ` PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS scans (
@@ -22,11 +29,11 @@ export const initDB = async () => {
         code TEXT NOT NULL,
         type TEXT NOT NULL,
         date TEXT NOT NULL,
-        area,
-        averia,
-        grav,
-        obs,
-        codigo,
+        area TEXT,
+        averia TEXT,
+        grav TEXT,
+        obs TEXT,
+        codigo TEXT,
         synced INTEGER DEFAULT 0,
         pendingDamages INTEGER DEFAULT 0)
       `
@@ -53,11 +60,26 @@ export const initDB = async () => {
         synced INTEGER DEFAULT 0)
       `
   )
+  dbReady = true;
+}
 
+export function isDbReady() {
+  return dbReady;
+}
+
+// Eliminar tabla
+export const deleteTable = async () => {
+  const db = await getDb();
+  await db.execAsync(`
+    DROP TABLE IF EXISTS pictures;
+    DROP TABLE IF EXISTS tableForPendingImages;
+    DROP TABLE IF EXISTS scans
+    `);
 }
 
 // Guardar un escaneo
 export const saveScan = async (code, type) => {
+    const db = await getDb();
     await db.runAsync(
       `INSERT INTO scans (code, type, date, synced) VALUES (?, ?, ?, 0);`,
       code, type, new Date().toISOString()
@@ -66,6 +88,7 @@ export const saveScan = async (code, type) => {
 
 // Guardar name y binary foto para subir a supabase bucket
 export const savePendingImage = async (vin, nombre, binary) => {
+    const db = await getDb();
     await db.runAsync(
       `INSERT INTO tableForPendingImages (vin, name, binary, synced) VALUES (?, ?, ?, 0);`,
       vin, nombre, binary
@@ -74,7 +97,8 @@ export const savePendingImage = async (vin, nombre, binary) => {
 
 // Guardar fotos + metadata para subir a supabase
 export const savePict = async (code, metadata) => {
-    await db.runAsync(
+  const db = await getDb();  
+  await db.runAsync(
       `INSERT INTO pictures (code, metadata, synced) VALUES (?, ?, 0);`,
       code, metadata
     );
@@ -82,11 +106,13 @@ export const savePict = async (code, metadata) => {
 
 // Obtener todos los escaneos
 export const getScans = async () => {
+    const db = await getDb();
     return await db.getAllAsync(`SELECT * FROM scans ORDER BY id DESC;`);
 };
 
 // Buscar un vin en base local
 export const getScan = async (vin) => {
+  const db = await getDb();
     const result = await db.getAllAsync(
       `SELECT * FROM scans WHERE code = ?`,
       [vin])
@@ -98,6 +124,7 @@ export const getScan = async (vin) => {
 
 // Añadir información al vin colectado
 export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
+  const db = await getDb();
     await db.runAsync(
         `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ?, pendingDamages = ? WHERE code = ?`,
         area, averia, grav, obs, codigo, 0, vin
@@ -108,6 +135,7 @@ export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
 
 // Borrar un registro
 export const deleteScan = async (id) => {
+  const db = await getDb();
     await db.runAsync(
       `DELETE FROM scans WHERE id = ?`,
       [id]);
@@ -115,7 +143,12 @@ export const deleteScan = async (id) => {
 
 // Borrar todo
 export const clearDb = async () => {
-  await SQLite.deleteDatabaseAsync('scanner.db')
+  const db = await getDb();
+  if (db) {
+    await db.closeAsync();
+    db = null;
+  }
+  await SQLite.deleteDatabaseAsync("scanner.db");
 };
 
-export default db
+// export default db

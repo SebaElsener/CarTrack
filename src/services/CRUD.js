@@ -25,6 +25,7 @@ export const fetchDamageInfo = async (vin) => {
   }
 
     // Mapear datos para incluir fotos
+    const mappedData =
     data.map((item) => ({
     id: item.supabase_id,
     vin: item.code,
@@ -35,9 +36,7 @@ export const fetchDamageInfo = async (vin) => {
     fecha: item.date,
     fotos: item.pictures ?? []
   }));
-    console.log("Damage data fetched:", data);
-
-  return data;
+  return mappedData;
 };
 
 // Consulta fotos supabase bucket

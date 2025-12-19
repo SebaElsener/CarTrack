@@ -1,10 +1,17 @@
 
-import db from "../database/Database";
+import { getDb, isDbReady } from "../database/Database";
 import { supabase } from "./supabase";
 
+async function waitForDb() {
+  while (!isDbReady()) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+}
 
 // Sincronizar vin al escanear supabase
 export const syncPendingScans = async () => {
+  await waitForDb();
+  const db = await getDb();
   const unsyncedScans = await db.getAllAsync(`SELECT * FROM scans WHERE synced = 0`);
         for (const item of unsyncedScans) {
           const { data, error } = await supabase
@@ -25,6 +32,8 @@ export const syncPendingScans = async () => {
 
 // Sincronizar daños supabase
 export const danoCloudUpdate = async () => {
+  await waitForDb();
+  const db = await getDb();
   const unsyncedDamages = await db.getAllAsync(`SELECT * FROM scans WHERE pendingDamages = 0`)
   //const [vin, area, averia, grav, obs, codigo] = infoToUpdate || []
   for (const item of unsyncedDamages) {
@@ -41,6 +50,8 @@ export const danoCloudUpdate = async () => {
 
 // Sincronizar fotos bucket supabase
 export const syncPendingImages = async ()=> {
+  await waitForDb();
+  const db = await getDb();
   const unsyncedImages = await db.getAllAsync(`SELECT * FROM tableForPendingImages WHERE synced = 0`)
   for (const img of unsyncedImages) {
       // Subir a Supabase Storage
@@ -71,6 +82,8 @@ export const syncPendingImages = async ()=> {
 
 // Sincronizar base datos fotos + metadatos supabase
 export const syncPendingPicts = async ()=> {
+  await waitForDb();
+  const db = await getDb();
   await syncPendingImages()
   const unsyncedPicts = await db.getAllAsync(`SELECT * FROM pictures WHERE synced = 0`)
   for (const picts of unsyncedPicts) {
