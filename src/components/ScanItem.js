@@ -10,7 +10,13 @@ export default function ScanItem({ item }) {
       <Text style={styles.code}>{item.code}</Text>
         {item.area != null ? (
       <View style={styles.danosContainer}>
-      <Text>Fecha: {item.date}</Text>
+      <Text style={styles.items}>Fecha:
+        {new Intl.DateTimeFormat('es-AR', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+          timeZone: 'America/Argentina/Buenos_Aires',
+        }).format(new Date(item.date))}
+      </Text>
       <Text>Area: {item.area}</Text>
       <Text>Avería: {item.averia}</Text>
       <Text>Gravedad: {item.grav}</Text>

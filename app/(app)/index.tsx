@@ -37,6 +37,7 @@ export default function App() {
                   source={require("../../src/utils/Sync.json")}
                   autoPlay
                   loop
+                  style={{ width: 40, height: 40 }}
                 />
               </View>
             )}
