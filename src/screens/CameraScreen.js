@@ -123,13 +123,13 @@ const base64 = await FileSystem.readAsStringAsync(imageUri, {
     // 2. Convertir Base64 → Uint8Array (lo que Supabase acepta)
     const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
 
-    //  Guardar name + binary en tabla local para subir luego a supabase bucket
-    await savePendingImage(vin, nombre, binary)
-
     // Guardar en DB local
-    await savePict(vin, JSON.stringify(metadatos))
+    const pictId = await savePict(vin, JSON.stringify(metadatos))
 
-    alert("Foto guardada ✔");
+    //  Guardar name + binary en tabla local para subir luego a supabase bucket
+    await savePendingImage(pictId, nombre, binary) /// lastInsertRowId devuelve el id único AUTOINCREMENT que asigna sqlite
+
+      alert("Foto guardada ✔");
     await listarFotos();
   }
 
@@ -143,7 +143,6 @@ const base64 = await FileSystem.readAsStringAsync(imageUri, {
   };
 
   // -------------------------------------------------------
-  // UI bonita estilo PRO
   // -------------------------------------------------------
   if (!permission?.granted) {
     return <Button title="Dar permiso cámara" onPress={requestPermission} />;

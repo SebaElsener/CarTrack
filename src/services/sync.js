@@ -56,26 +56,27 @@ export const syncPendingImages = async ()=> {
   for (const img of unsyncedImages) {
       // Subir a Supabase Storage
     const { data, error } = await supabase.storage
-    .from("pics")                 // ← tu bucket
+    .from("pics")
     .upload(img.name, img.binary, {
       contentType: 'image/jpg',
       upsert: true
     })
-    if (error) {
-      console.log("ERROR SUBIENDO FOTO:", img.name, error);
-      return null;
-    } else {
-      await db.runAsync(`UPDATE tableForPendingImages SET synced = 1 WHERE name = ?`, img.name)
       // URL publica bucket para agregar a tabla fotos
-      const { data: publicUrlData, error: urlError } = await supabase.storage
+      const { data: publicUrlData, error: urlError } = supabase.storage
       .from("pics")
       .getPublicUrl(img.name)
       if (urlError) throw urlError
       const publicUrl = publicUrlData.publicUrl
+      console.log(publicUrl)
       // Actualizar tabla fotos con URL
       await db.runAsync(
-        `UPDATE pictures SET pictureurl = ? WHERE code = ?`,
-        publicUrl, img.vin)
+        `UPDATE pictures SET pictureurl = ? WHERE id = ?`,
+        publicUrl, img.id_heredado)
+    if (error) {
+      console.log("ERROR SUBIENDO FOTO:", img.name, error);
+      return null;
+    } else {
+      await db.runAsync(`UPDATE tableForPendingImages SET synced = 1 WHERE id = ?`, img.id)
       }
   }
 }

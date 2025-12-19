@@ -54,7 +54,7 @@ export const initDB = async () => {
         `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS tableForPendingImages (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        vin TEXT NOT NULL,
+        id_heredado INTEGER NOT NULL,
         name TEXT NOT NULL,
         binary BLOB NOT NULL,
         synced INTEGER DEFAULT 0)
@@ -67,14 +67,19 @@ export function isDbReady() {
   return dbReady;
 }
 
-// Eliminar tabla
+// Eliminar tablas
 export const deleteTable = async () => {
   const db = await getDb();
-  await db.execAsync(`
-    DROP TABLE IF EXISTS pictures;
-    DROP TABLE IF EXISTS tableForPendingImages;
-    DROP TABLE IF EXISTS scans
+  try {
+    await db.execAsync(`
+      DROP TABLE IF EXISTS pictures;
+      DROP TABLE IF EXISTS tableForPendingImages;
+      DROP TABLE IF EXISTS scans
     `);
+  } catch (error) {
+      console.log("Error al eliminar tablas, ", error)
+  }
+
 }
 
 // Guardar un escaneo
@@ -87,21 +92,22 @@ export const saveScan = async (code, type) => {
 };
 
 // Guardar name y binary foto para subir a supabase bucket
-export const savePendingImage = async (vin, nombre, binary) => {
-    const db = await getDb();
+export const savePendingImage = async (pictId, nombre, binary) => { /// pictId es heredado de savePict
+    const db = await getDb()
     await db.runAsync(
-      `INSERT INTO tableForPendingImages (vin, name, binary, synced) VALUES (?, ?, ?, 0);`,
-      vin, nombre, binary
+      `INSERT INTO tableForPendingImages (id_heredado, name, binary, synced) VALUES (?, ?, ?, 0);`,
+      pictId, nombre, binary
     )
 };
 
 // Guardar fotos + metadata para subir a supabase
 export const savePict = async (code, metadata) => {
-  const db = await getDb();  
-  await db.runAsync(
+  const db = await getDb()
+  const id = await db.runAsync(
       `INSERT INTO pictures (code, metadata, synced) VALUES (?, ?, 0);`,
       code, metadata
-    );
+    )
+    return id.lastInsertRowId
 };
 
 // Obtener todos los escaneos

@@ -12,14 +12,22 @@ export default function ConsultaDanoItem({ item }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>VIN: {item.code}</Text>
-      <Text>Área: {item.area}</Text>
-      <Text>Daño: {item.averia}</Text>
-      <Text>Gravedad: {item.grav}</Text>
-      <Text>Observaciones: {item.obs}</Text>
+      <Text style={styles.title}>VIN: {item.vin}</Text>
+      <Text style={styles.items}>Fecha:
+        {new Intl.DateTimeFormat('es-AR', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+          timeZone: 'America/Argentina/Buenos_Aires',
+        }).format(new Date(item.fecha))}
+      </Text>      
+      <Text style={styles.items}>Area: {item.area}</Text>
+      <Text style={styles.items}>Avería: {item.averia}</Text>
+      <Text style={styles.items}>Gravedad: {item.gravedad}</Text>
+      <Text style={styles.items}>Observación: {item.observaciones}</Text>
+      <Text style={styles.items}>Código: {item.codigo}</Text>
 
       {fotos.length > 0 && (
-        <View style={{ marginTop: 10 }}>
+        <View style={{ marginTop: 20, marginBottom: 10 }}>
           <FlatList
             data={fotos}
             horizontal
@@ -64,7 +72,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 2,
   },
-  title: { fontWeight: 'bold', marginBottom: 5 },
+  title: { fontSize: 17, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
   image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
   counter: { marginTop: 5, textAlign: 'center', fontWeight: 'bold' },
   modal: { margin: 0 },
@@ -76,4 +84,8 @@ const styles = StyleSheet.create({
     top: 50,
     alignSelf: 'center',
   },
+  items: {
+    padding: 3,
+    fontSize: 15
+  }
 })

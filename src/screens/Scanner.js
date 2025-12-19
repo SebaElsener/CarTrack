@@ -135,7 +135,7 @@ export default function Scanner( { navigation }) {
 	    <CameraView
 			onBarcodeScanned={scanned ? undefined : handleScan}
 		 	style={StyleSheet.absoluteFillObject}
-            autoFocus="off"
+            autoFocus={false}
 			//flashMode={torch ? 2 : 0} // 2 = torch, 0 = off
 		/>
 	    <TouchableOpacity

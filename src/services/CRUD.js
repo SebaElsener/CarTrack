@@ -1,7 +1,7 @@
 
 import { supabase } from "./supabase";
 
-// Consulta daños desde supabase
+// Consulta daños y fotos desde supabase
 export const fetchDamageInfo = async (vin) => {
   const { data, error } = await supabase
     .from("scans")
@@ -33,21 +33,9 @@ export const fetchDamageInfo = async (vin) => {
     averia: item.averia,
     gravedad: item.grav,
     observaciones: item.obs,
+    codigo: item.codigo,
     fecha: item.date,
     fotos: item.pictures ?? []
   }));
   return mappedData;
-};
-
-// Consulta fotos supabase bucket
-export const fetchPicts = async (vin) => {
-  const { data, error } = await supabase
-    .from("pictures")
-    .select("*")
-    .eq("vin", vin);
-  if (error) {
-    console.error("Error fetching damage info:", error);
-    return null;
-  }
-  return data;
-};
+}
