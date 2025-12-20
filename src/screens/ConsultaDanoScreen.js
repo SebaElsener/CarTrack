@@ -1,24 +1,29 @@
+
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import ConsultaDanoItem from '../components/ConsultaDanoItem';
 import { fetchDamageInfo } from '../services/CRUD';
 
-export default function ConsultaDanoScreen({ navigation, route }) {
+const router = useRouter()
+
+export default function ConsultaDanoScreen() {
   const [data, setData] = useState([]);
   const [vin, setVin] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const { lastResult } = useLocalSearchParams();
 
   // 👉 Cargar VIN desde el scanner (UNA sola vez)
   useEffect(() => {
-    if (route.params?.lastResult) {
-      setVin(route.params.lastResult);
+    if (lastResult) {
+      setVin(lastResult);
       setHasSearched(true);
     }
-  }, [route.params?.lastResult]);
+  }, [lastResult]);
 
   // 👉 Ejecutar búsqueda cuando cambia el VIN y ya hubo búsqueda
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function ConsultaDanoScreen({ navigation, route }) {
 
       <Button
         mode="contained"
-        onPress={() => navigation.navigate('Scanner')}
+        onPress={() => router.replace("/(app)/ScannerSolo")}
         style={styles.button}
       >
         Escanear

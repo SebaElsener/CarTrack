@@ -136,7 +136,6 @@ export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
         area, averia, grav, obs, codigo, 0, vin
     )
     return "Información actualizada"
-    //return await danoCloudUpdate(infoToUpdate)
 };
 
 // Borrar un registro

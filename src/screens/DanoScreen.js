@@ -1,4 +1,5 @@
 
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
@@ -12,17 +13,18 @@ import averias from '../utils/averias.json' with { type: 'json' };
 import codigos from '../utils/codigos.json' with { type: 'json' };
 import gravedades from '../utils/gravedades.json' with { type: 'json' };
 
-export default function DanoScreen({ navigation, route }) {
+const router = useRouter()
 
-  const vin = route.params.lastResult
+export default function DanoScreen() {
+
+  const { lastResult } = useLocalSearchParams();
+  const vin = lastResult
 
   const [area, setArea] = useState("")
   const [averia, setAveria] = useState("")
   const [grav, setGrav] = useState("")
   const [obs, setObs] = useState("")
   const [codigo, setCodigo] = useState("")
-
-  /////////////////////////////////
 
   const areasDropdown = areas.map(p => ({
     label: p.descripcion, // 👈 lo que se muestra
@@ -43,21 +45,6 @@ export default function DanoScreen({ navigation, route }) {
     label: p.descripcion, // 👈 lo que se muestra
     value: p.id,          // 👈 lo que se guarda
   }))
-
-  ////////////////////////////////
-
-  // const getPreexistingDamages = async () => {
-  //   const result = await getScan(vin)
-  //   setArea(result[0].area)
-  //   setAveria(result[0].averia)
-  //   setGrav(result[0].grav)
-  //   setObs(result[0].obs)
-  //   setCodigo(result[0].codigo)
-  // }
-
-  //   useEffect(() => {
-  //     getPreexistingDamages();
-  //   }, []);
 
   return (
     <View style={styles.card}>
@@ -92,7 +79,6 @@ export default function DanoScreen({ navigation, route }) {
         style={{ padding: 2, textAlign: 'center' }}  
         outlineColor='white'
         contentStyle={{ backgroundColor: 'white' }}
-        //label={ 'Observación' }
         placeholder="Observación"
         onChangeText={text => setObs(text)}
       />
@@ -118,7 +104,12 @@ export default function DanoScreen({ navigation, route }) {
 				mode='elevated'
 				buttonColor='rgba(125, 200, 181, 0.88)'
 				textColor='rgba(41, 30, 30, 0.89)'
-        onPress={() => navigation.navigate("Daños", { vin })}>
+        onPress={() => router.replace({
+                         pathname: "/(app)/DanoScreen",
+                         params: {
+                          vin: vin
+                         }
+                       })}>
         AGREGAR OTRO DAÑO
       </Button>
       </View>
@@ -128,7 +119,7 @@ export default function DanoScreen({ navigation, route }) {
 				mode='elevated'
 				buttonColor='rgba(125, 200, 181, 0.88)'
 				textColor='rgba(41, 30, 30, 0.89)'
-        onPress={() => navigation.navigate("Escanear")}>
+        onPress={() => router.replace("/(app)/ScannerScreen")}>
         VOLVER
       </Button>
       </View>

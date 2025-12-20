@@ -26,7 +26,7 @@ export const syncPendingScans = async () => {
           if (!error) {
             await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id)
             return data
-          } 
+          }
         }
 }
 
@@ -35,7 +35,6 @@ export const danoCloudUpdate = async () => {
   await waitForDb();
   const db = await getDb();
   const unsyncedDamages = await db.getAllAsync(`SELECT * FROM scans WHERE pendingDamages = 0`)
-  //const [vin, area, averia, grav, obs, codigo] = infoToUpdate || []
   for (const item of unsyncedDamages) {
     const { error } = await supabase.from("scans")
       .update({ area: item.area, averia: item.averia, grav: item.grav, obs: item.obs, codigo: item.codigo })

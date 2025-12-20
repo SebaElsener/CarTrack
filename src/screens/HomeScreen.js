@@ -1,9 +1,12 @@
 
+import { useRouter } from 'expo-router';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
 import { deleteTable } from '../database/Database';
 
-export default function HomeScreen({ navigation }) {
+const router = useRouter()
+
+export default function HomeScreen() {
 
 	return (
 		<View style={ styles.backContainer }>
@@ -23,7 +26,7 @@ export default function HomeScreen({ navigation }) {
 				mode='elevated'
 				buttonColor='rgba(126, 249, 128, 0.85)'
 				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => navigation.navigate('Escanear')}
+				onPress={() => router.push("/(app)/ScannerScreen")}
 			>Escanear VIN
 			</Button>
 
@@ -33,7 +36,7 @@ export default function HomeScreen({ navigation }) {
 				mode='elevated'
 				buttonColor='rgba(143, 156, 143, 0.88)'
 				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => navigation.navigate('Historial')}
+				onPress={() => router.push("/(app)/HistoryScreen")}
 			>Ver Historial
 			</Button>
 
@@ -43,7 +46,7 @@ export default function HomeScreen({ navigation }) {
 				mode='elevated'
 				buttonColor='rgba(91, 116, 179, 0.88)'
 				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => navigation.navigate('ConsultaDano')}
+				onPress={() => router.push("/(app)/ConsultaDanoScreen")}
 			>Consulta daños
 			</Button>
 
@@ -64,7 +67,7 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
 	container: { justifyContent: 'space-evenly', alignItems: 'center', height: 380, top: 150 },
-	title: { fontSize: 38, color: 'rgba(77, 77, 77, 0.84)', fontWeight: 'bold' },
+	title: { fontSize: 38, color: 'rgba(70, 45, 45, 0.84)', fontWeight: 'bold' },
 	titleContainer: {
 		alignItems: 'center',
 		top: 40

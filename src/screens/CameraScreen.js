@@ -2,9 +2,11 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from "react";
 import { Button, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { savePendingImage, savePict } from "../database/Database";
+import { requestSync } from "../services/syncTrigger";
 
 export async function compressAndResize(uri) {
   const manipResult = await ImageManipulator.manipulateAsync(
@@ -21,14 +23,15 @@ export async function compressAndResize(uri) {
   return manipResult.uri;
 }
 
-export default function CameraScreen({ route }) {
+export default function CameraScreen() {
 
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState(null);
   const [fotos, setFotos] = useState([]);
 
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
-  const vin = route.params.lastResult
+  const { lastResult } = useLocalSearchParams();
+  const vin = lastResult
 
   useEffect(() => {
     listarFotos();
@@ -129,7 +132,9 @@ const base64 = await FileSystem.readAsStringAsync(imageUri, {
     //  Guardar name + binary en tabla local para subir luego a supabase bucket
     await savePendingImage(pictId, nombre, binary) /// lastInsertRowId devuelve el id único AUTOINCREMENT que asigna sqlite
 
-      alert("Foto guardada ✔");
+    requestSync()
+
+    alert("Foto guardada ✔");
     await listarFotos();
   }
 
@@ -164,7 +169,7 @@ const base64 = await FileSystem.readAsStringAsync(imageUri, {
         onPress={()=>tomarYGuardar()} />
 
       <Text style={{ fontSize: 20, fontWeight: "bold", margin: 15 }}>
-        {route.params.lastResult}
+        {vin}
       </Text>
 
       {fotos.map((item, i) => (
@@ -187,9 +192,13 @@ const base64 = await FileSystem.readAsStringAsync(imageUri, {
             📁 {item.uri.split("/").pop()}
           </Text>
 
-          <Text style={{ opacity: 0.6 }}>
-            Fecha: {item.metadatos.fecha}
-          </Text>
+          <Text style={{ opacity: 0.6 }}>Fecha:
+            {new Intl.DateTimeFormat('es-AR', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+              timeZone: 'America/Argentina/Buenos_Aires',
+            }).format(new Date(item.metadatos.fecha))}
+          </Text>  
 
           <View style={{ flexDirection: "row", marginTop: 10, gap: 10 }}>
 

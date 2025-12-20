@@ -1,9 +1,12 @@
 
+import { useRouter } from "expo-router";
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabase';
+
+const router = useRouter()
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -18,7 +21,12 @@ export default function LoginScreen() {
       password
     })
     setLoading(false)
-    if (error) setError(error.message)
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    router.replace("/(app)");
   }
 
   return (
@@ -48,7 +56,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
+  container: { flex: 1, padding: 20, marginTop: 150 },
   input: { marginTop: 15 },
   button: { marginTop: 25 },
 })

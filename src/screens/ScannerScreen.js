@@ -1,10 +1,14 @@
 
 import { Camera, CameraView } from 'expo-camera'
+import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import playSound from "../components/plySound"
 import { getScan, saveScan } from '../database/Database'
+import { requestSync } from "../services/syncTrigger"
+
+const router = useRouter()
 
 	///  Area de escaneo
 	const { width, height } = Dimensions.get('window');
@@ -36,14 +40,14 @@ export function isValidVIN(vin) {
   return vin[8] === checkChar;
 }
 
-export default function ScannerScreen({ navigation }) {
-    const [hasPermission, setHasPermission] = useState(null)
-    const [scanned, setScanned] = useState(false)
+export default function ScannerScreen() {
+  const [hasPermission, setHasPermission] = useState(null)
+  const [scanned, setScanned] = useState(false)
 	const [lastResult, setLastResult] = useState("")
 	const scanLineAnim = useRef(new Animated.Value(0)).current;
 	const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
-const scanLock = useRef(false);
+  const scanLock = useRef(false);
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -76,7 +80,7 @@ const scanLock = useRef(false);
 			{
 				text: 'IR A HISTORIAL',
 				style: 'default',
-				onPress: ()=> { navigation.navigate("Historial") }
+				onPress: ()=> { router.replace("/(app)/HistoryScreen") }
 			},
 			{
 				text: 'VOLVER',
@@ -124,6 +128,7 @@ const scanLock = useRef(false);
 		if (!alreadyScanned) {
       await playSound('success');      	
 			await saveScan(vin, type)
+      requestSync()
       setTimeout(() => {
       scanLock.current = false;
       setAligned(false)
@@ -205,7 +210,14 @@ const scanLock = useRef(false);
 				mode='contained-tonal'
 				buttonColor='rgba(222, 101, 101, 0.95)'
 				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Daños", {lastResult})} >
+				onPress={() => router.replace({
+                         pathname: "/(app)/DanoScreen",
+                         params: {
+                          lastResult
+                         }
+                       })
+                }
+      >
 				Daños
 			</Button>
 		   </View>
@@ -215,7 +227,12 @@ const scanLock = useRef(false);
 				mode='elevated'
 				buttonColor='rgba(104, 137, 198, 0.93)'
 				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Fotos", {lastResult})} >
+				onPress={() => router.replace({
+                         pathname: "/(app)/CameraScreen",
+                         params: {
+                          lastResult
+                         }
+                       })} >
 				Tomar fotos
 			</Button>
           </View>
@@ -238,7 +255,7 @@ const scanLock = useRef(false);
 				mode='elevated'
 				buttonColor='rgba(122, 134, 131, 0.88)'
 				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => navigation.navigate("Historial")}>
+				onPress={() => router.replace("/(app)/HistoryScreen")}>
 				Ver historial
 			</Button>
 		  </View>

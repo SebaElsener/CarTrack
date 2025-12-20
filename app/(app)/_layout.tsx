@@ -1,21 +1,47 @@
-
-import { Redirect, Stack } from "expo-router";
+// app/_layout.tsx
+import { Stack, useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
+import { useState } from "react";
+import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
+import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
-  const { session, loading } = useAuth();
-
-  if (loading) return null;
-
-  if (!session) {
-    return <Redirect href="/login" />;
-  }
+  const { logout } = useAuth();
+  const router = useRouter();
+  const [syncing, setSyncing] = useState(false);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false
-      }}
-    />
+    <>
+      <SyncManager onSyncChange={setSyncing} />
+      <Stack
+        screenOptions={{
+          header: () => (
+            <Appbar.Header>
+              {/* Iconos izquierda */}
+              <Appbar.Action icon="home" onPress={() => router.replace("/(app)/HomeScreen")} />
+              <Appbar.Action icon="barcode-scan" onPress={() => router.replace("/(app)/ScannerScreen")} />
+
+              {/* Animación de sincronización */}
+              {syncing && <Text>SYNC</Text>}
+              {syncing && (
+                <LottieView
+                  source={require("../../src/utils/Sync.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 34, height: 34, alignSelf: "center" }}
+                />
+              )}
+
+              {/* Título */}
+              <Appbar.Content title="" />
+
+              {/* Iconos derecha */}
+              <Appbar.Action icon="logout" onPress={logout} />
+            </Appbar.Header>
+          ),
+        }}
+      />
+    </>
   );
 }

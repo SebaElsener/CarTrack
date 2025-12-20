@@ -1,9 +1,12 @@
 
 import { Camera, CameraView } from 'expo-camera'
+import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
 import { Text } from 'react-native-paper'
 import playSound from "../components/plySound"
+
+const router = useRouter()
 
 	///  Area de escaneo
 	const { width, height } = Dimensions.get('window');
@@ -16,7 +19,7 @@ import playSound from "../components/plySound"
   J:1, K:2, L:3, M:4, N:5, P:7, R:9,
   S:2, T:3, U:4, V:5, W:6, X:7, Y:8, Z:9,
   0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9,
-};
+}
 
 const VIN_WEIGHTS = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
 
@@ -35,7 +38,7 @@ export function isValidVIN(vin) {
   return vin[8] === checkChar;
 }
 
-export default function Scanner( { navigation }) {
+export default function Scanner() {
     const [hasPermission, setHasPermission] = useState(null)
     const [scanned, setScanned] = useState(false)
 	const scanLineAnim = useRef(new Animated.Value(0)).current;
@@ -68,20 +71,6 @@ export default function Scanner( { navigation }) {
       ])
     ).start();
     }, []);
-
-	// const scanExistsAlert = (vin) => {
-	// 	Alert.alert('VIN EXISTENTE', vin, [
-	// 		{
-	// 			text: 'IR A HISTORIAL',
-	// 			style: 'default',
-	// 			onPress: ()=> { navigation.navigate("Historial") }
-	// 		},
-	// 		{
-	// 			text: 'VOLVER',
-	// 			style: 'default',
-	// 		}
-	// 	])
-	// }
 
 	const handleScan = async ({ cornerPoints, data }) => {
     if (!cornerPoints || scanLock.current) return;
@@ -121,7 +110,12 @@ export default function Scanner( { navigation }) {
         setAligned(false)
     }, 1200)
 
-    navigation.navigate("ConsultaDano", { lastResult: vin });
+    router.replace({
+      pathname: "/(app)/ConsultaDanoScreen",
+      params: {
+        lastResult: vin
+      }
+    });
 	}
 
 	if (hasPermission === null) return <Text>Solicitando permisos...</Text>
@@ -175,11 +169,10 @@ export default function Scanner( { navigation }) {
         </View>
 
         <View style={[styles.mask, { height: TOP }]} />
-
         <Text style={styles.helperText}>
           Alinee el código dentro del marco
         </Text>
-      </View>
+        </View>
     </View>
   )
 }

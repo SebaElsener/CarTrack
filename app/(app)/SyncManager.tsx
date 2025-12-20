@@ -1,3 +1,4 @@
+import { registerSyncTrigger } from "@/src/services/syncTrigger";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
@@ -9,12 +10,18 @@ interface Props {
 }
 
 export default function SyncManager({ onSyncChange }: Props) {
+
+  useEffect(() => {
+    registerSyncTrigger(runFullSync);
+    runFullSync();
+  }, []);
+
   const syncLock = useRef(false);
   const dbReady = useRef(false);
 
-  const runFullSync = useRef<() => Promise<void> | null>(null);
+  //const runFullSync = useRef<() => Promise<void> | null>(null);
 
-  runFullSync.current = async () => {
+  const runFullSync = async () => {
     if (!dbReady.current || syncLock.current) return;
 
     const state = await NetInfo.fetch();
@@ -41,16 +48,16 @@ export default function SyncManager({ onSyncChange }: Props) {
     (async () => {
       await initDB();
       dbReady.current = true;
-      runFullSync.current?.();
+      runFullSync?.();
     })();
   }, []);
 
   useEffect(() => {
     const appSub = AppState.addEventListener("change", state => {
-      if (state === "active") runFullSync.current?.();
+      if (state === "active") runFullSync?.();
     });
     const netSub = NetInfo.addEventListener(state => {
-      if (state.isConnected) runFullSync.current?.();
+      if (state.isConnected) runFullSync?.();
     });
     return () => {
       appSub.remove();
