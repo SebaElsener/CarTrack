@@ -131,12 +131,17 @@ export const getScan = async (vin) => {
 // Añadir información al vin colectado
 export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
   const db = await getDb();
-    await db.runAsync(
+  try {
+    const result = await db.runAsync(
         `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ?, pendingDamages = ? WHERE code = ?`,
-        area, averia, grav, obs, codigo, 0, vin
-    )
+        area, averia, grav, obs, codigo, 0, vin)
+    console.log("Registros actualizados: ", result.changes)
     return "Información actualizada"
-};
+  } catch (error) {
+    console.log("Error al actualizar, ", error)
+    return error
+  }
+}
 
 // Borrar un registro
 export const deleteScan = async (id) => {

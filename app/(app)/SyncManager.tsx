@@ -18,8 +18,8 @@ export default function SyncManager({ onSyncChange }: Props) {
 
   const syncLock = useRef(false);
   const dbReady = useRef(false);
-
-  //const runFullSync = useRef<() => Promise<void> | null>(null);
+  let isSyncing = false;
+  let retryTimeout: NodeJS.Timeout | null = null
 
   const runFullSync = async () => {
     if (!dbReady.current || syncLock.current) return;

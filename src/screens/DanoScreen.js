@@ -8,6 +8,7 @@ import Averias from '../components/Averias';
 import Codigos from '../components/Codigos';
 import Gravedades from '../components/Gravedades';
 import { addInfo } from '../database/Database';
+import { requestSync } from "../services/syncTrigger";
 import areas from '../utils/areas.json' with { type: 'json' };
 import averias from '../utils/averias.json' with { type: 'json' };
 import codigos from '../utils/codigos.json' with { type: 'json' };
@@ -129,6 +130,7 @@ export default function DanoScreen() {
 
 const updateInfo = async (vin, area, averia, grav, obs, codigo)=> {
   let result = await addInfo(vin, area, averia, grav, obs, codigo)
+  requestSync()
   if (result === 'Información actualizada')
       Alert.alert("ACTUALIZADO OK! => ", vin, [
         {
