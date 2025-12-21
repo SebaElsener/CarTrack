@@ -19,7 +19,8 @@ export default function SyncManager({ onSyncChange }: Props) {
   const syncLock = useRef(false);
   const dbReady = useRef(false);
   let isSyncing = false;
-  let retryTimeout: NodeJS.Timeout | null = null
+  let retryTimeout: number | null = null
+  const RETRY_DELAY = 15_000
 
   const runFullSync = async () => {
     if (!dbReady.current || syncLock.current) return;
@@ -27,22 +28,54 @@ export default function SyncManager({ onSyncChange }: Props) {
     const state = await NetInfo.fetch();
     if (!state.isConnected) return;
 
+    if (isSyncing) return;
+
+    isSyncing = true;
+    console.log("🔄 Sync started")
+
     syncLock.current = true;
     onSyncChange?.(true);
 
     try {
       const db = await getDb();
-      await syncPendingScans();
-      await syncPendingPicts();
-      await danoCloudUpdate();
+      const pendingScans = await syncPendingScans();
+      const pendingPicts = await syncPendingPicts();
+      const pendingDanos = await danoCloudUpdate();
+
+      if (pendingScans === 0 && pendingPicts === 0 && pendingDanos === 0) {
+      console.log("✅ Sync complete");
+      stopRetry();
+    } else {
+      scheduleRetry();
+    }
       console.log("Sync completado ✅");
     } catch (e) {
       console.error("SYNC ERROR:", e);
+      scheduleRetry()
     } finally {
       onSyncChange?.(false);
       syncLock.current = false;
+      isSyncing = false
     }
-  };
+  }
+
+  function scheduleRetry() {
+  if (retryTimeout) return;
+
+  retryTimeout = setTimeout(() => {
+    retryTimeout = null;
+    runFullSync();
+  }, RETRY_DELAY);
+
+  console.log("⏳ Retry scheduled");
+}
+
+function stopRetry() {
+  if (retryTimeout) {
+    clearTimeout(retryTimeout);
+    retryTimeout = null;
+  }
+}
 
   useEffect(() => {
     (async () => {

@@ -21,6 +21,7 @@ export default function AppLayout() {
               {/* Iconos izquierda */}
               <Appbar.Action icon="home" onPress={() => router.replace("/(app)/HomeScreen")} />
               <Appbar.Action icon="barcode-scan" onPress={() => router.replace("/(app)/ScannerScreen")} />
+              <Appbar.Action icon="clipboard-list-outline" onPress={() => router.replace("/(app)/HistoryScreen")} />
 
               {/* Animación de sincronización */}
               {syncing && <Text>SYNC</Text>}

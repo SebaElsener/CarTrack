@@ -2,7 +2,7 @@
 import { Camera, CameraView } from 'expo-camera'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
+import { Animated, Dimensions, StyleSheet, TouchableOpacity, Vibration, View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import playSound from "../components/plySound"
 import { getScan, saveScan } from '../database/Database'
@@ -75,19 +75,19 @@ export default function ScannerScreen() {
     ).start();
   }, []);
 
-	const scanExistsAlert = (vin) => {
-		Alert.alert('VIN EXISTENTE', vin, [
-			{
-				text: 'IR A HISTORIAL',
-				style: 'default',
-				onPress: ()=> { router.replace("/(app)/HistoryScreen") }
-			},
-			{
-				text: 'VOLVER',
-				style: 'default',
-			}
-		])
-	}
+	// const scanExistsAlert = (vin) => {
+	// 	Alert.alert('VIN EXISTENTE', vin, [
+	// 		{
+	// 			text: 'IR A HISTORIAL',
+	// 			style: 'default',
+	// 			onPress: ()=> { router.replace("/(app)/HistoryScreen") }
+	// 		},
+	// 		{
+	// 			text: 'VOLVER',
+	// 			style: 'default',
+	// 		}
+	// 	])
+	// }
 
 	const handleScan = async ({ cornerPoints, type, data }) => {
   if (!cornerPoints || scanLock.current) return;
@@ -112,7 +112,7 @@ export default function ScannerScreen() {
 
         const vin = data.trim().toUpperCase();
 
-        if (!isValidVIN(vin)) {
+  if (!isValidVIN(vin)) {
     await playSound('error');
     scanLock.current = false;
     return;
@@ -136,8 +136,10 @@ export default function ScannerScreen() {
 		}
 		  else {
 			await playSound('error')
-			scanExistsAlert(data)
-      return
+      router.push({
+        pathname: '/(app)/HistoryScreen',
+        params: {vin: vin}
+      })
 		}
 	}
 
@@ -161,6 +163,9 @@ export default function ScannerScreen() {
       >
         <Text style={styles.flashText}>{torch ? '🔦 OFF' : '🔦 ON'}</Text>
       </TouchableOpacity>
+        <Text style={styles.helperText}>
+          Alinee el código dentro del marco
+        </Text>
 
 	        {/* Overlay */}
       <View style={styles.overlay}>
@@ -190,17 +195,12 @@ export default function ScannerScreen() {
 
           <View style={[styles.mask, { width: LEFT }]} />
         </View>
-
         <View style={[styles.mask, { height: TOP }]} />
-
-        <Text style={styles.helperText}>
-          Alinee el código dentro del marco
-        </Text>
       </View>
 
       {scanned && (
 		
-        <View style={styles.result}>
+      <View style={styles.result}>
 		  <View style={ styles.titleContainer}>
             <Text style={styles.resultText}>{lastResult}</Text>
 		  </View>
@@ -249,16 +249,19 @@ export default function ScannerScreen() {
 				Escanear otro
 			</Button>
 		  </View>
-          <View style={styles.button}>
+      {/* <View style={styles.button}>
 		    <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
-				mode='elevated'
-				buttonColor='rgba(122, 134, 131, 0.88)'
-				textColor='rgba(41, 30, 30, 0.89)'
-				onPress={() => router.replace("/(app)/HistoryScreen")}>
-				Ver historial
-			</Button>
-		  </View>
+          labelStyle={{ fontSize: 20, padding: 5 }}
+          mode='elevated'
+          buttonColor='rgba(122, 134, 131, 0.88)'
+          textColor='rgba(41, 30, 30, 0.89)'
+          onPress={() => router.push({
+            pathname: '/(app)/HistoryScreen',
+            params: {vin: lastResult}
+          })}>
+          Ver historial
+			</Button> */}
+		  {/* </View> */}
 
         </View>
       )}
@@ -277,13 +280,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(220, 220, 220, 1)',
     padding: 30,
     borderRadius: 8,
-	height: 450
+	  height: 400
   },
   resultText: {
     marginBottom: 30,
     fontSize: 23,
-	fontWeight: 'bold',
-	color: 'rgba(47, 47, 47, 0.89)',
+	  fontWeight: 'bold',
+	  color: 'rgba(47, 47, 47, 0.89)',
   },
   button: {
 	marginTop: 20
@@ -301,7 +304,15 @@ const styles = StyleSheet.create({
   centerRow: { flexDirection: 'row' },
   scanArea: { width: SCAN_SIZE, height: SCAN_SIZE, position: 'relative' },
   scanLine: { height: 2, width: '100%', backgroundColor: '#00ff88' },
-  helperText: { marginTop: 24, color: '#fff', fontSize: 16, opacity: 0.9 },
+  helperText: { 
+    position: 'absolute',
+    bottom: 90,
+    alignSelf: 'center',
+    color: '#fff',
+    fontSize: 16,
+    opacity: 0.9,
+    zIndex: 20
+  },
   flashButton: {
     position: 'absolute',
     top: 50,

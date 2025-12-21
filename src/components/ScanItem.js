@@ -1,12 +1,60 @@
 
-import { StyleSheet, View } from 'react-native';
+import { memo, useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
 import { deleteScan } from '../database/Database';
 
-export default function ScanItem({ item }) {
+function ScanItem({ item, isActive }) {
+  const pulseAnim = useRef(new Animated.Value(0)).current
+  const loopRef = useRef(null)
+
+  const borderColor = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(255,0,0,0)', 'rgba(255,60,60,0.9)'],
+  })
+
+  const shadowOpacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.6],
+  })
+
+  useEffect(() => {
+    if (isActive) {
+      loopRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: false,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0,
+            duration: 600,
+            useNativeDriver: false,
+          }),
+        ])
+      )
+      loopRef.current.start()
+    } else {
+      loopRef.current?.stop()
+      pulseAnim.setValue(0)
+    }
+
+    return () => loopRef.current?.stop()
+  }, [isActive])
 
   return (
-    <View style={styles.card}>
+    <Animated.View
+      style={[
+        styles.card,
+        isActive && {
+          borderColor,
+          shadowColor: 'red',
+          shadowOpacity,
+          shadowRadius: 10,
+          elevation: 6,
+        },
+      ]}>
       <Text style={styles.code}>{item.code}</Text>
         {item.area != null ? (
       <View style={styles.danosContainer}>
@@ -38,7 +86,7 @@ export default function ScanItem({ item }) {
         </IconButton>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -50,6 +98,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     marginBottom: 20,
+    // backgroundColor: '#fff',
+    // borderWidth: 2,
+    // borderColor: 'transparent',
+    // borderRadius: 12,
+    // padding: 16,
+    // marginVertical: 10,
+    // shadowOffset: { width: 0, height: 0 },
   },
   code: {
     fontWeight: 'bold',
@@ -71,3 +126,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   }
 });
+
+export default memo(ScanItem)
