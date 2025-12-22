@@ -2,7 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { FlatList, View } from "react-native";
 import ScanItem from "../components/ScanItem";
-import { getScans } from "../database/Database";
+import { deleteScan, getScans } from "../database/Database";
 
 export default function HistoryScreen() {
   const [data, setData] = useState([]);
@@ -11,6 +11,12 @@ export default function HistoryScreen() {
   const listRef = useRef(null);
   const [activeCode, setActiveCode] = useState(null);
   const CARD_HEIGHT = 220;
+  //const [scans, setScans] = useState([]);
+
+  const handleDeleteScan = async (id) => {
+    await deleteScan(id); // borra en SQLite
+    setData((prev) => prev.filter((item) => item.id !== id)); // borra la card
+  };
 
   const loadData = async () => {
     setData(await getScans());
@@ -44,19 +50,22 @@ export default function HistoryScreen() {
   return (
     <View style={{ flex: 1, padding: 15 }}>
       {/* <Button title="Eliminar todo" onPress={() => clearScans()} /> */}
-
       <FlatList
         ref={listRef}
         data={data}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <ScanItem item={item} isActive={item.code === activeCode} />
+          <ScanItem
+            item={item}
+            isActive={item.code === activeCode}
+            onDelete={handleDeleteScan}
+          />
         )}
-        getItemLayout={(data, index) => ({
-          length: CARD_HEIGHT,
-          offset: CARD_HEIGHT * index,
-          index,
-        })}
+        // getItemLayout={(data, index) => ({
+        //   length: CARD_HEIGHT,
+        //   offset: CARD_HEIGHT * index,
+        //   index,
+        // })}
         onScrollToIndexFailed={() => {
           // fallback (por si aún no está medido)
           setTimeout(() => {
