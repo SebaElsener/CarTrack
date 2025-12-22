@@ -1,5 +1,4 @@
-
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
 //const db = SQLite.openDatabaseSync('scanner.db');
 let db = null;
@@ -20,10 +19,9 @@ let dbReady = false;
 
 // Crear tablas al iniciar
 export const initDB = async () => {
-
   const db = await getDb();
   await db.execAsync(
-      ` PRAGMA journal_mode = WAL;
+    ` PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         code TEXT NOT NULL,
@@ -37,10 +35,10 @@ export const initDB = async () => {
         synced INTEGER DEFAULT 0,
         pendingDamages INTEGER DEFAULT 0)
       `
-  )
+  );
 
   await db.execAsync(
-        `PRAGMA journal_mode = WAL;
+    `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS pictures (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         code TEXT NOT NULL,
@@ -48,10 +46,10 @@ export const initDB = async () => {
         pictureurl TEXT,
         synced INTEGER DEFAULT 0)
       `
-  )
+  );
 
-    await db.execAsync(
-        `PRAGMA journal_mode = WAL;
+  await db.execAsync(
+    `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS tableForPendingImages (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         id_heredado INTEGER NOT NULL,
@@ -59,9 +57,9 @@ export const initDB = async () => {
         binary BLOB NOT NULL,
         synced INTEGER DEFAULT 0)
       `
-  )
+  );
   dbReady = true;
-}
+};
 
 export function isDbReady() {
   return dbReady;
@@ -77,55 +75,60 @@ export const deleteTable = async () => {
       DROP TABLE IF EXISTS scans
     `);
   } catch (error) {
-      console.log("Error al eliminar tablas, ", error)
+    console.log("Error al eliminar tablas, ", error);
   }
-
-}
+};
 
 // Guardar un escaneo
 export const saveScan = async (code, type) => {
-    const db = await getDb();
-    await db.runAsync(
-      `INSERT INTO scans (code, type, date, synced) VALUES (?, ?, ?, 0);`,
-      code, type, new Date().toISOString()
-    );
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO scans (code, type, date, synced) VALUES (?, ?, ?, 0);`,
+    code,
+    type,
+    new Date().toISOString()
+  );
 };
 
 // Guardar name y binary foto para subir a supabase bucket
-export const savePendingImage = async (pictId, nombre, binary) => { /// pictId es heredado de savePict
-    const db = await getDb()
-    await db.runAsync(
-      `INSERT INTO tableForPendingImages (id_heredado, name, binary, synced) VALUES (?, ?, ?, 0);`,
-      pictId, nombre, binary
-    )
+export const savePendingImage = async (pictId, nombre, binary) => {
+  /// pictId es heredado de savePict
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO tableForPendingImages (id_heredado, name, binary, synced) VALUES (?, ?, ?, 0);`,
+    pictId,
+    nombre,
+    binary
+  );
 };
 
 // Guardar fotos + metadata para subir a supabase
 export const savePict = async (code, metadata) => {
-  const db = await getDb()
+  const db = await getDb();
   const id = await db.runAsync(
-      `INSERT INTO pictures (code, metadata, synced) VALUES (?, ?, 0);`,
-      code, metadata
-    )
-    return id.lastInsertRowId
+    `INSERT INTO pictures (code, metadata, synced) VALUES (?, ?, 0);`,
+    code,
+    metadata
+  );
+  return id.lastInsertRowId;
 };
 
 // Obtener todos los escaneos
 export const getScans = async () => {
-    const db = await getDb();
-    return await db.getAllAsync(`SELECT * FROM scans ORDER BY id DESC;`);
+  const db = await getDb();
+  return await db.getAllAsync(`SELECT * FROM scans ORDER BY id DESC;`);
 };
 
 // Buscar un vin en base local
 export const getScan = async (vin) => {
   const db = await getDb();
-    const result = await db.getAllAsync(
-      `SELECT * FROM scans WHERE code = ?`,
-      [vin])
+  const result = await db.getAllAsync(`SELECT * FROM scans WHERE code = ?`, [
+    vin,
+  ]);
 
-    if (result.length === 0) return null
-    
-    return result
+  if (result.length === 0) return null;
+
+  return result;
 };
 
 // Añadir información al vin colectado
@@ -133,22 +136,27 @@ export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
   const db = await getDb();
   try {
     const result = await db.runAsync(
-        `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ?, pendingDamages = ? WHERE code = ?`,
-        area, averia, grav, obs, codigo, 0, vin)
-    console.log("Registros actualizados: ", result.changes)
-    return "Información actualizada"
+      `UPDATE scans SET area = ?, averia = ?, grav = ?, obs = ?, codigo = ?, pendingDamages = ? WHERE code = ?`,
+      area,
+      averia,
+      grav,
+      obs,
+      codigo,
+      0,
+      vin
+    );
+    console.log("Registros actualizados: ", result.changes);
+    return "Información actualizada";
   } catch (error) {
-    console.log("Error al actualizar, ", error)
-    return error
+    console.log("Error al actualizar, ", error);
+    return error;
   }
-}
+};
 
 // Borrar un registro
 export const deleteScan = async (id) => {
   const db = await getDb();
-    await db.runAsync(
-      `DELETE FROM scans WHERE id = ?`,
-      [id]);
+  await db.runAsync(`DELETE FROM scans WHERE id = ?`, id);
 };
 
 // Borrar todo

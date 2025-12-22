@@ -9,7 +9,7 @@ const theme = {
   colors: {
     ...MD3LightTheme.colors,
     primary: "#6200ee",
-    secondary: "#03dac6",
+    secondary: "#03dac6"
   },
   roundness: 1,
 };
