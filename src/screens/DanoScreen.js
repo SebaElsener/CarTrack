@@ -2,7 +2,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
+import { Button, IconButton, Text, TextInput } from 'react-native-paper';
 import Areas from '../components/Areas';
 import Averias from '../components/Averias';
 import Codigos from '../components/Codigos';
@@ -18,8 +18,8 @@ const router = useRouter()
 
 export default function DanoScreen() {
 
-  const { lastResult } = useLocalSearchParams();
-  const vin = lastResult
+  const { vinFromRouter } = useLocalSearchParams();
+  const vin = vinFromRouter
 
   const [area, setArea] = useState("")
   const [averia, setAveria] = useState("")
@@ -79,7 +79,7 @@ export default function DanoScreen() {
         outlineStyle={{ borderRadius: 6 }}
         style={{ padding: 2, textAlign: 'center' }}  
         outlineColor='white'
-        contentStyle={{ backgroundColor: 'white' }}
+        contentStyle={{ backgroundColor: 'white', fontWeight: 'medium' }}
         placeholder="Observación"
         onChangeText={text => setObs(text)}
       />
@@ -92,19 +92,34 @@ export default function DanoScreen() {
       />
       </View>
       <View style={styles.buttonContainer}>
+        <View style={styles.takePhotoContainer}>
+          <IconButton
+            style={styles.iconButton}
+            size={40}
+            icon="camera-plus"
+            iconColor="rgba(133, 207, 189, 0.98)"
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/CameraScreen",
+                params: { vinFromRouter: vin },
+              })
+            }
+          ></IconButton>
+        </View>
       <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
+        style={{ marginBottom: 15 }}
+				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2' }}
 				mode='elevated'
-				buttonColor='rgba(125, 200, 181, 0.88)'
-				textColor='rgba(41, 30, 30, 0.89)'
+				buttonColor='rgba(140, 197, 183, 0.88)'
+				//textColor='rgba(41, 30, 30, 0.89)'
         onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}>
         GUARDAR
       </Button>
       <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
+				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2'  }}
 				mode='elevated'
-				buttonColor='rgba(125, 200, 181, 0.88)'
-				textColor='rgba(41, 30, 30, 0.89)'
+				buttonColor='rgba(140, 197, 183, 0.88)'
+        //textColor='rgba(41, 30, 30, 0.89)'
         onPress={() => router.replace({
                          pathname: "/(app)/DanoScreen",
                          params: {
@@ -114,16 +129,16 @@ export default function DanoScreen() {
         AGREGAR OTRO DAÑO
       </Button>
       </View>
-      <View style={styles.volverButtonContainer}>
+      {/* <View style={styles.volverButtonContainer}>
       <Button
-				labelStyle={{ fontSize: 20, padding: 5 }}
+				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2'  }}
 				mode='elevated'
-				buttonColor='rgba(125, 200, 181, 0.88)'
-				textColor='rgba(41, 30, 30, 0.89)'
+				buttonColor='rgba(140, 197, 183, 0.88)'
+        //textColor='rgba(41, 30, 30, 0.89)'
         onPress={() => router.replace("/(app)/ScannerScreen")}>
         VOLVER
       </Button>
-      </View>
+      </View> */}
     </View>
   );
 }
@@ -165,7 +180,7 @@ const styles = StyleSheet.create({
     marginTop: 30
   },
   buttonContainer: {
-    marginTop: 70
+    marginTop: 10
   },
   volverButtonContainer: {
     marginTop: 15
@@ -173,5 +188,8 @@ const styles = StyleSheet.create({
   textInputContainer: {
     marginBottom: 10,
     boxShadow: '0px 2px 3px 0px #1a1a1a29',
+  },
+  takePhotoContainer: {
+    marginBottom: 30
   }
 });

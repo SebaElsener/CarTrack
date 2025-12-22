@@ -12,18 +12,18 @@ export default function ConsultaDanoItem({ item }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>VIN: {item.vin}</Text>
+      {/* <Text style={styles.title}>VIN: {item.code}</Text> */}
       <Text style={styles.items}>Fecha:
         {new Intl.DateTimeFormat('es-AR', {
           dateStyle: 'short',
           timeStyle: 'short',
           timeZone: 'America/Argentina/Buenos_Aires',
-        }).format(new Date(item.fecha))}
+        }).format(new Date(item.date))}
       </Text>      
       <Text style={styles.items}>Area: {item.area}</Text>
       <Text style={styles.items}>Avería: {item.averia}</Text>
-      <Text style={styles.items}>Gravedad: {item.gravedad}</Text>
-      <Text style={styles.items}>Observación: {item.observaciones}</Text>
+      <Text style={styles.items}>Gravedad: {item.grav}</Text>
+      <Text style={styles.items}>Obs: {item.obs}</Text>
       <Text style={styles.items}>Código: {item.codigo}</Text>
 
       {fotos.length > 0 && (
@@ -68,9 +68,9 @@ const styles = StyleSheet.create({
   card: {
     padding: 15,
     marginBottom: 15,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 2,
+    backgroundColor: '#dcdcdcf9',
+    borderRadius: 4,
+    //elevation: 1,
   },
   title: { fontSize: 17, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
   image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   },
   items: {
     padding: 3,
-    fontSize: 15
+    fontSize: 15,
+    color: '#3b3b3be6'
   }
 })

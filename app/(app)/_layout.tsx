@@ -19,9 +19,9 @@ export default function AppLayout() {
           header: () => (
             <Appbar.Header>
               {/* Iconos izquierda */}
-              <Appbar.Action icon="home" onPress={() => router.replace("/(app)/HomeScreen")} />
-              <Appbar.Action icon="barcode-scan" onPress={() => router.replace("/(app)/ScannerScreen")} />
-              <Appbar.Action icon="clipboard-list-outline" onPress={() => router.replace("/(app)/HistoryScreen")} />
+              <Appbar.Action icon="home" size={35} onPress={() => router.replace("/(app)/HomeScreen")} />
+              <Appbar.Action icon="barcode-scan" size={35} onPress={() => router.replace("/(app)/ScannerScreen")} />
+              <Appbar.Action icon="clipboard-list-outline" size={35} onPress={() => router.replace("/(app)/HistoryScreen")} />
 
               {/* Animación de sincronización */}
               {syncing && <Text>SYNC</Text>}
@@ -30,7 +30,7 @@ export default function AppLayout() {
                   source={require("../../src/utils/Sync.json")}
                   autoPlay
                   loop
-                  style={{ width: 34, height: 34, alignSelf: "center" }}
+                  style={{ width: 35, height: 35, alignSelf: "center" }}
                 />
               )}
 
@@ -38,7 +38,7 @@ export default function AppLayout() {
               <Appbar.Content title="" />
 
               {/* Iconos derecha */}
-              <Appbar.Action icon="logout" onPress={logout} />
+              <Appbar.Action icon="logout" size={35} onPress={logout} />
             </Appbar.Header>
           ),
         }}

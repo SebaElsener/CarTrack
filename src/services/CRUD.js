@@ -31,10 +31,10 @@ export const fetchDamageInfo = async (vin) => {
     vin: item.code,
     area: item.area,
     averia: item.averia,
-    gravedad: item.grav,
-    observaciones: item.obs,
+    grav: item.grav,
+    obs: item.obs,
     codigo: item.codigo,
-    fecha: item.date,
+    date: item.date,
     fotos: item.pictures ?? []
   }));
   return mappedData;
