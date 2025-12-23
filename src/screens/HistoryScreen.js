@@ -11,7 +11,6 @@ export default function HistoryScreen() {
   const listRef = useRef(null);
   const [activeCode, setActiveCode] = useState(null);
   const CARD_HEIGHT = 220;
-  //const [scans, setScans] = useState([]);
 
   const handleDeleteScan = async (id) => {
     await deleteScan(id); // borra en SQLite
@@ -49,7 +48,6 @@ export default function HistoryScreen() {
 
   return (
     <View style={{ flex: 1, padding: 15 }}>
-      {/* <Button title="Eliminar todo" onPress={() => clearScans()} /> */}
       <FlatList
         ref={listRef}
         data={data}
@@ -61,11 +59,6 @@ export default function HistoryScreen() {
             onDelete={handleDeleteScan}
           />
         )}
-        // getItemLayout={(data, index) => ({
-        //   length: CARD_HEIGHT,
-        //   offset: CARD_HEIGHT * index,
-        //   index,
-        // })}
         onScrollToIndexFailed={() => {
           // fallback (por si aún no está medido)
           setTimeout(() => {

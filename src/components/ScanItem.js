@@ -9,7 +9,6 @@ function ScanItem({ item, isActive, onDelete }) {
 
   /** ------------------ Pulse ------------------ */
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  //const loopRef = (useRef < Animated.CompositeAnimation) | (null > null);
   const loopRef = useRef(null);
 
   /** ------------------ Delete animation ------------------ */
@@ -161,9 +160,6 @@ function ScanItem({ item, isActive, onDelete }) {
             <ConsultaDanoItem
               item={{
                 ...item,
-                // date: item.date,
-                // vin: item.vin,
-                // fotos: item.fotos,
               }}
             />
           </View>
@@ -178,9 +174,6 @@ function ScanItem({ item, isActive, onDelete }) {
             <ConsultaDanoItem
               item={{
                 ...item,
-                // date: item.date,
-                // vin: item.vin,
-                // fotos: item.fotos,
               }}
             />
           </Animated.View>

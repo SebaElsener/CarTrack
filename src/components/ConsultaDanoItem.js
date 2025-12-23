@@ -44,9 +44,10 @@ export default function ConsultaDanoItem({ item }) {
       <ScrollView
         horizontal
         pagingEnabled
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         onMomentumScrollEnd={onMomentumScrollEnd}
         snapToInterval={containerWidth}
+        decelerationRate="fast"
       >
         {item.damages.map((damage) => (
           <View

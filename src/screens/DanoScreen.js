@@ -129,16 +129,6 @@ export default function DanoScreen() {
         AGREGAR OTRO DAÑO
       </Button>
       </View>
-      {/* <View style={styles.volverButtonContainer}>
-      <Button
-				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2'  }}
-				mode='elevated'
-				buttonColor='rgba(140, 197, 183, 0.88)'
-        //textColor='rgba(41, 30, 30, 0.89)'
-        onPress={() => router.replace("/(app)/ScannerScreen")}>
-        VOLVER
-      </Button>
-      </View> */}
     </View>
   );
 }
