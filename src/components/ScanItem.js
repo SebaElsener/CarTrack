@@ -238,10 +238,11 @@ const styles = StyleSheet.create({
     color: "#4d4d4de2",
   },
   danosContainer: {
-    margin: 15,
+    //margin: 5,
   },
   button: {
     marginBottom: 12,
+    marginTop: 12,
   },
   actionBtnsContainer: {
     flexDirection: "row",

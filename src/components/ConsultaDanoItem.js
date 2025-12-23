@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
-  FlatList,
+  Animated,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,53 +14,66 @@ import Modal from "react-native-modal";
 export default function ConsultaDanoItem({ item }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   const fotos = item.fotos || [];
   const images = fotos.map((f) => ({ url: f.pictureurl }));
 
-  return (
-    <View style={styles.card}>
-      <View style={{ marginTop: 20, marginBottom: 10 }}>
-        <FlatList
-          data={item.damages}
-          //horizontal
-          ListHeaderComponent={() => (
-            <View>
-              <Text style={styles.items}>
-                {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                  timeZone: "America/Argentina/Buenos_Aires",
-                }).format(new Date(item.date))}`}
-              </Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <>
-              <Text style={styles.items}>Area: {item.area}</Text>
-              <Text style={styles.items}>Avería: {item.averia}</Text>
-              <Text style={styles.items}>Gravedad: {item.grav}</Text>
-              <Text style={styles.items}>Obs: {item.obs}</Text>
-              <Text style={styles.items}>Código: {item.codigo}</Text>
-            </>
-          )}
-          contentContainerStyle={{ padding: 10 }}
-          showsVerticalScrollIndicator={false}
-        />
-        <Text style={styles.counter}>
-          {currentIndex + 1} / {fotos.length}
-        </Text>
-      </View>
+  const onMomentumScrollEnd = (e) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / containerWidth);
+    setCurrentIndex(index);
+  };
 
+  return (
+    <View
+      style={styles.card}
+      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+    >
+      {/* Fecha */}
+      <Text style={styles.items}>
+        {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+          dateStyle: "short",
+          timeStyle: "short",
+          timeZone: "America/Argentina/Buenos_Aires",
+        }).format(new Date(item.date))}`}
+      </Text>
+
+      {/* Scroll horizontal de daños */}
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        snapToInterval={containerWidth}
+      >
+        {item.damages.map((damage) => (
+          <View
+            key={damage.id}
+            style={[styles.damageCard, { width: containerWidth }]}
+          >
+            <Text style={styles.items}>Área: {damage.area}</Text>
+            <Text style={styles.items}>Avería: {damage.averia}</Text>
+            <Text style={styles.items}>Gravedad: {damage.grav}</Text>
+            <Text style={styles.items}>Obs: {damage.obs}</Text>
+            <Text style={styles.items}>Código: {damage.codigo}</Text>
+          </View>
+        ))}
+      </ScrollView>
+
+      {/* Indicador de daño */}
+      <Text style={styles.counter}>
+        {currentIndex + 1} / {item.damages.length}
+      </Text>
+
+      {/* Fotos */}
       {fotos.length > 0 && (
-        <View style={{ marginTop: 20, marginBottom: 10 }}>
-          <FlatList
-            data={fotos}
-            horizontal
-            keyExtractor={(f, idx) => f.id?.toString() || idx.toString()}
-            renderItem={({ item: foto, index }) => (
+        <View style={{ marginTop: 20 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {fotos.map((foto, index) => (
               <TouchableOpacity
+                key={foto.id ?? index}
                 onPress={() => {
                   setCurrentIndex(index);
                   setModalVisible(true);
@@ -67,15 +81,15 @@ export default function ConsultaDanoItem({ item }) {
               >
                 <Image source={{ uri: foto.pictureurl }} style={styles.image} />
               </TouchableOpacity>
-            )}
-            showsHorizontalScrollIndicator={false}
-          />
+            ))}
+          </ScrollView>
           <Text style={styles.counter}>
             {currentIndex + 1} / {fotos.length}
           </Text>
         </View>
       )}
 
+      {/* Modal fotos */}
       <Modal
         isVisible={modalVisible}
         onBackdropPress={() => setModalVisible(false)}
@@ -86,7 +100,6 @@ export default function ConsultaDanoItem({ item }) {
           index={currentIndex}
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}
-          onChange={(index) => setCurrentIndex(index)}
           saveToLocalByLongPress={false}
           renderIndicator={(current, total) => (
             <Text style={styles.modalCounter}>
@@ -105,16 +118,29 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#dcdcdcf9",
     borderRadius: 4,
-    //elevation: 1,
   },
-  title: {
-    fontSize: 17,
-    fontWeight: "bold",
-    marginBottom: 10,
+  damageCard: {
+    marginTop: 10,
+    //marginBottom: 10,
+    minHeight: 160,
+    maxHeight: 160,
+  },
+  items: {
+    padding: 3,
+    fontSize: 15,
+    color: "#3b3b3be6",
+  },
+  counter: {
+    marginTop: 5,
     textAlign: "center",
+    fontWeight: "bold",
   },
-  image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
-  counter: { marginTop: 5, textAlign: "center", fontWeight: "bold" },
+  image: {
+    width: 100,
+    height: 100,
+    marginRight: 8,
+    borderRadius: 6,
+  },
   modal: { margin: 0 },
   modalCounter: {
     color: "#fff",
@@ -123,10 +149,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 50,
     alignSelf: "center",
-  },
-  items: {
-    padding: 3,
-    fontSize: 15,
-    color: "#3b3b3be6",
   },
 });
