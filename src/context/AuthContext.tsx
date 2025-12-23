@@ -1,5 +1,11 @@
 import type { Session } from "@supabase/supabase-js";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { supabase } from "../services/supabase";
 
 const AuthContext = createContext<{
@@ -7,13 +13,15 @@ const AuthContext = createContext<{
   loading: boolean;
   logout: () => Promise<void>;
   setError: (msg: string) => void;
-  error: string
+  setLoading: (value: boolean) => void;
+  error: string;
 }>({
   session: null,
   loading: true,
+  setLoading: () => {},
   logout: async () => {},
   setError: () => {},
-  error: ""
+  error: "",
 });
 
 type AuthProviderProps = {
@@ -31,10 +39,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(false);
     });
 
-    const { data: listener } =
-      supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
         setSession(session);
-      });
+      }
+    );
 
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -42,12 +51,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     try {
       await supabase.auth.signOut();
+      setSession(null);
+      setLoading(false);
     } catch (err: any) {
       setError(err.message || "Error al cerrar sesión");
-    }  };
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ session, loading, logout, error, setError }}>
+    <AuthContext.Provider
+      value={{ session, loading, logout, error, setError, setLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

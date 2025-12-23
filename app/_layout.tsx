@@ -1,7 +1,10 @@
-
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { MD3LightTheme, Provider as PaperProvider, Snackbar } from 'react-native-paper';
+import {
+  MD3LightTheme,
+  Provider as PaperProvider,
+  Snackbar,
+} from "react-native-paper";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 
 const theme = {
@@ -9,7 +12,7 @@ const theme = {
   colors: {
     ...MD3LightTheme.colors,
     primary: "#6200ee",
-    secondary: "#03dac6"
+    secondary: "#03dac6",
   },
   roundness: 1,
 };
@@ -17,11 +20,10 @@ const theme = {
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
-    <AuthProvider>
-      <RootStack />
-    </AuthProvider>
+      <AuthProvider>
+        <RootStack />
+      </AuthProvider>
     </PaperProvider>
-
   );
 }
 
@@ -38,7 +40,10 @@ function RootStack() {
       <Stack screenOptions={{ headerShown: false }} />
       <Snackbar
         visible={visible}
-        onDismiss={() => { setVisible(false); setError(""); }}
+        onDismiss={() => {
+          setVisible(false);
+          setError("");
+        }}
         duration={3000}
       >
         {error}

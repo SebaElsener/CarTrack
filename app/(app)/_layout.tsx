@@ -1,15 +1,33 @@
 // app/_layout.tsx
 import { Stack, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+//import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
-  const { logout } = useAuth();
+  const { logout, loading, session, setLoading } = useAuth();
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    console.log(loading, session);
+    if (!loading && session) {
+      router.replace("/(app)"); // 🔥 ESTA ES LA CLAVE
+    } else {
+      router.replace("/(auth)/login");
+    }
+  }, [session, loading]);
+
+  // if (loading) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <ActivityIndicator size="large" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <>
@@ -19,9 +37,21 @@ export default function AppLayout() {
           header: () => (
             <Appbar.Header>
               {/* Iconos izquierda */}
-              <Appbar.Action icon="home" size={35} onPress={() => router.replace("/(app)/HomeScreen")} />
-              <Appbar.Action icon="barcode-scan" size={35} onPress={() => router.replace("/(app)/ScannerScreen")} />
-              <Appbar.Action icon="clipboard-list-outline" size={35} onPress={() => router.replace("/(app)/HistoryScreen")} />
+              <Appbar.Action
+                icon="home"
+                size={35}
+                onPress={() => router.replace("/(app)/HomeScreen")}
+              />
+              <Appbar.Action
+                icon="barcode-scan"
+                size={35}
+                onPress={() => router.replace("/(app)/ScannerScreen")}
+              />
+              <Appbar.Action
+                icon="clipboard-list-outline"
+                size={35}
+                onPress={() => router.replace("/(app)/HistoryScreen")}
+              />
 
               {/* Animación de sincronización */}
               {syncing && <Text>SYNC</Text>}
@@ -46,3 +76,7 @@ export default function AppLayout() {
     </>
   );
 }
+
+// const styles = StyleSheet.create({
+//   container: { flex: 1, justifyContent: "center", alignItems: "center" },
+// });

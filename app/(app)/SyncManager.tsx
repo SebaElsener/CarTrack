@@ -3,14 +3,17 @@ import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { getDb, initDB } from "../../src/database/Database";
-import { danoCloudUpdate, syncPendingPicts, syncPendingScans } from "../../src/services/sync";
+import {
+  danoCloudUpdate,
+  syncPendingPicts,
+  syncPendingScans,
+} from "../../src/services/sync";
 
 interface Props {
   onSyncChange?: (syncing: boolean) => void;
 }
 
 export default function SyncManager({ onSyncChange }: Props) {
-
   useEffect(() => {
     registerSyncTrigger(runFullSync);
     runFullSync();
@@ -19,8 +22,8 @@ export default function SyncManager({ onSyncChange }: Props) {
   const syncLock = useRef(false);
   const dbReady = useRef(false);
   let isSyncing = false;
-  let retryTimeout: number | null = null
-  const RETRY_DELAY = 15_000
+  let retryTimeout: number | null = null;
+  const RETRY_DELAY = 15_000;
 
   const runFullSync = async () => {
     if (!dbReady.current || syncLock.current) return;
@@ -31,7 +34,7 @@ export default function SyncManager({ onSyncChange }: Props) {
     if (isSyncing) return;
 
     isSyncing = true;
-    console.log("🔄 Sync started")
+    console.log("🔄 Sync started");
 
     syncLock.current = true;
     onSyncChange?.(true);
@@ -43,39 +46,39 @@ export default function SyncManager({ onSyncChange }: Props) {
       const pendingDanos = await danoCloudUpdate();
 
       if (pendingScans === 0 && pendingPicts === 0 && pendingDanos === 0) {
-      console.log("✅ Sync complete");
-      stopRetry();
-    } else {
-      scheduleRetry();
-    }
+        console.log("✅ Sync complete");
+        stopRetry();
+      } else {
+        scheduleRetry();
+      }
       console.log("Sync completado ✅");
     } catch (e) {
       console.error("SYNC ERROR:", e);
-      scheduleRetry()
+      scheduleRetry();
     } finally {
       onSyncChange?.(false);
       syncLock.current = false;
-      isSyncing = false
+      isSyncing = false;
     }
-  }
+  };
 
   function scheduleRetry() {
-  if (retryTimeout) return;
+    if (retryTimeout) return;
 
-  retryTimeout = setTimeout(() => {
-    retryTimeout = null;
-    runFullSync();
-  }, RETRY_DELAY);
+    retryTimeout = setTimeout(() => {
+      retryTimeout = null;
+      runFullSync();
+    }, RETRY_DELAY);
 
-  console.log("⏳ Retry scheduled");
-}
-
-function stopRetry() {
-  if (retryTimeout) {
-    clearTimeout(retryTimeout);
-    retryTimeout = null;
+    console.log("⏳ Retry scheduled");
   }
-}
+
+  function stopRetry() {
+    if (retryTimeout) {
+      clearTimeout(retryTimeout);
+      retryTimeout = null;
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -86,10 +89,10 @@ function stopRetry() {
   }, []);
 
   useEffect(() => {
-    const appSub = AppState.addEventListener("change", state => {
+    const appSub = AppState.addEventListener("change", (state) => {
       if (state === "active") runFullSync?.();
     });
-    const netSub = NetInfo.addEventListener(state => {
+    const netSub = NetInfo.addEventListener((state) => {
       if (state.isConnected) runFullSync?.();
     });
     return () => {

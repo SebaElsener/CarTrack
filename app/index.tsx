@@ -1,4 +1,3 @@
-
 import { Redirect } from "expo-router";
 import { useAuth } from "../src/context/AuthContext";
 
@@ -11,5 +10,5 @@ export default function Index() {
     return <Redirect href="/(app)" />;
   }
 
-  return <Redirect href="/(app)/login" />;
+  return <Redirect href="/(auth)/login" />;
 }
