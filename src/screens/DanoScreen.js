@@ -123,7 +123,7 @@ export default function DanoScreen() {
         onPress={() => router.replace({
                          pathname: "/(app)/DanoScreen",
                          params: {
-                          vin: vin
+                          vinFromRouter: vin
                          }
                        })}>
         AGREGAR OTRO DAÑO

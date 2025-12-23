@@ -10,7 +10,6 @@ export default function HistoryScreen() {
 
   const listRef = useRef(null);
   const [activeCode, setActiveCode] = useState(null);
-  const CARD_HEIGHT = 220;
 
   const handleDeleteScan = async (id) => {
     await deleteScan(id); // borra en SQLite
@@ -47,11 +46,11 @@ export default function HistoryScreen() {
   }, [activeCode, data]);
 
   return (
-    <View style={{ flex: 1, padding: 15 }}>
+    <View style={{ flex: 1, padding: 4 }}>
       <FlatList
         ref={listRef}
         data={data}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.scan_id.toString()}
         renderItem={({ item }) => (
           <ScanItem
             item={item}

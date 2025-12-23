@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
-  Animated,
   Image,
   ScrollView,
   StyleSheet,
@@ -12,34 +11,25 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import Modal from "react-native-modal";
 
 export default function ConsultaDanoItem({ item }) {
+  const { damages = [], pictures = [] } = item;
   const [modalVisible, setModalVisible] = useState(false);
+  const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const [containerWidth, setContainerWidth] = useState(0);
-
-  const scrollX = useRef(new Animated.Value(0)).current;
-
-  const fotos = item.fotos || [];
-  const images = fotos.map((f) => ({ url: f.pictureurl }));
 
   const onMomentumScrollEnd = (e) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / containerWidth);
     setCurrentIndex(index);
   };
 
+  const modalImages = pictures.map((uri) => ({ url: uri }));
+
   return (
     <View
       style={styles.card}
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
     >
-      {/* Fecha */}
-      <Text style={styles.items}>
-        {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
-          dateStyle: "short",
-          timeStyle: "short",
-          timeZone: "America/Argentina/Buenos_Aires",
-        }).format(new Date(item.date))}`}
-      </Text>
-
       {/* Scroll horizontal de daños */}
       <ScrollView
         horizontal
@@ -49,11 +39,18 @@ export default function ConsultaDanoItem({ item }) {
         snapToInterval={containerWidth}
         decelerationRate="fast"
       >
-        {item.damages.map((damage) => (
+        {damages.map((damage) => (
           <View
             key={damage.id}
             style={[styles.damageCard, { width: containerWidth }]}
           >
+            <Text style={styles.items}>
+              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+                dateStyle: "short",
+                timeStyle: "short",
+                timeZone: "America/Argentina/Buenos_Aires",
+              }).format(new Date(damage.date))}`}
+            </Text>
             <Text style={styles.items}>Área: {damage.area}</Text>
             <Text style={styles.items}>Avería: {damage.averia}</Text>
             <Text style={styles.items}>Gravedad: {damage.grav}</Text>
@@ -69,23 +66,23 @@ export default function ConsultaDanoItem({ item }) {
       </Text>
 
       {/* Fotos */}
-      {fotos.length > 0 && (
+      {pictures.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {fotos.map((foto, index) => (
+            {pictures.map((foto, index) => (
               <TouchableOpacity
                 key={foto.id ?? index}
                 onPress={() => {
-                  setCurrentIndex(index);
+                  setPictsCurrentIndex(index);
                   setModalVisible(true);
                 }}
               >
-                <Image source={{ uri: foto.pictureurl }} style={styles.image} />
+                <Image source={{ uri: foto }} style={styles.image} />
               </TouchableOpacity>
             ))}
           </ScrollView>
           <Text style={styles.counter}>
-            {currentIndex + 1} / {fotos.length}
+            {pictsCurrentIndex + 1} / {pictures.length}
           </Text>
         </View>
       )}
@@ -97,8 +94,8 @@ export default function ConsultaDanoItem({ item }) {
         style={styles.modal}
       >
         <ImageViewer
-          imageUrls={images}
-          index={currentIndex}
+          imageUrls={modalImages}
+          index={pictsCurrentIndex}
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}
           saveToLocalByLongPress={false}
@@ -115,7 +112,7 @@ export default function ConsultaDanoItem({ item }) {
 
 const styles = StyleSheet.create({
   card: {
-    padding: 15,
+    padding: 10,
     marginBottom: 15,
     backgroundColor: "#dcdcdcf9",
     borderRadius: 4,
@@ -124,7 +121,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     //marginBottom: 10,
     minHeight: 160,
-    maxHeight: 160,
+    maxHeight: 180,
   },
   items: {
     padding: 3,

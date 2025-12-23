@@ -42,7 +42,6 @@ export const danoCloudUpdate = async () => {
   const unsyncedDamages = await db.getAllAsync(
     `SELECT * FROM damages WHERE synced = 0`
   );
-  console.log("A sincronizar desdes sync.js", unsyncedDamages);
   if (!unsyncedDamages || unsyncedDamages.length === 0) {
     return 0; // nada pendiente
   }
@@ -55,6 +54,7 @@ export const danoCloudUpdate = async () => {
       obs: item.obs,
       codigo: item.codigo,
       vin: item.vin,
+      date: item.date,
     });
     if (!error) {
       await db.runAsync(`UPDATE damages SET synced = 1 WHERE id = ?`, item.id);
@@ -88,7 +88,6 @@ export const syncPendingImages = async () => {
       .getPublicUrl(img.name);
     if (urlError) throw urlError;
     const publicUrl = publicUrlData.publicUrl;
-    console.log(publicUrl);
     // Actualizar tabla fotos con URL
     await db.runAsync(
       `UPDATE pictures SET pictureurl = ? WHERE id = ?`,

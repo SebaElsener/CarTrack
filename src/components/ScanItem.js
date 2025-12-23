@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
 import { memo, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
@@ -6,6 +7,31 @@ import ConsultaDanoItem from "./ConsultaDanoItem";
 
 function ScanItem({ item, isActive, onDelete }) {
   const router = useRouter();
+
+  const [localPicts, setLocalPicts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPicts = async () => {
+      try {
+        const pictures = await getPictsLocalUri();
+        if (mounted) {
+          setLocalPicts(pictures);
+        }
+      } catch (e) {
+        console.log("Error cargando fotos", e);
+      }
+    };
+
+    if (localPicts.length === 0 && item?.fotos?.length > 0) {
+      loadPicts();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [item]);
 
   /** ------------------ Pulse ------------------ */
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -77,7 +103,7 @@ function ScanItem({ item, isActive, onDelete }) {
         useNativeDriver: false,
       }),
     ]).start(() => {
-      onDelete(item.id);
+      onDelete(item.scan_id);
     });
   };
 
@@ -106,6 +132,18 @@ function ScanItem({ item, isActive, onDelete }) {
 
     return () => loopRef.current?.stop();
   }, [isActive]);
+
+  /////// Traer fotos localmente
+  const getPictsLocalUri = async () => {
+    const path = item?.fotos?.[0];
+    if (!path) return [];
+
+    const archivos = await FileSystem.readDirectoryAsync(path);
+    const lista = archivos
+      .filter((a) => a.endsWith(".jpg"))
+      .map((a) => path + a);
+    return lista;
+  };
 
   /** ------------------ Render ------------------ */
   return (
@@ -137,7 +175,7 @@ function ScanItem({ item, isActive, onDelete }) {
 
       <Text style={styles.code}>{item.vin}</Text>
 
-      {item.damages != null && (
+      {item.damages.length > 0 && (
         <View style={styles.danosContainer}>
           <Button
             buttonColor="rgba(133, 207, 189, 0.98)"
@@ -152,14 +190,16 @@ function ScanItem({ item, isActive, onDelete }) {
           <View
             style={{ position: "absolute", opacity: 0, zIndex: -1 }}
             onLayout={(e) => {
-              if (contentHeight === 0) {
-                setContentHeight(e.nativeEvent.layout.height);
-              }
+              // if (contentHeight === 0) {
+              //   setContentHeight(e.nativeEvent.layout.height);
+              // }
+              setContentHeight(e.nativeEvent.layout.height);
             }}
           >
             <ConsultaDanoItem
               item={{
-                ...item,
+                damages: item.damages,
+                pictures: localPicts,
               }}
             />
           </View>
@@ -173,7 +213,8 @@ function ScanItem({ item, isActive, onDelete }) {
           >
             <ConsultaDanoItem
               item={{
-                ...item,
+                damages: item.damages,
+                pictures: localPicts,
               }}
             />
           </Animated.View>

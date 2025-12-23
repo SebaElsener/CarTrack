@@ -123,7 +123,6 @@ export default function CameraScreen() {
     ////////////////////////////////////
 
     const imageUri = await compressAndResize(foto.uri);
-
     const base64 = await FileSystem.readAsStringAsync(imageUri, {
       encoding: FileSystem.EncodingType.Base64,
     });

@@ -58,6 +58,7 @@ export const initDB = async () => {
         CREATE TABLE IF NOT EXISTS damages (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         vin TEXT NOT NULL,
+        date TEXT NOT NULL,
         area TEXT NOT NULL,
         averia TEXT NOT NULL,
         grav TEXT NOT NULL,
@@ -150,46 +151,52 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
   // Traemos scans con daños concatenados y fotos por VIN
   const rows = await db.getAllAsync(
     `
-    SELECT
-      s.id AS scan_id,
-      s.vin,
-      s.date AS scan_date,
-      GROUP_CONCAT(
-        d.id || '||' || d.area || '||' || d.averia || '||' || d.grav || '||' || d.obs || '||' || d.codigo,
-        ';;'
-      ) AS damages_concat,
-      IFNULL((
-        SELECT GROUP_CONCAT(p.pictureurl, ',')
-        FROM pictures p
-        WHERE p.vin = s.vin
-      ), '') AS photos_concat
-    FROM scans s
-    LEFT JOIN damages d ON s.vin = d.vin
-    ${whereClause}
-    GROUP BY s.id
-    ORDER BY s.id DESC
-    LIMIT ? OFFSET ?;
+      SELECT
+        s.id AS scan_id,
+        s.vin,
+        s.date AS scan_date,
+        -- Array de daños como JSON
+        IFNULL(
+          json_group_array(
+            json_object(
+              'id', d.id,
+              'area', d.area,
+              'averia', d.averia,
+              'grav', d.grav,
+              'obs', d.obs,
+              'codigo', d.codigo,
+              'date', d.date
+            )
+          ),
+          '[]'
+        ) AS damages,
+        -- Array de carpetas de fotos por VIN
+        IFNULL(
+          (
+            SELECT json_group_array(JSON_EXTRACT(p.metadata, '$.carpeta'))
+            FROM pictures p
+            WHERE p.vin = s.vin
+          ),
+          '[]'
+        ) AS fotos
+      FROM scans s
+      LEFT JOIN damages d ON s.vin = d.vin
+      ${whereClause}
+      GROUP BY s.id
+      ORDER BY s.id DESC
+      LIMIT ? OFFSET ?;
   `,
     vin ? [vin, limit, offset] : [limit, offset]
   );
-  // Parseamos daños y fotos
-  return rows.map((row) => {
-    const damages = row.damages_concat
-      ? row.damages_concat.split(";;").map((d) => {
-          const [id, area, averia, grav, obs, codigo] = d.split("||");
-          return { id: Number(id), area, averia, grav, obs, codigo };
-        })
-      : [];
 
-    const fotos = row.photos_concat ? row.photos_concat.split(",") : [];
-    return {
-      id: row.scan_id,
-      vin: row.vin,
-      date: row.scan_date,
-      damages,
-      fotos,
-    };
-  });
+  // Transformar los JSON strings en arrays JS
+  const result = rows.map((row) => ({
+    ...row,
+    damages: JSON.parse(row.damages),
+    fotos: JSON.parse(row.fotos),
+  }));
+
+  return result;
 };
 
 // Buscar un vin en base local
@@ -208,14 +215,16 @@ export const getScan = async (vin) => {
 export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
   const db = await getDb();
   try {
+    const fecha = new Date().toISOString();
     const result = await db.runAsync(
-      `INSERT INTO damages (area, averia, grav, obs, codigo, synced, vin) VALUES (?, ?, ?, ?, ?, 0, ?);`,
+      `INSERT INTO damages (area, averia, grav, obs, codigo, synced, vin, date) VALUES (?, ?, ?, ?, ?, 0, ?, ?);`,
       area,
       averia,
       grav,
       obs,
       codigo,
-      vin
+      vin,
+      fecha
     );
     console.log("Registros actualizados: ", result.changes);
     return "Información actualizada";
