@@ -4,9 +4,9 @@ import { Animated, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text } from "react-native-paper";
 import ConsultaDanoItem from "./ConsultaDanoItem";
 
-const router = useRouter();
-
 function ScanItem({ item, isActive, onDelete }) {
+  const router = useRouter();
+
   /** ------------------ Pulse ------------------ */
   const pulseAnim = useRef(new Animated.Value(0)).current;
   //const loopRef = (useRef < Animated.CompositeAnimation) | (null > null);
@@ -136,9 +136,9 @@ function ScanItem({ item, isActive, onDelete }) {
         />
       )}
 
-      <Text style={styles.code}>{item.code}</Text>
+      <Text style={styles.code}>{item.vin}</Text>
 
-      {item.area != null && (
+      {item.damages != null && (
         <View style={styles.danosContainer}>
           <Button
             buttonColor="rgba(133, 207, 189, 0.98)"
@@ -158,7 +158,14 @@ function ScanItem({ item, isActive, onDelete }) {
               }
             }}
           >
-            <ConsultaDanoItem item={item} />
+            <ConsultaDanoItem
+              item={{
+                ...item,
+                // date: item.date,
+                // vin: item.vin,
+                // fotos: item.fotos,
+              }}
+            />
           </View>
 
           <Animated.View
@@ -168,7 +175,14 @@ function ScanItem({ item, isActive, onDelete }) {
               overflow: "hidden",
             }}
           >
-            <ConsultaDanoItem item={item} />
+            <ConsultaDanoItem
+              item={{
+                ...item,
+                // date: item.date,
+                // vin: item.vin,
+                // fotos: item.fotos,
+              }}
+            />
           </Animated.View>
         </View>
       )}
@@ -181,7 +195,7 @@ function ScanItem({ item, isActive, onDelete }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
-              params: { vinFromRouter: item.code },
+              params: { vinFromRouter: item.vin },
             })
           }
         />
@@ -192,7 +206,7 @@ function ScanItem({ item, isActive, onDelete }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: item.code },
+              params: { vinFromRouter: item.vin },
             })
           }
         />

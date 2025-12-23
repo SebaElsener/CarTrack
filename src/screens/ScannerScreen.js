@@ -110,20 +110,6 @@ export default function ScannerScreen() {
     ).start();
   }, []);
 
-  // const scanExistsAlert = (vin) => {
-  // 	Alert.alert('VIN EXISTENTE', vin, [
-  // 		{
-  // 			text: 'IR A HISTORIAL',
-  // 			style: 'default',
-  // 			onPress: ()=> { router.replace("/(app)/HistoryScreen") }
-  // 		},
-  // 		{
-  // 			text: 'VOLVER',
-  // 			style: 'default',
-  // 		}
-  // 	])
-  // }
-
   const handleScan = async ({ cornerPoints, type, data }) => {
     if (!cornerPoints || scanLock.current) return;
     if (!data || data.length < 6) return;
@@ -173,6 +159,7 @@ export default function ScannerScreen() {
         pathname: "/(app)/HistoryScreen",
         params: { vin: vin },
       });
+      return null;
     }
   };
 

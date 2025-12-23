@@ -36,7 +36,7 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     if (!activeCode || data.length === 0) return;
-    const index = data.findIndex((s) => s.code === activeCode);
+    const index = data.findIndex((s) => s.vin === activeCode);
     if (index === -1) return;
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({
@@ -57,7 +57,7 @@ export default function HistoryScreen() {
         renderItem={({ item }) => (
           <ScanItem
             item={item}
-            isActive={item.code === activeCode}
+            isActive={item.vin === activeCode}
             onDelete={handleDeleteScan}
           />
         )}

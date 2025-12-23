@@ -13,7 +13,6 @@ export default function LoginScreen() {
   const { setError, loading, setLoading } = useAuth();
 
   const login = async () => {
-    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -27,14 +26,6 @@ export default function LoginScreen() {
 
     router.replace("/(app)");
   };
-
-  // if (loading) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <ActivityIndicator size="large" />
-  //     </View>
-  //   );
-  // }
 
   return (
     <View style={styles.container}>

@@ -1,30 +1,56 @@
-import { useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ImageViewer from 'react-native-image-zoom-viewer';
-import Modal from 'react-native-modal';
+import { useState } from "react";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import ImageViewer from "react-native-image-zoom-viewer";
+import Modal from "react-native-modal";
 
 export default function ConsultaDanoItem({ item }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const fotos = item.fotos || [];
-  const images = fotos.map(f => ({ url: f.pictureurl }));
+  const images = fotos.map((f) => ({ url: f.pictureurl }));
 
   return (
     <View style={styles.card}>
-      {/* <Text style={styles.title}>VIN: {item.code}</Text> */}
-      <Text style={styles.items}>Fecha:
-        {new Intl.DateTimeFormat('es-AR', {
-          dateStyle: 'short',
-          timeStyle: 'short',
-          timeZone: 'America/Argentina/Buenos_Aires',
-        }).format(new Date(item.date))}
-      </Text>      
-      <Text style={styles.items}>Area: {item.area}</Text>
-      <Text style={styles.items}>Avería: {item.averia}</Text>
-      <Text style={styles.items}>Gravedad: {item.grav}</Text>
-      <Text style={styles.items}>Obs: {item.obs}</Text>
-      <Text style={styles.items}>Código: {item.codigo}</Text>
+      <View style={{ marginTop: 20, marginBottom: 10 }}>
+        <FlatList
+          data={item.damages}
+          //horizontal
+          ListHeaderComponent={() => (
+            <View>
+              <Text style={styles.items}>
+                {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
+                }).format(new Date(item.date))}`}
+              </Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <>
+              <Text style={styles.items}>Area: {item.area}</Text>
+              <Text style={styles.items}>Avería: {item.averia}</Text>
+              <Text style={styles.items}>Gravedad: {item.grav}</Text>
+              <Text style={styles.items}>Obs: {item.obs}</Text>
+              <Text style={styles.items}>Código: {item.codigo}</Text>
+            </>
+          )}
+          contentContainerStyle={{ padding: 10 }}
+          showsVerticalScrollIndicator={false}
+        />
+        <Text style={styles.counter}>
+          {currentIndex + 1} / {fotos.length}
+        </Text>
+      </View>
 
       {fotos.length > 0 && (
         <View style={{ marginTop: 20, marginBottom: 10 }}>
@@ -33,13 +59,20 @@ export default function ConsultaDanoItem({ item }) {
             horizontal
             keyExtractor={(f, idx) => f.id?.toString() || idx.toString()}
             renderItem={({ item: foto, index }) => (
-              <TouchableOpacity onPress={() => { setCurrentIndex(index); setModalVisible(true); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setCurrentIndex(index);
+                  setModalVisible(true);
+                }}
+              >
                 <Image source={{ uri: foto.pictureurl }} style={styles.image} />
               </TouchableOpacity>
             )}
             showsHorizontalScrollIndicator={false}
           />
-          <Text style={styles.counter}>{currentIndex + 1} / {fotos.length}</Text>
+          <Text style={styles.counter}>
+            {currentIndex + 1} / {fotos.length}
+          </Text>
         </View>
       )}
 
@@ -53,10 +86,12 @@ export default function ConsultaDanoItem({ item }) {
           index={currentIndex}
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}
-          onChange={index => setCurrentIndex(index)}
+          onChange={(index) => setCurrentIndex(index)}
           saveToLocalByLongPress={false}
           renderIndicator={(current, total) => (
-            <Text style={styles.modalCounter}>{current} / {total}</Text>
+            <Text style={styles.modalCounter}>
+              {current} / {total}
+            </Text>
           )}
         />
       </Modal>
@@ -68,25 +103,30 @@ const styles = StyleSheet.create({
   card: {
     padding: 15,
     marginBottom: 15,
-    backgroundColor: '#dcdcdcf9',
+    backgroundColor: "#dcdcdcf9",
     borderRadius: 4,
     //elevation: 1,
   },
-  title: { fontSize: 17, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  title: {
+    fontSize: 17,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
   image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
-  counter: { marginTop: 5, textAlign: 'center', fontWeight: 'bold' },
+  counter: { marginTop: 5, textAlign: "center", fontWeight: "bold" },
   modal: { margin: 0 },
   modalCounter: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    textAlign: 'center',
-    position: 'absolute',
+    textAlign: "center",
+    position: "absolute",
     top: 50,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   items: {
     padding: 3,
     fontSize: 15,
-    color: '#3b3b3be6'
-  }
-})
+    color: "#3b3b3be6",
+  },
+});

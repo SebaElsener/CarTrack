@@ -13,7 +13,6 @@ export default function AppLayout() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
-    console.log(loading, session);
     if (!loading && session) {
       router.replace("/(app)"); // 🔥 ESTA ES LA CLAVE
     } else {
