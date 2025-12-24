@@ -1,91 +1,184 @@
-
-import { useRouter } from 'expo-router';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { Button } from 'react-native-paper';
-import { deleteTable } from '../database/Database';
-
-const router = useRouter()
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useRef } from "react";
+import {
+  Animated,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import GlassAnimatedCard from "../components/GlassAnimatedCard";
+import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
+  const animations = useRef(
+    Array.from({ length: 4 }).map(() => ({
+      opacity: new Animated.Value(0),
+      translateY: new Animated.Value(20),
+    }))
+  ).current;
 
-	return (
-		<View style={ styles.backContainer }>
-			<ImageBackground
-				style={ styles.backImage }
-				imageStyle={{opacity: 0.35}}
-				source={require('../utils/depositphotos_77241976.jpg')}>
-			<View style={styles.titleContainer}>
-	  		<Text style={styles.title}>Car<Text style={styles.titleSpan}>Track</Text></Text>
+  useFocusEffect(
+    useCallback(() => {
+      animations.forEach((a) => {
+        a.opacity.setValue(0);
+        a.translateY.setValue(20);
+      });
 
-			</View>
-		
-		<View style={styles.container}>
-			<Button style={styles.button}
-				labelStyle={{ fontSize: 20 }}
-				icon='camera'
-				mode='elevated'
-				buttonColor='rgba(126, 249, 128, 0.85)'
-				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => router.push("/(app)/ScannerScreen")}
-			>Escanear VIN
-			</Button>
+      const animateRow = (indexes) =>
+        Animated.parallel(
+          indexes.map((i) =>
+            Animated.parallel([
+              Animated.timing(animations[i].opacity, {
+                toValue: 1,
+                duration: 350,
+                useNativeDriver: true,
+              }),
+              Animated.timing(animations[i].translateY, {
+                toValue: 0,
+                duration: 350,
+                useNativeDriver: true,
+              }),
+            ])
+          )
+        );
 
-			<Button style={styles.button}
-				labelStyle={{ fontSize: 20 }}
-				icon='tablet'
-				mode='elevated'
-				buttonColor='rgba(143, 156, 143, 0.88)'
-				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => router.push("/(app)/HistoryScreen")}
-			>Ver Historial
-			</Button>
+      Animated.sequence([
+        animateRow([0, 1]), // 🟩 fila superior
+        Animated.delay(120),
+        animateRow([2, 3]), // 🟦 fila inferior
+      ]).start();
+    }, [animations])
+  );
 
-			<Button style={styles.button}
-				labelStyle={{ fontSize: 20 }}
-				icon='search-web'
-				mode='elevated'
-				buttonColor='rgba(91, 116, 179, 0.88)'
-				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => router.push("/(app)/ConsultaDanoScreen")}
-			>Consulta daños
-			</Button>
+  //   useFocusEffect(() => {
+  //     fadeIn.setValue(0);
+  //     Animated.timing(fadeIn, {
+  //       toValue: 1,
+  //       duration: 400,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   });
+  const cards = [
+    {
+      title: "Escanear VIN",
+      description: "Escaneo del código VIN",
+      href: "/(app)/ScannerScreen",
+      backgroundColor: "rgba(126, 249, 128, 0.35)",
+      icon: (
+        <MaterialCommunityIcons
+          name="qrcode-scan"
+          size={48}
+          color="#2a2a2aba"
+        />
+      ),
+    },
+    {
+      title: "Historial",
+      description: "Vehículos escaneados",
+      href: "/(app)/HistoryScreen",
+      backgroundColor: "rgba(143, 156, 143, 0.35)",
+      icon: (
+        <MaterialCommunityIcons name="history" size={48} color="#2a2a2acb" />
+      ),
+    },
+    {
+      title: "Daños",
+      description: "Consulta de daños previos",
+      href: "/(app)/ConsultaDanoScreen",
+      backgroundColor: "rgba(91, 116, 179, 0.35)",
+      icon: (
+        <MaterialCommunityIcons name="car-wrench" size={48} color="#2a2a2acb" />
+      ),
+    },
+    {
+      title: "Reset",
+      description: "Eliminar tablas locales",
+      backgroundColor: "rgba(206, 104, 104, 0.35)",
+      icon: (
+        <MaterialCommunityIcons name="delete" size={48} color="#2a2a2acb" />
+      ),
+      onPress: deleteTable,
+    },
+  ];
 
-			<Button style={styles.button}
-				labelStyle={{ fontSize: 20 }}
-				icon='delete'
-				mode='elevated'
-				buttonColor='rgba(206, 104, 104, 0.7)'
-				textColor='rgba(42, 42, 42, 0.84)'
-				onPress={() => deleteTable()}
-			>Eliminar tablas
-			</Button>
-		</View>
-		</ImageBackground>
-		</View>
-	)
+  return (
+    <View style={styles.backContainer}>
+      <ImageBackground
+        style={styles.backImage}
+        imageStyle={{ opacity: 0.35 }}
+        source={require("../utils/depositphotos_77241976.jpg")}
+      >
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>
+            Car<Text style={styles.titleSpan}>Track</Text>
+          </Text>
+        </View>
+        <View style={styles.container}>
+          <View style={styles.grid}>
+            {cards.map((card, index) => (
+              <Animated.View
+                key={card.title}
+                style={[
+                  styles.cardWrapper,
+                  {
+                    opacity: animations[index].opacity,
+                    transform: [{ translateY: animations[index].translateY }],
+                  },
+                ]}
+              >
+                <GlassAnimatedCard {...card} />
+              </Animated.View>
+            ))}
+          </View>
+        </View>
+      </ImageBackground>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-	container: { justifyContent: 'space-evenly', alignItems: 'center', height: 380, top: 150 },
-	title: { fontSize: 38, color: 'rgba(70, 45, 45, 0.84)', fontWeight: 'bold' },
-	titleContainer: {
-		alignItems: 'center',
-		top: 40
-	},
-	titleSpan: {
-		fontStyle: 'italic',
-		color: 'rgba(214, 53, 53, 0.8)'
-	},
-	backImage: {
-		flex: 1,
-		width: null,
-		height: null		
-	},
-	backContainer: {
-		minHeight: '100%'
-	},
-	button: {
-		padding: 8,
-		width: 300,
-	}
-})
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    //paddingTop: 20,
+  },
+  title: { fontSize: 38, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
+  titleContainer: {
+    alignItems: "center",
+    marginTop: 60,
+  },
+  titleSpan: {
+    fontStyle: "italic",
+    color: "rgba(214, 53, 53, 0.8)",
+  },
+  backImage: {
+    flex: 1,
+    width: null,
+    height: null,
+  },
+  backContainer: {
+    //minHeight: "100%",
+    flex: 1,
+  },
+  button: {
+    padding: 8,
+    width: 300,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 16,
+    width: "100%",
+    flex: 1,
+    marginTop: 80,
+  },
+  cardWrapper: {
+    width: "48%", // dos por fila
+    aspectRatio: 1, // cuadrada
+  },
+});

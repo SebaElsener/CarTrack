@@ -234,10 +234,17 @@ export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
   }
 };
 
-// Borrar un registro
-export const deleteScan = async (id) => {
+// Borrar un registro y sus daños
+export const deleteScan = async (vin) => {
   const db = await getDb();
-  await db.runAsync(`DELETE FROM scans WHERE id = ?`, id);
+  try {
+    await db.runAsync(`DELETE FROM scans WHERE vin = ?`, vin);
+    await db.runAsync(`DELETE FROM damages WHERE vin = ?`, vin);
+  } catch (error) {
+    console.log("Error al eliminar registros", error);
+    return error;
+  }
+  return "Registros eliminados";
 };
 
 // Borrar todo

@@ -7,7 +7,6 @@ import ConsultaDanoItem from "./ConsultaDanoItem";
 
 function ScanItem({ item, isActive, onDelete }) {
   const router = useRouter();
-
   const [localPicts, setLocalPicts] = useState([]);
 
   useEffect(() => {
@@ -103,7 +102,7 @@ function ScanItem({ item, isActive, onDelete }) {
         useNativeDriver: false,
       }),
     ]).start(() => {
-      onDelete(item.scan_id);
+      onDelete(item.vin);
     });
   };
 
@@ -175,7 +174,7 @@ function ScanItem({ item, isActive, onDelete }) {
 
       <Text style={styles.code}>{item.vin}</Text>
 
-      {item.damages.length > 0 && (
+      {item.damages[0].area !== null && (
         <View style={styles.danosContainer}>
           <Button
             buttonColor="rgba(133, 207, 189, 0.98)"

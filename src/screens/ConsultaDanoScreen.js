@@ -1,16 +1,21 @@
-
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
-import { Button, TextInput } from 'react-native-paper';
-import ConsultaDanoItem from '../components/ConsultaDanoItem';
-import { fetchDamageInfo } from '../services/CRUD';
-
-const router = useRouter()
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Button, TextInput } from "react-native-paper";
+import ConsultaDanoItem from "../components/ConsultaDanoItem";
+import { fetchDamageInfo } from "../services/CRUD";
 
 export default function ConsultaDanoScreen() {
+  const router = useRouter();
+
   const [data, setData] = useState([]);
-  const [vin, setVin] = useState('');
+  const [vin, setVin] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -28,23 +33,26 @@ export default function ConsultaDanoScreen() {
   // 👉 Ejecutar búsqueda cuando cambia el VIN y ya hubo búsqueda
   useEffect(() => {
     if (hasSearched && vin) {
-      loadData()
+      loadData();
     }
   }, [vin, hasSearched]);
 
   const loadData = async () => {
     if (!vin) return;
+    setHasSearched(true);
     try {
       setLoading(true);
       const damageData = await fetchDamageInfo(vin);
       setData(damageData); // incluso si viene []
     } catch (error) {
-      console.error('Error fetching damage data:', error);
+      console.error("Error fetching damage data:", error);
       setData([]);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  console.log("Datos: ", data);
 
   return (
     <View style={styles.container}>
@@ -58,7 +66,7 @@ export default function ConsultaDanoScreen() {
         style={styles.input}
         onBlur={() => setEditing(false)}
         onFocus={() => {
-          setVin('');
+          setVin("");
           setHasInteracted(true);
           setEditing(true);
         }}
@@ -67,7 +75,7 @@ export default function ConsultaDanoScreen() {
       />
 
       {hasInteracted && vin.length !== 17 && (
-        <Text style={{ color: 'red', marginTop: 5 }}>
+        <Text style={{ color: "red", marginTop: 5 }}>
           VIN incompleto ({vin.length}/17)
         </Text>
       )}
@@ -77,6 +85,7 @@ export default function ConsultaDanoScreen() {
         onPress={() => {
           setHasSearched(true);
           loadData();
+          setEditing(false);
         }}
         disabled={vin.length !== 17}
         style={styles.button}
@@ -94,26 +103,32 @@ export default function ConsultaDanoScreen() {
 
       <View style={styles.cardContainer}>
         {loading && <ActivityIndicator size="large" />}
-
-        {!loading && hasSearched && !editing && (
-          data.length > 0 ? (
-            <FlatList
-              data={data}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <ConsultaDanoItem item={item} />
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>
-                  No se encontraron daños para el VIN proporcionado
-                </Text>
-              }
-            />
-          ) : (
-            <Text style={styles.emptyText}>
-              No se encontraron daños para el VIN proporcionado
-            </Text>
-          )
+        {console.log(loading, hasSearched, editing)}
+        {!loading &&
+        hasSearched &&
+        !editing &&
+        getPathDataFromState.damages.length > 0 ? (
+          <FlatList
+            data={data}
+            keyExtractor={(item) => item.supabase_id.toString()}
+            renderItem={({ item }) => (
+              <ConsultaDanoItem
+                item={{
+                  damages: item.damages,
+                  pictures: item.fotos,
+                }}
+              />
+            )}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>
+                No se encontraron daños para el VIN proporcionado
+              </Text>
+            }
+          />
+        ) : (
+          <Text style={styles.emptyText}>
+            No se encontraron daños para el VIN proporcionado
+          </Text>
         )}
       </View>
     </View>
@@ -127,8 +142,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginVertical: 10,
   },
   input: {
@@ -142,7 +157,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
     fontSize: 16,
     opacity: 0.7,

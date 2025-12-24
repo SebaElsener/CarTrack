@@ -14,9 +14,8 @@ import averias from '../utils/averias.json' with { type: 'json' };
 import codigos from '../utils/codigos.json' with { type: 'json' };
 import gravedades from '../utils/gravedades.json' with { type: 'json' };
 
-const router = useRouter()
-
 export default function DanoScreen() {
+  const router = useRouter()
 
   const { vinFromRouter } = useLocalSearchParams();
   const vin = vinFromRouter

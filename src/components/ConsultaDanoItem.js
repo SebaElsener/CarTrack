@@ -26,87 +26,89 @@ export default function ConsultaDanoItem({ item }) {
   const modalImages = pictures.map((uri) => ({ url: uri }));
 
   return (
-    <View
-      style={styles.card}
-      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-    >
-      {/* Scroll horizontal de daños */}
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={true}
-        onMomentumScrollEnd={onMomentumScrollEnd}
-        snapToInterval={containerWidth}
-        decelerationRate="fast"
+    <>
+      <View
+        style={styles.card}
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       >
-        {damages.map((damage) => (
-          <View
-            key={damage.id}
-            style={[styles.damageCard, { width: containerWidth }]}
-          >
-            <Text style={styles.items}>
-              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
-                dateStyle: "short",
-                timeStyle: "short",
-                timeZone: "America/Argentina/Buenos_Aires",
-              }).format(new Date(damage.date))}`}
+        {/* Scroll horizontal de daños */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={true}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          snapToInterval={containerWidth}
+          decelerationRate="fast"
+        >
+          {damages.map((damage) => (
+            <View
+              key={damage.id}
+              style={[styles.damageCard, { width: containerWidth }]}
+            >
+              <Text style={styles.items}>
+                {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
+                }).format(new Date(damage.date))}`}
+              </Text>
+              <Text style={styles.items}>Área: {damage.area}</Text>
+              <Text style={styles.items}>Avería: {damage.averia}</Text>
+              <Text style={styles.items}>Gravedad: {damage.grav}</Text>
+              <Text style={styles.items}>Obs: {damage.obs}</Text>
+              <Text style={styles.items}>Código: {damage.codigo}</Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Indicador de daño */}
+        <Text style={styles.counter}>
+          {currentIndex + 1} / {item.damages.length}
+        </Text>
+
+        {/* Fotos */}
+        {pictures.length > 0 && (
+          <View style={{ marginTop: 20 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {pictures.map((foto, index) => (
+                <TouchableOpacity
+                  key={foto.id ?? index}
+                  onPress={() => {
+                    setPictsCurrentIndex(index);
+                    setModalVisible(true);
+                  }}
+                >
+                  <Image source={{ uri: foto }} style={styles.image} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text style={styles.counter}>
+              {pictsCurrentIndex + 1} / {pictures.length}
             </Text>
-            <Text style={styles.items}>Área: {damage.area}</Text>
-            <Text style={styles.items}>Avería: {damage.averia}</Text>
-            <Text style={styles.items}>Gravedad: {damage.grav}</Text>
-            <Text style={styles.items}>Obs: {damage.obs}</Text>
-            <Text style={styles.items}>Código: {damage.codigo}</Text>
           </View>
-        ))}
-      </ScrollView>
+        )}
 
-      {/* Indicador de daño */}
-      <Text style={styles.counter}>
-        {currentIndex + 1} / {item.damages.length}
-      </Text>
-
-      {/* Fotos */}
-      {pictures.length > 0 && (
-        <View style={{ marginTop: 20 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {pictures.map((foto, index) => (
-              <TouchableOpacity
-                key={foto.id ?? index}
-                onPress={() => {
-                  setPictsCurrentIndex(index);
-                  setModalVisible(true);
-                }}
-              >
-                <Image source={{ uri: foto }} style={styles.image} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={styles.counter}>
-            {pictsCurrentIndex + 1} / {pictures.length}
-          </Text>
-        </View>
-      )}
-
-      {/* Modal fotos */}
-      <Modal
-        isVisible={modalVisible}
-        onBackdropPress={() => setModalVisible(false)}
-        style={styles.modal}
-      >
-        <ImageViewer
-          imageUrls={modalImages}
-          index={pictsCurrentIndex}
-          enableSwipeDown
-          onSwipeDown={() => setModalVisible(false)}
-          saveToLocalByLongPress={false}
-          renderIndicator={(current, total) => (
-            <Text style={styles.modalCounter}>
-              {current} / {total}
-            </Text>
-          )}
-        />
-      </Modal>
-    </View>
+        {/* Modal fotos */}
+        <Modal
+          isVisible={modalVisible}
+          onBackdropPress={() => setModalVisible(false)}
+          style={styles.modal}
+        >
+          <ImageViewer
+            imageUrls={modalImages}
+            index={pictsCurrentIndex}
+            enableSwipeDown
+            onSwipeDown={() => setModalVisible(false)}
+            saveToLocalByLongPress={false}
+            renderIndicator={(current, total) => (
+              <Text style={styles.modalCounter}>
+                {current} / {total}
+              </Text>
+            )}
+          />
+        </Modal>
+      </View>
+    </>
   );
 }
 
