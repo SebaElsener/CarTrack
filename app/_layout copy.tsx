@@ -1,5 +1,4 @@
-// app/_layout.tsx
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ImageBackground, StyleSheet, View } from "react-native";
 import {
@@ -25,13 +24,13 @@ export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
       <AuthProvider>
-        <RootContainer />
+        <RootStack />
       </AuthProvider>
     </PaperProvider>
   );
 }
 
-function RootContainer() {
+function RootStack() {
   const { error, setError } = useAuth();
   const [visible, setVisible] = useState(false);
 
@@ -41,18 +40,23 @@ function RootContainer() {
 
   return (
     <>
+      {/* Fondo general */}
       <ImageBackground
-        source={require("./background-cars.jpg")}
+        source={require("./background-cars.jpg")} // tu imagen de fondo
         style={styles.background}
         imageStyle={{ opacity: 0.35 }}
       >
-        {/* Overlay glass */}
-        <View style={styles.overlay} />
-
-        {/* Las screens viven acá */}
-        <Slot />
+        <View style={styles.overlay}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: "transparent",
+              },
+            }}
+          />
+        </View>
       </ImageBackground>
-
       <Snackbar
         visible={visible}
         onDismiss={() => {
@@ -70,9 +74,11 @@ function RootContainer() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: "100%",
+    height: "100%",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(255,255,255,0.05)", // overlay glass sutil
   },
 });
