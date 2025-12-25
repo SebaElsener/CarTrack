@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   StyleSheet,
   Text,
@@ -13,46 +14,63 @@ import { fetchDamageInfo } from "../services/CRUD";
 
 export default function ConsultaDanoScreen() {
   const router = useRouter();
+  const { vin: vinFromScanner } = useLocalSearchParams();
 
-  const [data, setData] = useState([]);
   const [vin, setVin] = useState("");
-  const [hasSearched, setHasSearched] = useState(false);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const { lastResult } = useLocalSearchParams();
+  const [searched, setSearched] = useState(false);
 
-  // 👉 Cargar VIN desde el scanner (UNA sola vez)
-  useEffect(() => {
-    if (lastResult) {
-      setVin(lastResult);
-      setHasSearched(true);
-    }
-  }, [lastResult]);
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateAnim = useRef(new Animated.Value(20)).current;
 
-  // 👉 Ejecutar búsqueda cuando cambia el VIN y ya hubo búsqueda
-  useEffect(() => {
-    if (hasSearched && vin) {
-      loadData();
-    }
-  }, [vin, hasSearched]);
+  // 🔁 Búsqueda única (input + scanner)
+  const search = async (value) => {
+    if (value.length !== 17) return;
 
-  const loadData = async () => {
-    if (!vin) return;
-    setHasSearched(true);
     try {
       setLoading(true);
-      const damageData = await fetchDamageInfo(vin);
-      setData(damageData); // incluso si viene []
-    } catch (error) {
-      console.error("Error fetching damage data:", error);
+      setSearched(true);
+
+      const res = await fetchDamageInfo(value);
+      setData(res ?? []);
+    } catch (e) {
+      console.error(e);
       setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  console.log("Datos: ", data);
+  // 📲 VIN desde scanner (una sola vez)
+  useEffect(() => {
+    if (vinFromScanner && vinFromScanner.length === 17) {
+      setVin(vinFromScanner);
+      search(vinFromScanner);
+    }
+  }, [vinFromScanner]);
+
+  // 🎬 Animar resultados
+  useEffect(() => {
+    if (data.length > 0) {
+      fadeAnim.setValue(0);
+      translateAnim.setValue(20);
+
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [data]);
 
   return (
     <View style={styles.container}>
@@ -64,29 +82,17 @@ export default function ConsultaDanoScreen() {
         maxLength={17}
         mode="outlined"
         style={styles.input}
-        onBlur={() => setEditing(false)}
-        onFocus={() => {
-          setVin("");
-          setHasInteracted(true);
-          setEditing(true);
-        }}
         autoCapitalize="characters"
         onChangeText={(text) => setVin(text.toUpperCase())}
       />
 
-      {hasInteracted && vin.length !== 17 && (
-        <Text style={{ color: "red", marginTop: 5 }}>
-          VIN incompleto ({vin.length}/17)
-        </Text>
+      {vin.length > 0 && vin.length < 17 && (
+        <Text style={styles.vinError}>VIN incompleto ({vin.length}/17)</Text>
       )}
 
       <Button
         mode="contained"
-        onPress={() => {
-          setHasSearched(true);
-          loadData();
-          setEditing(false);
-        }}
+        onPress={() => search(vin)}
         disabled={vin.length !== 17}
         style={styles.button}
       >
@@ -103,32 +109,27 @@ export default function ConsultaDanoScreen() {
 
       <View style={styles.cardContainer}>
         {loading && <ActivityIndicator size="large" />}
-        {console.log(loading, hasSearched, editing)}
-        {!loading &&
-        hasSearched &&
-        !editing &&
-        getPathDataFromState.damages.length > 0 ? (
-          <FlatList
-            data={data}
-            keyExtractor={(item) => item.supabase_id.toString()}
-            renderItem={({ item }) => (
-              <ConsultaDanoItem
-                item={{
-                  damages: item.damages,
-                  pictures: item.fotos,
-                }}
-              />
-            )}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>
-                No se encontraron daños para el VIN proporcionado
-              </Text>
-            }
-          />
-        ) : (
+
+        {!loading && searched && data.length === 0 && (
           <Text style={styles.emptyText}>
             No se encontraron daños para el VIN proporcionado
           </Text>
+        )}
+
+        {!loading && data.length > 0 && (
+          <Animated.View
+            style={{
+              flex: 1,
+              opacity: fadeAnim,
+              transform: [{ translateY: translateAnim }],
+            }}
+          >
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item.supabase_id.toString()}
+              renderItem={({ item }) => <ConsultaDanoItem item={item} />}
+            />
+          </Animated.View>
         )}
       </View>
     </View>
@@ -161,5 +162,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     opacity: 0.7,
+  },
+  vinError: {
+    color: "#f80c0c84",
+    marginTop: 5,
+    fontWeight: "700",
   },
 });

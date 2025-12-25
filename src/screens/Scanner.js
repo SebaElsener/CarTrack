@@ -148,7 +148,7 @@ export default function Scanner() {
     router.replace({
       pathname: "/(app)/ConsultaDanoScreen",
       params: {
-        lastResult: vin,
+        vin,
       },
     });
   };
