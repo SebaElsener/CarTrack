@@ -17,141 +17,126 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 
 function ConsultaDanoItem({ item }) {
   const { damages = [], fotos = [] } = item;
+
+  const [topIndex, setTopIndex] = useState(0); // índice de la card superior
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
-  const [topIndex, setTopIndex] = useState(0);
 
-  // Animated values
-  const positions = useRef(damages.map(() => new Animated.ValueXY())).current;
-  const scaleAnims = useRef(damages.map(() => new Animated.Value(0.9))).current;
-  const fadeAnims = useRef(damages.map(() => new Animated.Value(0))).current;
+  const position = useRef(new Animated.ValueXY()).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const fadeAnim = useRef(new Animated.Value(0.7)).current;
 
-  // Animación de aparición
   useEffect(() => {
-    const animations = damages.map((_, i) =>
-      Animated.parallel([
-        Animated.timing(fadeAnims[i], {
-          toValue: 1,
-          duration: 300,
-          delay: i * 100,
-          useNativeDriver: false,
-        }),
-        Animated.spring(scaleAnims[i], {
-          toValue: 1,
-          friction: 6,
-          useNativeDriver: false,
-          delay: i * 100,
-        }),
-      ])
-    );
-    Animated.stagger(50, animations).start();
-  }, [damages]);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 6,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, []);
 
-  // Reset de card
-  const resetCard = (i) => {
-    Animated.spring(positions[i], {
-      toValue: { x: 0, y: 0 },
-      useNativeDriver: false,
-    }).start();
-  };
-
-  // PanResponder
-  const panResponders = damages.map((_, i) =>
+  const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => i === topIndex,
-      onPanResponderMove: (_, gesture) => {
-        positions[i].setValue({ x: gesture.dx, y: gesture.dy });
-      },
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 5,
+      onPanResponderMove: (_, gesture) =>
+        position.setValue({ x: gesture.dx, y: 0 }),
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > 120 || gesture.dx < -120) {
+        if (Math.abs(gesture.dx) > 120) {
           const direction =
             gesture.dx > 0 ? SCREEN_WIDTH + 100 : -SCREEN_WIDTH - 100;
-          Animated.timing(positions[i], {
-            toValue: { x: direction, y: gesture.dy },
+          Animated.timing(position, {
+            toValue: { x: direction, y: 0 },
             duration: 200,
             useNativeDriver: false,
           }).start(() => {
-            // Subir stack
-            if (topIndex < damages.length - 1) {
-              // Animar card siguiente ligeramente hacia arriba
-              Animated.parallel([
-                Animated.spring(scaleAnims[topIndex + 1], {
-                  toValue: 1,
-                  friction: 5,
-                  useNativeDriver: false,
-                }),
-                Animated.timing(fadeAnims[topIndex + 1], {
-                  toValue: 1,
-                  duration: 150,
-                  useNativeDriver: false,
-                }),
-              ]).start();
-              setTopIndex(topIndex + 1);
-            }
+            // Avanzar al siguiente índice
+            setTopIndex((prev) => (prev + 1) % damages.length);
+
+            // Reset posición y animación
+            position.setValue({ x: 0, y: 0 });
+            scaleAnim.setValue(0.95);
+            fadeAnim.setValue(0.7);
+
+            Animated.parallel([
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: false,
+              }),
+              Animated.spring(scaleAnim, {
+                toValue: 1,
+                friction: 6,
+                useNativeDriver: false,
+              }),
+            ]).start();
           });
         } else {
-          resetCard(i);
+          Animated.spring(position, {
+            toValue: { x: 0, y: 0 },
+            useNativeDriver: false,
+          }).start();
         }
       },
     })
-  );
+  ).current;
 
   const modalImages = fotos.map((uri) => ({ url: uri }));
+
+  const topDamage = damages[topIndex];
 
   return (
     <View style={styles.card}>
       <View style={styles.carouselContainer}>
-        {damages
-          .map((damage, i) => {
-            const pan = positions[i];
-            const rotate = pan.x.interpolate({
-              inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
-              outputRange: ["-10deg", "0deg", "10deg"],
-              extrapolate: "clamp",
-            });
-
-            const scale = scaleAnims[i];
-            const opacity = fadeAnims[i];
-
-            return (
-              <Animated.View
-                key={damage.id}
-                {...panResponders[i].panHandlers}
-                style={[
-                  styles.tinderCard,
+        {topDamage && (
+          <Animated.View
+            key={topIndex} // key cambia con el índice → fuerza remount
+            {...panResponder.panHandlers}
+            style={[
+              styles.tinderCard,
+              {
+                transform: [
+                  ...position.getTranslateTransform(),
                   {
-                    transform: [
-                      ...pan.getTranslateTransform(),
-                      { rotate },
-                      { scale },
-                    ],
-                    opacity,
-                    zIndex: damages.length - i,
+                    rotate: position.x.interpolate({
+                      inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+                      outputRange: ["-10deg", "0deg", "10deg"],
+                      extrapolate: "clamp",
+                    }),
                   },
-                ]}
-              >
-                <Text style={styles.items}>
-                  {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                    timeZone: "America/Argentina/Buenos_Aires",
-                  }).format(new Date(damage.date))}`}
-                </Text>
-                <Text style={styles.items}>Área: {damage.area}</Text>
-                <Text style={styles.items}>Avería: {damage.averia}</Text>
-                <Text style={styles.items}>Gravedad: {damage.grav}</Text>
-                <Text style={styles.items}>Obs: {damage.obs}</Text>
-                <Text style={styles.items}>Código: {damage.codigo}</Text>
-              </Animated.View>
-            );
-          })
-          .reverse()}
+                  { scale: scaleAnim },
+                ],
+                opacity: fadeAnim,
+              },
+            ]}
+          >
+            <Text style={styles.items}>
+              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+                dateStyle: "short",
+                timeStyle: "short",
+                timeZone: "America/Argentina/Buenos_Aires",
+              }).format(new Date(topDamage.date))}`}
+            </Text>
+            <Text style={styles.items}>Área: {topDamage.area}</Text>
+            <Text style={styles.items}>Avería: {topDamage.averia}</Text>
+            <Text style={styles.items}>Gravedad: {topDamage.grav}</Text>
+            <Text style={styles.items}>Obs: {topDamage.obs}</Text>
+            <Text style={styles.items}>Código: {topDamage.codigo}</Text>
+          </Animated.View>
+        )}
       </View>
 
+      {/* Contador */}
       <Text style={styles.counter}>
         {topIndex + 1} / {damages.length}
       </Text>
 
+      {/* Fotos */}
       {fotos.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -173,6 +158,7 @@ function ConsultaDanoItem({ item }) {
         </View>
       )}
 
+      {/* Modal */}
       <Modal
         isVisible={modalVisible}
         onBackdropPress={() => setModalVisible(false)}
