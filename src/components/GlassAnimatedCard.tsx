@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.18,
     shadowRadius: 20,
+    boxShadow: "1px 1px 5px 1px #00000035",
 
     // Android
     //elevation: 16,

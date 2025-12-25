@@ -44,7 +44,7 @@ function RootContainer() {
       <ImageBackground
         source={require("./background-cars.jpg")}
         style={styles.background}
-        imageStyle={{ opacity: 0.35 }}
+        imageStyle={{ opacity: 0.2 }}
       >
         {/* Overlay glass */}
         <View style={styles.overlay} />
