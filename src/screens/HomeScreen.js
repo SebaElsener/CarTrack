@@ -51,7 +51,7 @@ export default function HomeScreen() {
       title: "Escanear VIN",
       description: "Escaneo del código VIN",
       href: "/(app)/ScannerScreen",
-      backgroundColor: "rgba(126, 249, 128, 0.38)",
+      backgroundColor: "rgba(126, 249, 128, 0.28)",
       icon: (
         <MaterialCommunityIcons
           name="barcode-scan"
