@@ -18,24 +18,25 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 function ConsultaDanoItem({ item }) {
   const { damages = [], fotos = [] } = item;
 
-  const [topIndex, setTopIndex] = useState(0); // índice de la card superior
+  const [topIndex, setTopIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
 
   const position = useRef(new Animated.ValueXY()).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  const fadeAnim = useRef(new Animated.Value(0.7)).current;
+  const topScale = useRef(new Animated.Value(1)).current;
+  const nextScale = useRef(new Animated.Value(0.95)).current;
+  const nextOpacity = useRef(new Animated.Value(0.7)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
+      Animated.spring(nextScale, {
+        toValue: 0.95,
+        friction: 6,
         useNativeDriver: false,
       }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 6,
+      Animated.timing(nextOpacity, {
+        toValue: 0.7,
+        duration: 200,
         useNativeDriver: false,
       }),
     ]).start();
@@ -44,8 +45,12 @@ function ConsultaDanoItem({ item }) {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 5,
-      onPanResponderMove: (_, gesture) =>
-        position.setValue({ x: gesture.dx, y: 0 }),
+      onPanResponderMove: (_, gesture) => {
+        position.setValue({ x: gesture.dx, y: 0 });
+        const progress = Math.min(Math.abs(gesture.dx) / 120, 1);
+        nextScale.setValue(0.95 + 0.05 * progress);
+        nextOpacity.setValue(0.7 + 0.3 * progress);
+      },
       onPanResponderRelease: (_, gesture) => {
         if (Math.abs(gesture.dx) > 120) {
           const direction =
@@ -58,29 +63,36 @@ function ConsultaDanoItem({ item }) {
             // Avanzar al siguiente índice
             setTopIndex((prev) => (prev + 1) % damages.length);
 
-            // Reset posición y animación
+            // Reset posición
             position.setValue({ x: 0, y: 0 });
-            scaleAnim.setValue(0.95);
-            fadeAnim.setValue(0.7);
+            topScale.setValue(1);
+            nextOpacity.setValue(0.7);
 
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: false,
-              }),
-              Animated.spring(scaleAnim, {
-                toValue: 1,
-                friction: 6,
-                useNativeDriver: false,
-              }),
-            ]).start();
+            // Animación de rebote de la nueva siguiente card
+            nextScale.setValue(0.85); // inicia más pequeño
+            Animated.spring(nextScale, {
+              toValue: 0.95,
+              friction: 6,
+              useNativeDriver: false,
+            }).start();
           });
         } else {
           Animated.spring(position, {
             toValue: { x: 0, y: 0 },
             useNativeDriver: false,
           }).start();
+          Animated.parallel([
+            Animated.spring(nextScale, {
+              toValue: 0.95,
+              friction: 6,
+              useNativeDriver: false,
+            }),
+            Animated.timing(nextOpacity, {
+              toValue: 0.7,
+              duration: 200,
+              useNativeDriver: false,
+            }),
+          ]).start();
         }
       },
     })
@@ -89,13 +101,42 @@ function ConsultaDanoItem({ item }) {
   const modalImages = fotos.map((uri) => ({ url: uri }));
 
   const topDamage = damages[topIndex];
+  const nextDamage = damages[(topIndex + 1) % damages.length];
 
   return (
     <View style={styles.card}>
       <View style={styles.carouselContainer}>
+        {/* Siguiente card (bump + bounce) */}
+        {nextDamage && (
+          <Animated.View
+            style={[
+              styles.tinderCard,
+              {
+                transform: [{ scale: nextScale }],
+                opacity: nextOpacity,
+                zIndex: 0,
+              },
+            ]}
+          >
+            <Text style={styles.items}>
+              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+                dateStyle: "short",
+                timeStyle: "short",
+                timeZone: "America/Argentina/Buenos_Aires",
+              }).format(new Date(nextDamage.date))}`}
+            </Text>
+            <Text style={styles.items}>Área: {nextDamage.area}</Text>
+            <Text style={styles.items}>Avería: {nextDamage.averia}</Text>
+            <Text style={styles.items}>Gravedad: {nextDamage.grav}</Text>
+            <Text style={styles.items}>Obs: {nextDamage.obs}</Text>
+            <Text style={styles.items}>Código: {nextDamage.codigo}</Text>
+          </Animated.View>
+        )}
+
+        {/* Card superior */}
         {topDamage && (
           <Animated.View
-            key={topIndex} // key cambia con el índice → fuerza remount
+            key={topIndex}
             {...panResponder.panHandlers}
             style={[
               styles.tinderCard,
@@ -109,9 +150,10 @@ function ConsultaDanoItem({ item }) {
                       extrapolate: "clamp",
                     }),
                   },
-                  { scale: scaleAnim },
+                  { scale: topScale },
                 ],
-                opacity: fadeAnim,
+                opacity: 1,
+                zIndex: 1,
               },
             ]}
           >
