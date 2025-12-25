@@ -13,34 +13,90 @@ import Modal from "react-native-modal";
 
 function ConsultaDanoItem({ item }) {
   const { damages = [], fotos = [] } = item;
-  console.log(item);
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // Animaciones por daño
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateAnim = useRef(new Animated.Value(20)).current;
+  // Animación principal del card
+  const fadeAnimCard = useRef(new Animated.Value(0)).current;
+  const translateAnimCard = useRef(new Animated.Value(20)).current;
 
+  // Animaciones para cada daño
+  const damageAnimations = useRef(
+    damages.map(() => ({
+      fade: new Animated.Value(0),
+      translate: new Animated.Value(20),
+    }))
+  ).current;
+
+  // Animaciones para cada foto
+  const photoAnimations = useRef(
+    fotos.map(() => ({
+      fade: new Animated.Value(0),
+      translate: new Animated.Value(20),
+    }))
+  ).current;
+
+  // Animar card completo
   useEffect(() => {
-    if (damages.length > 0) {
-      fadeAnim.setValue(0);
-      translateAnim.setValue(20);
+    fadeAnimCard.setValue(0);
+    translateAnimCard.setValue(20);
+    Animated.parallel([
+      Animated.timing(fadeAnimCard, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateAnimCard, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Animación secuencial de cada daño
+  useEffect(() => {
+    const animations = damages.map((_, i) =>
       Animated.parallel([
-        Animated.timing(fadeAnim, {
+        Animated.timing(damageAnimations[i].fade, {
           toValue: 1,
           duration: 300,
+          delay: i * 100,
           useNativeDriver: true,
         }),
-        Animated.timing(translateAnim, {
+        Animated.timing(damageAnimations[i].translate, {
           toValue: 0,
           duration: 300,
+          delay: i * 100,
           useNativeDriver: true,
         }),
-      ]).start();
-    }
+      ])
+    );
+    Animated.stagger(50, animations).start();
   }, [damages]);
+
+  // Animación secuencial de cada foto
+  useEffect(() => {
+    const animations = fotos.map((_, i) =>
+      Animated.parallel([
+        Animated.timing(photoAnimations[i].fade, {
+          toValue: 1,
+          duration: 300,
+          delay: i * 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(photoAnimations[i].translate, {
+          toValue: 0,
+          duration: 300,
+          delay: i * 100,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    Animated.stagger(50, animations).start();
+  }, [fotos]);
 
   const onMomentumScrollEnd = (e) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / containerWidth);
@@ -53,7 +109,10 @@ function ConsultaDanoItem({ item }) {
     <Animated.View
       style={[
         styles.card,
-        { opacity: fadeAnim, transform: [{ translateY: translateAnim }] },
+        {
+          opacity: fadeAnimCard,
+          transform: [{ translateY: translateAnimCard }],
+        },
       ]}
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
     >
@@ -66,10 +125,17 @@ function ConsultaDanoItem({ item }) {
         snapToInterval={containerWidth}
         decelerationRate="fast"
       >
-        {damages.map((damage) => (
-          <View
+        {damages.map((damage, i) => (
+          <Animated.View
             key={damage.id}
-            style={[styles.damageCard, { width: containerWidth }]}
+            style={[
+              styles.damageCard,
+              { width: containerWidth },
+              {
+                opacity: damageAnimations[i].fade,
+                transform: [{ translateY: damageAnimations[i].translate }],
+              },
+            ]}
           >
             <Text style={styles.items}>
               {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
@@ -83,7 +149,7 @@ function ConsultaDanoItem({ item }) {
             <Text style={styles.items}>Gravedad: {damage.grav}</Text>
             <Text style={styles.items}>Obs: {damage.obs}</Text>
             <Text style={styles.items}>Código: {damage.codigo}</Text>
-          </View>
+          </Animated.View>
         ))}
       </ScrollView>
 
@@ -96,16 +162,23 @@ function ConsultaDanoItem({ item }) {
       {fotos.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {fotos.map((foto, index) => (
-              <TouchableOpacity
-                key={foto.id ?? index}
-                onPress={() => {
-                  setPictsCurrentIndex(index);
-                  setModalVisible(true);
+            {fotos.map((foto, i) => (
+              <Animated.View
+                key={foto.id ?? i}
+                style={{
+                  opacity: photoAnimations[i].fade,
+                  transform: [{ translateY: photoAnimations[i].translate }],
                 }}
               >
-                <Image source={{ uri: foto }} style={styles.image} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPictsCurrentIndex(i);
+                    setModalVisible(true);
+                  }}
+                >
+                  <Image source={{ uri: foto }} style={styles.image} />
+                </TouchableOpacity>
+              </Animated.View>
             ))}
           </ScrollView>
           <Text style={styles.counter}>
@@ -137,7 +210,7 @@ function ConsultaDanoItem({ item }) {
   );
 }
 
-// ✅ Memoizamos para que no se re-renderice innecesariamente
+// Memoizamos para optimizar render
 export default memo(ConsultaDanoItem);
 
 const styles = StyleSheet.create({
