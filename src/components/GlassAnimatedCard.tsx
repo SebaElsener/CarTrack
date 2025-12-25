@@ -1,71 +1,126 @@
 import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
-import { Href, useRouter } from "expo-router";
-import { ReactNode, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import { useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface Props {
   title: string;
-  description: string;
-  icon?: ReactNode;
-  href?: Href;
-  onPress?: () => void;
+  description?: string;
+  icon?: React.ReactNode;
   backgroundColor?: string;
+  href?:
+    | "/(app)/ScannerScreen"
+    | "/(app)/HistoryScreen"
+    | "/(app)/ConsultaDanoScreen";
+  onPress?: () => void;
+  textColor?: string;
 }
 
 export default function GlassAnimatedCard({
   title,
   description,
   icon,
+  backgroundColor = "rgba(255,255,255,0.25)",
   href,
   onPress,
-  backgroundColor = "rgba(255,255,255,0.25)",
+  textColor = "#161616c1",
 }: Props) {
   const router = useRouter();
   const [locked, setLocked] = useState(false);
 
-  const rotate = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(1)).current;
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0)).current;
+  // Animaciones
+  //const rotateAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const shineAnim = useRef(new Animated.Value(-1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const liftAnim = useRef(new Animated.Value(0)).current;
 
-  const handlePress = async () => {
+  // Giro 3D
+  // const rotateY = rotateAnim.interpolate({
+  //   inputRange: [0, 1],
+  //   outputRange: ["0deg", "180deg"],
+  // });
+
+  // 💎 Intensidad dinámica según color de la card
+  const getShineOpacity = (bgColor: string) => {
+    const match = bgColor.match(/rgba?\((\d+), ?(\d+), ?(\d+)/);
+    if (!match) return 0.3;
+    const r = parseInt(match[1], 10);
+    const g = parseInt(match[2], 10);
+    const b = parseInt(match[3], 10);
+    const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return 0.2 + (1 - lum) * 0.15; // rango 0.2-0.35
+  };
+  const shineMaxOpacity = getShineOpacity(backgroundColor);
+
+  const handlePress = () => {
     if (locked) return;
     setLocked(true);
 
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    // ✨ Glow JS (separado)
-    Animated.timing(glow, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-
-    // 🚀 Animaciones nativas
     Animated.parallel([
-      Animated.timing(rotate, {
-        toValue: 1,
-        duration: 700,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 450,
-        delay: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scale, {
-        toValue: 0.75,
-        duration: 450,
-        delay: 200,
-        useNativeDriver: true,
-      }),
+      // 🔁 Giro 3D
+      // Animated.timing(rotateAnim, {
+      //   toValue: 1,
+      //   duration: 500,
+      //   useNativeDriver: true,
+      // }),
+
+      // ✨ Brillo glass
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // ⬆️ Lift + scale (sombra dinámica)
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.04,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.timing(liftAnim, {
+          toValue: -8,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(liftAnim, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // 🌟 Brillo diagonal tipo iOS 17
+      Animated.sequence([
+        Animated.timing(shineAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.delay(40),
+        Animated.timing(shineAnim, {
+          toValue: -1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start(() => {
-      rotate.setValue(0);
-      opacity.setValue(1);
-      scale.setValue(1);
-      glow.setValue(0);
+      //rotateAnim.setValue(0);
       setLocked(false);
 
       if (href) router.push(href);
@@ -73,81 +128,121 @@ export default function GlassAnimatedCard({
     });
   };
 
-  ////////
-  const spin = rotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "720deg"],
-  });
-
-  const shadowOpacity = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.15, 0.6],
-  });
-
   return (
-    <Pressable onPress={handlePress}>
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity,
-            transform: [{ rotate: spin }, { scale }],
-            shadowOpacity,
-          },
-        ]}
-      >
+    <Animated.View
+      style={[
+        styles.wrapper,
+        {
+          transform: [
+            { perspective: 800 },
+            // { rotateY },
+            { scale: scaleAnim },
+            { translateY: liftAnim },
+          ],
+        },
+      ]}
+    >
+      <Pressable onPress={handlePress}>
         <BlurView
           intensity={45}
           tint="light"
-          style={[styles.blur, { backgroundColor }]}
+          style={[styles.card, { backgroundColor }]}
         >
-          <View style={styles.iconContainer}>{icon}</View>
+          {/* ICON */}
+          {icon && <View style={styles.icon}>{icon}</View>}
 
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          {/* TEXT */}
+          <Text style={[styles.title, { color: textColor }]}>{title}</Text>
+          {description && (
+            <Text style={[styles.description, { color: textColor }]}>
+              {description}
+            </Text>
+          )}
+
+          {/* ✨ Glow overlay */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: "white",
+                opacity: glowAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0.35],
+                }),
+                borderRadius: 22,
+              },
+            ]}
+          />
+
+          {/* 🌟 Brillo diagonal */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.diagonalShine,
+              {
+                opacity: shineAnim.interpolate({
+                  inputRange: [-1, 0, 1],
+                  outputRange: [0, shineMaxOpacity, 0],
+                }),
+                transform: [
+                  { rotate: "-25deg" },
+                  {
+                    translateX: shineAnim.interpolate({
+                      inputRange: [-1, 1],
+                      outputRange: [-220, 220],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
         </BlurView>
-      </Animated.View>
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  wrapper: {
     width: "100%",
-    aspectRatio: 1, // 🔑 cuadrada para grid
     borderRadius: 22,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowRadius: 16,
-    elevation: 10,
+    // Sombra glass
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 12 },
+    // shadowOpacity: 0.18,
+    // shadowRadius: 20,
+    //elevation: 8,
   },
-  blur: {
-    flex: 1, // ocupa todo el wrapper
-    justifyContent: "center",
-    alignItems: "center",
+  card: {
+    height: 195,
+    borderRadius: 22,
     padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
-  iconContainer: {
-    marginBottom: 12,
+  icon: {
+    marginBottom: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: "700",
-    color: "rgba(54, 54, 54, 0.82)",
     textAlign: "center",
   },
   description: {
-    marginTop: 6,
     fontSize: 13,
-    color: "rgba(42,42,42,0.7)",
+    opacity: 0.8,
+    marginTop: 4,
     textAlign: "center",
   },
-  text: {
-    marginTop: 8,
-    fontSize: 20,
-    fontWeight: "600",
-    color: "rgba(42,42,42,0.85)",
+  diagonalShine: {
+    position: "absolute",
+    top: -60,
+    left: -120,
+    width: 120,
+    height: 300,
+    backgroundColor: "white",
+    borderRadius: 60,
   },
 });

@@ -2,7 +2,6 @@
 import { Stack, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
-//import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
 import SyncManager from "./SyncManager";
@@ -19,14 +18,6 @@ export default function AppLayout() {
       router.replace("/(auth)/login");
     }
   }, [session, loading, router]);
-
-  // if (loading) {
-  //   return (
-  //     <View style={styles.container}>
-  //       <ActivityIndicator size="large" />
-  //     </View>
-  //   );
-  // }
 
   return (
     <>

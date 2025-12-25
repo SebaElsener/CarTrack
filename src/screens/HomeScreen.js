@@ -1,13 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef } from "react";
-import {
-  Animated,
-  ImageBackground,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
 import { deleteTable } from "../database/Database";
 
@@ -52,24 +46,16 @@ export default function HomeScreen() {
     }, [animations])
   );
 
-  //   useFocusEffect(() => {
-  //     fadeIn.setValue(0);
-  //     Animated.timing(fadeIn, {
-  //       toValue: 1,
-  //       duration: 400,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   });
   const cards = [
     {
       title: "Escanear VIN",
       description: "Escaneo del código VIN",
       href: "/(app)/ScannerScreen",
-      backgroundColor: "rgba(126, 249, 128, 0.35)",
+      backgroundColor: "rgba(126, 249, 128, 0.38)",
       icon: (
         <MaterialCommunityIcons
-          name="qrcode-scan"
-          size={48}
+          name="barcode-scan"
+          size={55}
           color="#2a2a2aba"
         />
       ),
@@ -78,26 +64,30 @@ export default function HomeScreen() {
       title: "Historial",
       description: "Vehículos escaneados",
       href: "/(app)/HistoryScreen",
-      backgroundColor: "rgba(143, 156, 143, 0.35)",
+      backgroundColor: "rgba(143, 156, 143, 0.38)",
       icon: (
-        <MaterialCommunityIcons name="history" size={48} color="#2a2a2acb" />
+        <MaterialCommunityIcons
+          name="clipboard-list-outline"
+          size={55}
+          color="#2a2a2acb"
+        />
       ),
     },
     {
       title: "Daños",
       description: "Consulta de daños previos",
       href: "/(app)/ConsultaDanoScreen",
-      backgroundColor: "rgba(91, 116, 179, 0.35)",
+      backgroundColor: "rgba(91, 116, 179, 0.38)",
       icon: (
-        <MaterialCommunityIcons name="car-wrench" size={48} color="#2a2a2acb" />
+        <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
       ),
     },
     {
       title: "Reset",
       description: "Eliminar tablas locales",
-      backgroundColor: "rgba(206, 104, 104, 0.35)",
+      backgroundColor: "rgba(206, 104, 104, 0.38)",
       icon: (
-        <MaterialCommunityIcons name="delete" size={48} color="#2a2a2acb" />
+        <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
       ),
       onPress: deleteTable,
     },
@@ -105,35 +95,29 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.backContainer}>
-      <ImageBackground
-        style={styles.backImage}
-        imageStyle={{ opacity: 0.35 }}
-        source={require("../utils/depositphotos_77241976.jpg")}
-      >
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>
-            Car<Text style={styles.titleSpan}>Track</Text>
-          </Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>
+          Car<Text style={styles.titleSpan}>Track</Text>
+        </Text>
+      </View>
+      <View style={styles.container}>
+        <View style={styles.grid}>
+          {cards.map((card, index) => (
+            <Animated.View
+              key={card.title}
+              style={[
+                styles.cardWrapper,
+                {
+                  opacity: animations[index].opacity,
+                  transform: [{ translateY: animations[index].translateY }],
+                },
+              ]}
+            >
+              <GlassAnimatedCard {...card} />
+            </Animated.View>
+          ))}
         </View>
-        <View style={styles.container}>
-          <View style={styles.grid}>
-            {cards.map((card, index) => (
-              <Animated.View
-                key={card.title}
-                style={[
-                  styles.cardWrapper,
-                  {
-                    opacity: animations[index].opacity,
-                    transform: [{ translateY: animations[index].translateY }],
-                  },
-                ]}
-              >
-                <GlassAnimatedCard {...card} />
-              </Animated.View>
-            ))}
-          </View>
-        </View>
-      </ImageBackground>
+      </View>
     </View>
   );
 }
@@ -175,7 +159,7 @@ const styles = StyleSheet.create({
     rowGap: 16,
     width: "100%",
     flex: 1,
-    marginTop: 80,
+    marginTop: 70,
   },
   cardWrapper: {
     width: "48%", // dos por fila
