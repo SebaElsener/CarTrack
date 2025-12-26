@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import { useToast } from "../components/ToastProvider";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../services/supabase";
 
@@ -12,6 +13,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const { loading, setLoading } = useAuth();
   const { showError } = useAuth();
+  const { showToast } = useToast();
 
   const login = async () => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -21,7 +23,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      showError("Usuario o clave inválidos");
+      showToast("Usuario o clave inválidos", "error");
       return;
     }
 

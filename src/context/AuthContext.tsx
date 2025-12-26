@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useToast } from "../components/ToastProvider";
 import { supabase } from "../services/supabase";
 
 type SnackbarType = "success" | "error";
@@ -46,6 +47,7 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     visible: false,
@@ -73,9 +75,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await supabase.auth.signOut();
       setSession(null);
       setLoading(false);
-      showSuccess("Sesión cerrada correctamente");
+      showToast("Sesión cerrada correctamente", "info");
     } catch (err: any) {
-      showError(err.message || "Error al cerrar sesión");
+      showToast(err.message || "Error al cerrar sesión", "error");
     }
   };
 

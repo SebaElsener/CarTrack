@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useToast } from "../components/ToastProvider";
 import { savePendingImage, savePict } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
@@ -30,6 +31,7 @@ export async function compressAndResize(uri) {
 }
 
 export default function CameraScreen() {
+  const { showToast } = useToast();
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState(null);
   const [fotos, setFotos] = useState([]);
@@ -138,7 +140,7 @@ export default function CameraScreen() {
 
     requestSync();
 
-    alert("Foto guardada ✔");
+    showToast("Foto guardada ✔", "success");
     await listarFotos();
   };
 

@@ -1,94 +1,106 @@
-
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
-import { Button, IconButton, Text, TextInput } from 'react-native-paper';
-import Areas from '../components/Areas';
-import Averias from '../components/Averias';
-import Codigos from '../components/Codigos';
-import Gravedades from '../components/Gravedades';
-import { addInfo } from '../database/Database';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Button, IconButton, Text, TextInput } from "react-native-paper";
+import Areas from "../components/Areas";
+import Averias from "../components/Averias";
+import Codigos from "../components/Codigos";
+import Gravedades from "../components/Gravedades";
+import { useToast } from "../components/ToastProvider";
+import { addInfo } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
-import areas from '../utils/areas.json' with { type: 'json' };
-import averias from '../utils/averias.json' with { type: 'json' };
-import codigos from '../utils/codigos.json' with { type: 'json' };
-import gravedades from '../utils/gravedades.json' with { type: 'json' };
+//import areas from '../utils/areas.json' with { type: 'json' };
+const areas = require("../utils/areas.json");
+const averias = require("../utils/averias.json");
+const gravedades = require("../utils/gravedades.json");
+const codigos = require("../utils/codigos.json");
 
 export default function DanoScreen() {
-  const router = useRouter()
+  const { showToast } = useToast();
+  const router = useRouter();
 
   const { vinFromRouter } = useLocalSearchParams();
-  const vin = vinFromRouter
+  const vin = vinFromRouter;
 
-  const [area, setArea] = useState("")
-  const [averia, setAveria] = useState("")
-  const [grav, setGrav] = useState("")
-  const [obs, setObs] = useState("")
-  const [codigo, setCodigo] = useState("")
+  const [area, setArea] = useState("");
+  const [averia, setAveria] = useState("");
+  const [grav, setGrav] = useState("");
+  const [obs, setObs] = useState("");
+  const [codigo, setCodigo] = useState("");
 
-  const areasDropdown = areas.map(p => ({
+  const areasDropdown = areas.map((p) => ({
     label: p.descripcion, // 👈 lo que se muestra
-    value: p.id,          // 👈 lo que se guarda
-  }))
+    value: p.id, // 👈 lo que se guarda
+  }));
 
-    const averiasDropdown = averias.map(p => ({
+  const averiasDropdown = averias.map((p) => ({
     label: p.descripcion, // 👈 lo que se muestra
-    value: p.id,          // 👈 lo que se guarda
-  }))
+    value: p.id, // 👈 lo que se guarda
+  }));
 
-    const gravedadesDropdown = gravedades.map(p => ({
+  const gravedadesDropdown = gravedades.map((p) => ({
     label: p.descripcion, // 👈 lo que se muestra
-    value: p.id,          // 👈 lo que se guarda
-  }))
+    value: p.id, // 👈 lo que se guarda
+  }));
 
-    const codigosDropdown = codigos.map(p => ({
+  const codigosDropdown = codigos.map((p) => ({
     label: p.descripcion, // 👈 lo que se muestra
-    value: p.id,          // 👈 lo que se guarda
-  }))
+    value: p.id, // 👈 lo que se guarda
+  }));
+
+  const updateInfo = async (vin, area, averia, grav, obs, codigo) => {
+    let result = await addInfo(vin, area, averia, grav, obs, codigo);
+    requestSync();
+    if (result === "Información actualizada")
+      showToast("ACTUALIZADO OK!", "success");
+    else {
+      showToast("Error al catualizar", "error");
+    }
+  };
 
   return (
     <View style={styles.card}>
       <Text style={styles.code}>{vin}</Text>
       <View>
-      <Areas
-        areas={areasDropdown}
-        selectedValue={area}
-        onSelect={(item) => setArea(item.value)}
-      />
+        <Areas
+          areas={areasDropdown}
+          selectedValue={area}
+          onSelect={(item) => setArea(item.value)}
+        />
       </View>
       <View>
-      <Averias
-        averias={averiasDropdown}
-        selectedValue={averia}
-        onSelect={(item) => setAveria(item.value)}
-      />
+        <Averias
+          averias={averiasDropdown}
+          selectedValue={averia}
+          onSelect={(item) => setAveria(item.value)}
+        />
       </View>
       <View>
-      <Gravedades
-        gravedades={gravedadesDropdown}
-        selectedValue={grav}
-        onSelect={(item) => setGrav(item.value)}
-      />
+        <Gravedades
+          gravedades={gravedadesDropdown}
+          selectedValue={grav}
+          onSelect={(item) => setGrav(item.value)}
+        />
       </View>
-      <View style={ styles.textInputContainer}>
-      <TextInput
-        value={obs}
-        mode='outlined'
-        autoCapitalize='characters'
-        outlineStyle={{ borderRadius: 6 }}
-        style={{ padding: 2, textAlign: 'center' }}  
-        outlineColor='white'
-        contentStyle={{ backgroundColor: 'white', fontWeight: 'medium' }}
-        placeholder="Observación"
-        onChangeText={text => setObs(text)}
-      />
+      <View style={styles.textInputContainer}>
+        <TextInput
+          value={obs}
+          mode="outlined"
+          autoCapitalize="characters"
+          outlineStyle={{ borderRadius: 6 }}
+          style={{ padding: 2, textAlign: "center" }}
+          outlineColor="white"
+          contentStyle={{ backgroundColor: "white", fontWeight: "medium" }}
+          placeholder="Observación"
+          onChangeText={(text) => setObs(text)}
+        />
       </View>
       <View>
-      <Codigos
-        codigos={codigosDropdown}
-        selectedValue={codigo}
-        onSelect={(item) => setCodigo(item.value)}
-      />
+        <Codigos
+          codigos={codigosDropdown}
+          selectedValue={codigo}
+          onSelect={(item) => setCodigo(item.value)}
+        />
       </View>
       <View style={styles.buttonContainer}>
         <View style={styles.takePhotoContainer}>
@@ -105,51 +117,35 @@ export default function DanoScreen() {
             }
           ></IconButton>
         </View>
-      <Button
-        style={{ marginBottom: 15 }}
-				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2' }}
-				mode='elevated'
-				buttonColor='rgba(140, 197, 183, 0.88)'
-				//textColor='rgba(41, 30, 30, 0.89)'
-        onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}>
-        GUARDAR
-      </Button>
-      <Button
-				labelStyle={{ fontSize: 18, padding: 5, color: '#343333d2'  }}
-				mode='elevated'
-				buttonColor='rgba(140, 197, 183, 0.88)'
-        //textColor='rgba(41, 30, 30, 0.89)'
-        onPress={() => router.replace({
-                         pathname: "/(app)/DanoScreen",
-                         params: {
-                          vinFromRouter: vin
-                         }
-                       })}>
-        AGREGAR OTRO DAÑO
-      </Button>
+        <Button
+          style={{ marginBottom: 15 }}
+          labelStyle={{ fontSize: 18, padding: 5, color: "#343333d2" }}
+          mode="elevated"
+          buttonColor="rgba(140, 197, 183, 0.88)"
+          //textColor='rgba(41, 30, 30, 0.89)'
+          onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}
+        >
+          GUARDAR
+        </Button>
+        <Button
+          labelStyle={{ fontSize: 18, padding: 5, color: "#343333d2" }}
+          mode="elevated"
+          buttonColor="rgba(140, 197, 183, 0.88)"
+          //textColor='rgba(41, 30, 30, 0.89)'
+          onPress={() =>
+            router.replace({
+              pathname: "/(app)/DanoScreen",
+              params: {
+                vinFromRouter: vin,
+              },
+            })
+          }
+        >
+          AGREGAR OTRO DAÑO
+        </Button>
       </View>
     </View>
   );
-}
-
-const updateInfo = async (vin, area, averia, grav, obs, codigo)=> {
-  let result = await addInfo(vin, area, averia, grav, obs, codigo)
-  requestSync()
-  if (result === 'Información actualizada')
-      Alert.alert("ACTUALIZADO OK! => ", vin, [
-        {
-          text: 'ACEPTAR',
-          style: 'default',
-        }
-      ])
-    else {
-      Alert.alert("ERROR AL ACTUALIZAR: ", result, [
-        {
-          text: 'ACEPTAR',
-          style: 'default',
-        }
-      ])
-    }
 }
 
 const styles = StyleSheet.create({
@@ -158,27 +154,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     padding: 15,
     marginBottom: 10,
-    borderRadius: 6
+    borderRadius: 6,
   },
   code: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 25,
     color: "#312f2fce",
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 30,
-    marginTop: 30
+    marginTop: 30,
   },
   buttonContainer: {
-    marginTop: 10
+    marginTop: 10,
   },
   volverButtonContainer: {
-    marginTop: 15
+    marginTop: 15,
   },
   textInputContainer: {
     marginBottom: 10,
-    boxShadow: '0px 2px 3px 0px #1a1a1a29',
+    boxShadow: "0px 2px 3px 0px #1a1a1a29",
   },
   takePhotoContainer: {
-    marginBottom: 30
-  }
+    marginBottom: 30,
+  },
 });
