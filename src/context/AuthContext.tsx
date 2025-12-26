@@ -8,20 +8,35 @@ import {
 } from "react";
 import { supabase } from "../services/supabase";
 
+type SnackbarType = "success" | "error";
+
+type SnackbarState = {
+  visible: boolean;
+  message: string;
+  type: SnackbarType;
+};
+
 const AuthContext = createContext<{
   session: Session | null;
   loading: boolean;
   logout: () => Promise<void>;
-  setError: (msg: string) => void;
   setLoading: (value: boolean) => void;
-  error: string;
+
+  // 🔔 Snackbar API
+  snackbar: SnackbarState;
+  showSuccess: (msg: string) => void;
+  showError: (msg: string) => void;
+  hideSnackbar: () => void;
 }>({
   session: null,
   loading: true,
-  setLoading: () => {},
   logout: async () => {},
-  setError: () => {},
-  error: "",
+  setLoading: () => {},
+
+  snackbar: { visible: false, message: "", type: "success" },
+  showSuccess: () => {},
+  showError: () => {},
+  hideSnackbar: () => {},
 });
 
 type AuthProviderProps = {
@@ -31,7 +46,12 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    visible: false,
+    message: "",
+    type: "success",
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,14 +73,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await supabase.auth.signOut();
       setSession(null);
       setLoading(false);
+      showSuccess("Sesión cerrada correctamente");
     } catch (err: any) {
-      setError(err.message || "Error al cerrar sesión");
+      showError(err.message || "Error al cerrar sesión");
     }
+  };
+
+  // 🔔 Helpers de Snackbar
+  const showSuccess = (message: string) => {
+    setSnackbar({
+      visible: true,
+      message,
+      type: "success",
+    });
+  };
+
+  const showError = (message: string) => {
+    setSnackbar({
+      visible: true,
+      message,
+      type: "error",
+    });
+  };
+
+  const hideSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, visible: false }));
   };
 
   return (
     <AuthContext.Provider
-      value={{ session, loading, logout, error, setError, setLoading }}
+      value={{
+        session,
+        loading,
+        logout,
+        setLoading,
+        snackbar,
+        showSuccess,
+        showError,
+        hideSnackbar,
+      }}
     >
       {children}
     </AuthContext.Provider>

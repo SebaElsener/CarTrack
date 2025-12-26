@@ -5,12 +5,13 @@ import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../services/supabase";
 
-const router = useRouter();
-
 export default function LoginScreen() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { setError, loading, setLoading } = useAuth();
+  const { loading, setLoading } = useAuth();
+  const { showError } = useAuth();
 
   const login = async () => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -20,7 +21,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      setError(error.message);
+      showError("Usuario o clave inválidos");
       return;
     }
 
@@ -66,7 +67,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, marginTop: 150 },
-  input: { marginTop: 15 },
+  input: { marginTop: 15, backgroundColor: "#fff" },
   button: { marginTop: 25, height: 55 },
   loadingContainer: {
     flex: 1,

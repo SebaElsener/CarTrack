@@ -1,6 +1,5 @@
 // app/_layout.tsx
 import { Slot } from "expo-router";
-import { useEffect, useState } from "react";
 import { ImageBackground, StyleSheet, View } from "react-native";
 import {
   MD3LightTheme,
@@ -32,12 +31,7 @@ export default function RootLayout() {
 }
 
 function RootContainer() {
-  const { error, setError } = useAuth();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (error) setVisible(true);
-  }, [error]);
+  const { snackbar, hideSnackbar } = useAuth();
 
   return (
     <>
@@ -46,22 +40,29 @@ function RootContainer() {
         style={styles.background}
         imageStyle={{ opacity: 0.2 }}
       >
-        {/* Overlay glass */}
         <View style={styles.overlay} />
-
-        {/* Las screens viven acá */}
         <Slot />
       </ImageBackground>
 
       <Snackbar
-        visible={visible}
-        onDismiss={() => {
-          setVisible(false);
-          setError("");
-        }}
+        visible={snackbar.visible}
+        onDismiss={hideSnackbar}
         duration={3000}
+        wrapperStyle={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+        }}
+        style={{
+          marginTop: 40, // 👈 separa de notch / status bar
+          marginHorizontal: 16,
+          borderRadius: 8,
+          backgroundColor: snackbar.type === "success" ? "#2ecc71" : "#e74c3c",
+        }}
       >
-        {error}
+        {snackbar.message}
       </Snackbar>
     </>
   );
