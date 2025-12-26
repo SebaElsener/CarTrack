@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Animated,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -16,6 +17,7 @@ import { fetchDamageInfo } from "../services/CRUD";
 export default function ConsultaDanoScreen() {
   const router = useRouter();
   const { vin: vinFromScanner } = useLocalSearchParams();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const [vin, setVin] = useState("");
   const [data, setData] = useState([]);
@@ -68,6 +70,24 @@ export default function ConsultaDanoScreen() {
     }
   }, [data]);
 
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.85,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+
+    router.push("/ScannerSolo"); // navegación al escáner
+  };
+
   return (
     <View style={styles.container}>
       {/* Glass panel */}
@@ -100,12 +120,24 @@ export default function ConsultaDanoScreen() {
             Consultar
           </Button>
 
-          <IconButton
-            icon="barcode-scan"
-            size={34}
-            style={styles.scanBtn}
-            onPress={() => router.push("/ScannerSolo")}
-          />
+          <Pressable
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <IconButton
+                mode="contained"
+                icon="barcode-scan"
+                size={55}
+                style={styles.scanBtn}
+                containerColor="transparent"
+              ></IconButton>
+            </Animated.View>
+          </Pressable>
         </View>
       </BlurView>
 
@@ -181,8 +213,7 @@ const styles = StyleSheet.create({
   },
 
   scanBtn: {
-    marginLeft: 12,
-    backgroundColor: "rgba(255,255,255,0.8)",
+    marginLeft: 20,
     borderRadius: 14,
   },
 
