@@ -12,10 +12,11 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { loading, setLoading } = useAuth();
-  const { showError } = useAuth();
   const { showToast } = useToast();
 
   const login = async () => {
+    setLoading(true);
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
