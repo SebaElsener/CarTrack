@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
   },
   input: {
     marginTop: 15,
+    backgroundColor: "#fffffffa",
   },
   button: {
     marginTop: 15,
