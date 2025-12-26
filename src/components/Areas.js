@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, View } from "react-native";
-import { Button, IconButton, List, Modal, Portal, Searchbar } from "react-native-paper";
+import {
+  Button,
+  IconButton,
+  List,
+  Modal,
+  Portal,
+  Searchbar,
+} from "react-native-paper";
 
 export default function Areas({ areas, onSelect, selectedValue }) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(
-    areas.find(a => a.value === selectedValue) || null
+    areas.find((a) => a.value === selectedValue) || null
   );
 
   useEffect(() => {
     if (selectedValue) {
-      const item = areas.find(a => a.value === selectedValue);
+      const item = areas.find((a) => a.value === selectedValue);
       if (item) setSelected(item);
     }
   }, [selectedValue, areas]);
 
-  const filtered = areas.filter(a =>
+  const filtered = areas.filter((a) =>
     a.label.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -35,27 +42,36 @@ export default function Areas({ areas, onSelect, selectedValue }) {
 
   return (
     <View>
-      <View style={ styles.buttonContainer }>
-      <Button
-        textColor="#424242e5"
-        labelStyle={{ fontSize: 16, textAlign: 'left', padding: 5 }}
-        buttonColor="#ffffffff"
-        mode="elevated"
-        onPress={() => setVisible(true)}>
-        {selected ? selected.label : "Seleccionar Area"}
-      </Button>
+      <View style={styles.buttonContainer}>
+        <Button
+          textColor="#424242e5"
+          labelStyle={{ fontSize: 16, textAlign: "left", padding: 5 }}
+          buttonColor="#eaeaea87"
+          mode="outlined"
+          onPress={() => setVisible(true)}
+          style={{ borderWidth: 1, borderColor: "#afafafbc" }}
+        >
+          {selected ? selected.label : "Seleccionar Area"}
+        </Button>
       </View>
 
       <Portal>
         <Modal
           visible={visible}
           onDismiss={() => setVisible(false)}
-          contentContainerStyle={[styles.modalContainer, { maxHeight: windowHeight * 0.8 }]}
+          contentContainerStyle={[
+            styles.modalContainer,
+            { maxHeight: windowHeight * 0.8 },
+          ]}
         >
           {/* Botón cerrar X */}
           <View style={styles.header}>
             <Text style={styles.title}>Seleccionar Área</Text>
-            <IconButton icon="close" size={24} onPress={() => setVisible(false)} />
+            <IconButton
+              icon="close"
+              size={24}
+              onPress={() => setVisible(false)}
+            />
           </View>
 
           {/* Buscador */}
@@ -70,7 +86,7 @@ export default function Areas({ areas, onSelect, selectedValue }) {
           {filtered.length > 0 ? (
             <FlatList
               data={filtered}
-              keyExtractor={item => item.value.toString()}
+              keyExtractor={(item) => item.value.toString()}
               keyboardShouldPersistTaps="handled"
               renderItem={renderItem}
             />
@@ -106,7 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-    buttonContainer: {
+  buttonContainer: {
     marginBottom: 10,
-  }
+  },
 });

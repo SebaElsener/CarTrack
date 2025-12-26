@@ -54,7 +54,7 @@ export default function DanoScreen() {
     if (result === "Información actualizada")
       showToast("ACTUALIZADO OK!", "success");
     else {
-      showToast("Error al catualizar", "error");
+      showToast("Error al actualizar", "error");
     }
   };
 
@@ -89,8 +89,9 @@ export default function DanoScreen() {
           autoCapitalize="characters"
           outlineStyle={{ borderRadius: 6 }}
           style={{ padding: 2, textAlign: "center" }}
-          outlineColor="white"
-          contentStyle={{ backgroundColor: "white", fontWeight: "medium" }}
+          outlineColor="#afafafbc"
+          activeOutlineColor="#afafafbc"
+          contentStyle={{ backgroundColor: "#eaeaea87", fontWeight: "medium" }}
           placeholder="Observación"
           onChangeText={(text) => setObs(text)}
         />
@@ -119,8 +120,12 @@ export default function DanoScreen() {
         </View>
         <Button
           style={{ marginBottom: 15 }}
-          labelStyle={{ fontSize: 18, padding: 5, color: "#343333d2" }}
-          mode="elevated"
+          labelStyle={{
+            fontSize: 16,
+            paddingVertical: 4,
+            color: "#343333d2",
+          }}
+          mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
           //textColor='rgba(41, 30, 30, 0.89)'
           onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}
@@ -128,8 +133,8 @@ export default function DanoScreen() {
           GUARDAR
         </Button>
         <Button
-          labelStyle={{ fontSize: 18, padding: 5, color: "#343333d2" }}
-          mode="elevated"
+          labelStyle={{ fontSize: 16, paddingVertical: 4, color: "#343333d2" }}
+          mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
           //textColor='rgba(41, 30, 30, 0.89)'
           onPress={() =>
@@ -150,11 +155,10 @@ export default function DanoScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    backgroundColor: "#eee",
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 6,
+    backgroundColor: "#d3e9e97b",
+    padding: 20,
+    borderRadius: 20,
+    margin: 15,
   },
   code: {
     fontWeight: "bold",
@@ -162,19 +166,16 @@ const styles = StyleSheet.create({
     color: "#312f2fce",
     textAlign: "center",
     marginBottom: 30,
-    marginTop: 30,
+    //marginTop: 30,
   },
   buttonContainer: {
-    marginTop: 10,
-  },
-  volverButtonContainer: {
-    marginTop: 15,
+    //marginTop: 10,
   },
   textInputContainer: {
     marginBottom: 10,
     boxShadow: "0px 2px 3px 0px #1a1a1a29",
   },
   takePhotoContainer: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
 });
