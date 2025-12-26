@@ -5,23 +5,23 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
-  TouchableOpacity,
+  Text,
+  TouchableWithoutFeedback,
   Vibration,
   View,
 } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { Button as PaperButton } from "react-native-paper";
 import playSound from "../components/plySound";
 import { getScan, saveScan } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
-const router = useRouter();
-
-///  Area de escaneo
+/// Area de escaneo
 const { width, height } = Dimensions.get("window");
 const SCAN_SIZE = width * 0.7;
 const TOP = (height - SCAN_SIZE) / 2;
 const LEFT = (width - SCAN_SIZE) / 2;
 
+// Mapa y pesos VIN para validación
 const VIN_MAP = {
   A: 1,
   B: 2,
@@ -57,7 +57,6 @@ const VIN_MAP = {
   8: 8,
   9: 9,
 };
-
 const VIN_WEIGHTS = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
 
 export function isValidVIN(vin) {
@@ -68,14 +67,59 @@ export function isValidVIN(vin) {
   for (let i = 0; i < 17; i++) {
     sum += VIN_MAP[vin[i]] * VIN_WEIGHTS[i];
   }
-
   const check = sum % 11;
   const checkChar = check === 10 ? "X" : String(check);
-
   return vin[8] === checkChar;
 }
 
+// ---------------------------
+// Animated Button Component
+// ---------------------------
+function AnimatedButton({ label, onPress, color, textColor, style }) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.95,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <TouchableWithoutFeedback
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+    >
+      <Animated.View style={[{ transform: [{ scale }] }, style]}>
+        <PaperButton
+          mode="contained"
+          buttonColor={color}
+          textColor={textColor}
+          style={{ borderRadius: 12, paddingVertical: 10 }}
+          labelStyle={{ fontSize: 18 }}
+        >
+          {label}
+        </PaperButton>
+      </Animated.View>
+    </TouchableWithoutFeedback>
+  );
+}
+
+// ---------------------------
+// ScannerScreen
+// ---------------------------
 export default function ScannerScreen() {
+  const router = useRouter();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [lastResult, setLastResult] = useState("");
@@ -89,7 +133,6 @@ export default function ScannerScreen() {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     };
-
     getCameraPermissions();
   }, []);
 
@@ -118,19 +161,15 @@ export default function ScannerScreen() {
       cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
     const centerY =
       cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
-
     const inside =
       centerX > LEFT &&
       centerX < LEFT + SCAN_SIZE &&
       centerY > TOP &&
       centerY < TOP + SCAN_SIZE;
-
     setAligned(inside);
-
     if (!inside) return;
 
     scanLock.current = true;
-
     const vin = data.trim().toUpperCase();
 
     if (!isValidVIN(vin)) {
@@ -144,7 +183,6 @@ export default function ScannerScreen() {
     Vibration.vibrate(120);
 
     const alreadyScanned = await getScan(vin);
-
     if (!alreadyScanned) {
       await playSound("success");
       await saveScan(vin, type);
@@ -155,11 +193,7 @@ export default function ScannerScreen() {
       }, 1200);
     } else {
       await playSound("error");
-      router.push({
-        pathname: "/(app)/HistoryScreen",
-        params: { vin: vin },
-      });
-      return null;
+      router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
     }
   };
 
@@ -173,23 +207,21 @@ export default function ScannerScreen() {
         onBarcodeScanned={scanned ? undefined : handleScan}
         style={StyleSheet.absoluteFillObject}
         autoFocus={false}
-        //flashMode={torch ? 2 : 0} // 2 = torch, 0 = off
       />
-      <TouchableOpacity
-        style={styles.flashButton}
-        onPress={() => setTorch(!torch)}
-      >
-        <Text style={styles.flashText}>{torch ? "🔦 OFF" : "🔦 ON"}</Text>
-      </TouchableOpacity>
+
+      <TouchableWithoutFeedback onPress={() => setTorch(!torch)}>
+        <View style={styles.flashButton}>
+          <Text style={styles.flashText}>{torch ? "🔦 OFF" : "🔦 ON"}</Text>
+        </View>
+      </TouchableWithoutFeedback>
+
       <Text style={styles.helperText}>Alinee el código dentro del marco</Text>
 
       {/* Overlay */}
       <View style={styles.overlay}>
         <View style={[styles.mask, { height: TOP }]} />
-
         <View style={styles.centerRow}>
           <View style={[styles.mask, { width: LEFT }]} />
-
           <View
             style={[
               styles.scanArea,
@@ -205,124 +237,99 @@ export default function ScannerScreen() {
                 { transform: [{ translateY: scanLineAnim }] },
               ]}
             />
-            <View style={[styles.corner, styles.topLeft]}></View>
-            <View style={[styles.corner, styles.topRight]}></View>
-            <View style={[styles.corner, styles.bottomLeft]}></View>
-            <View style={[styles.corner, styles.bottomRight]}></View>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
           </View>
-
           <View style={[styles.mask, { width: LEFT }]} />
         </View>
         <View style={[styles.mask, { height: TOP }]} />
       </View>
 
+      {/* Resultado */}
       {scanned && (
         <View style={styles.result}>
           <View style={styles.titleContainer}>
             <Text style={styles.resultText}>{lastResult}</Text>
           </View>
-          <View style={styles.button}>
-            <Button
-              labelStyle={{ fontSize: 20, padding: 5 }}
-              mode="contained-tonal"
-              buttonColor="rgba(222, 101, 101, 0.95)"
-              textColor="rgba(41, 30, 30, 0.89)"
-              onPress={() =>
-                router.replace({
-                  pathname: "/(app)/DanoScreen",
-                  params: {
-                    vinFromRouter: lastResult,
-                  },
-                })
-              }
-            >
-              Daños
-            </Button>
-          </View>
-          <View style={styles.button}>
-            <Button
-              labelStyle={{ fontSize: 20, padding: 5 }}
-              mode="elevated"
-              buttonColor="rgba(104, 137, 198, 0.93)"
-              textColor="rgba(41, 30, 30, 0.89)"
-              onPress={() =>
-                router.replace({
-                  pathname: "/(app)/CameraScreen",
-                  params: {
-                    vinFromRouter: lastResult,
-                  },
-                })
-              }
-            >
-              Tomar fotos
-            </Button>
-          </View>
-          <View style={styles.button}>
-            <Button
-              title="Escanear otro"
-              labelStyle={{ fontSize: 20, padding: 5 }}
-              mode="elevated"
-              buttonColor="rgba(115, 175, 98, 1)"
-              textColor="rgba(41, 30, 30, 0.89)"
-              onPress={() => {
-                setScanned(false);
-                scanLock.current = false;
-                setAligned(false);
-              }}
-            >
-              Escanear otro
-            </Button>
-          </View>
-          {/* <View style={styles.button}>
-		    <Button
-          labelStyle={{ fontSize: 20, padding: 5 }}
-          mode='elevated'
-          buttonColor='rgba(122, 134, 131, 0.88)'
-          textColor='rgba(41, 30, 30, 0.89)'
-          onPress={() => router.push({
-            pathname: '/(app)/HistoryScreen',
-            params: {vin: lastResult}
-          })}>
-          Ver historial
-			</Button> */}
-          {/* </View> */}
+
+          <AnimatedButton
+            label="Daños"
+            onPress={() =>
+              router.replace({
+                pathname: "/(app)/DanoScreen",
+                params: { vinFromRouter: lastResult },
+              })
+            }
+            color="rgba(222, 101, 101, 0.95)"
+            textColor="rgba(41, 30, 30, 0.89)"
+            style={styles.button}
+          />
+
+          <AnimatedButton
+            label="Tomar fotos"
+            onPress={() =>
+              router.replace({
+                pathname: "/(app)/CameraScreen",
+                params: { vinFromRouter: lastResult },
+              })
+            }
+            color="rgba(104, 137, 198, 0.93)"
+            textColor="rgba(41, 30, 30, 0.89)"
+            style={styles.button}
+          />
+
+          <AnimatedButton
+            label="Escanear otro"
+            onPress={() => {
+              setScanned(false);
+              scanLock.current = false;
+              setAligned(false);
+            }}
+            color="rgba(115, 175, 98, 1)"
+            textColor="rgba(41, 30, 30, 0.89)"
+            style={styles.button}
+          />
         </View>
       )}
     </View>
   );
 }
 
+// ---------------------------
+// Styles
+// ---------------------------
 const CORNER = 28;
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   result: {
     position: "absolute",
     bottom: 150,
     alignSelf: "center",
-    backgroundColor: "rgba(220, 220, 220, 1)",
+    backgroundColor: "rgba(245,245,245,0.95)",
     padding: 30,
-    borderRadius: 8,
-    height: 400,
+    borderRadius: 12,
+    width: "85%",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
   resultText: {
     marginBottom: 30,
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "rgba(47, 47, 47, 0.89)",
+    color: "#2f2f2f",
+    textAlign: "center",
   },
-  button: {
-    marginTop: 20,
-  },
+  button: { marginTop: 16 },
   titleContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: "#737171ef",
+    borderBottomColor: "#ccc",
     marginBottom: 16,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-  },
+  overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
   mask: { backgroundColor: "rgba(0,0,0,0.6)" },
   centerRow: { flexDirection: "row" },
   scanArea: { width: SCAN_SIZE, height: SCAN_SIZE, position: "relative" },
@@ -346,8 +353,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   flashText: { color: "#fff", fontSize: 14 },
-
-  // Esquinas tipo L
   corner: {
     position: "absolute",
     width: CORNER,
