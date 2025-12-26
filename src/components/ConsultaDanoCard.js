@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -21,7 +21,6 @@ const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 export default function ConsultaDanoItem({ item }) {
   const position = useRef(new Animated.ValueXY()).current;
   const [index, setIndex] = useState(0);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
 
@@ -40,6 +39,29 @@ export default function ConsultaDanoItem({ item }) {
     return damages[index % damages.length];
   }, [index, damages]);
 
+  // Animación contador de card
+  const cardCounterAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    cardCounterAnim.setValue(-20); // empieza fuera
+    Animated.timing(cardCounterAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [index]);
+
+  // Animación slide-in contador de fotos
+  const photosCounterAnim = useRef(new Animated.Value(-30)).current;
+
+  useEffect(() => {
+    Animated.timing(photosCounterAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [index, pictsCurrentIndex]);
+
   const rotate = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
     outputRange: ["-8deg", "0deg", "8deg"],
@@ -48,12 +70,10 @@ export default function ConsultaDanoItem({ item }) {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-
       onPanResponderMove: Animated.event(
         [null, { dx: position.x, dy: position.y }],
         { useNativeDriver: false }
       ),
-
       onPanResponderRelease: (_, gesture) => {
         if (Math.abs(gesture.dx) > SWIPE_THRESHOLD) {
           Animated.timing(position, {
@@ -66,7 +86,8 @@ export default function ConsultaDanoItem({ item }) {
           }).start(() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             position.setValue({ x: 0, y: 0 });
-            setIndex((prev) => prev + 1); // 🔁 circular
+            setIndex((prev) => (prev + 1) % damages.length); // circular
+            setPictsCurrentIndex(0); // reset fotos
           });
         } else {
           Animated.spring(position, {
@@ -84,6 +105,16 @@ export default function ConsultaDanoItem({ item }) {
   return (
     <>
       <View style={styles.wrapper}>
+        {/* Contador de card animado */}
+        <Animated.Text
+          style={[
+            styles.cardCounter,
+            { transform: [{ translateY: cardCounterAnim }] },
+          ]}
+        >
+          {index + 1} / {damages.length}
+        </Animated.Text>
+
         <Animated.View
           {...panResponder.panHandlers}
           style={[
@@ -109,16 +140,17 @@ export default function ConsultaDanoItem({ item }) {
           </BlurView>
         </Animated.View>
       </View>
+
       {/* Fotos */}
       {fotos.length > 0 && (
         <View style={styles.pictsContainer}>
           <BlurView intensity={35} tint="light" style={styles.glass}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {fotos.map((uri, index) => (
+              {fotos.map((uri, idx) => (
                 <TouchableOpacity
-                  key={index} // usar el index como key
+                  key={idx}
                   onPress={() => {
-                    setPictsCurrentIndex(index);
+                    setPictsCurrentIndex(idx);
                     setModalVisible(true);
                   }}
                 >
@@ -126,9 +158,14 @@ export default function ConsultaDanoItem({ item }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <Text style={styles.counter}>
+            <Animated.Text
+              style={[
+                styles.counter,
+                { transform: [{ translateY: photosCounterAnim }] },
+              ]}
+            >
               {pictsCurrentIndex + 1} / {fotos.length}
-            </Text>
+            </Animated.Text>
           </BlurView>
         </View>
       )}
@@ -140,7 +177,7 @@ export default function ConsultaDanoItem({ item }) {
         style={styles.modal}
       >
         <ImageViewer
-          imageUrls={fotos.map((uri) => ({ url: uri }))} // transformar strings a objetos
+          imageUrls={fotos.map((uri) => ({ url: uri }))}
           index={pictsCurrentIndex}
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}
@@ -156,17 +193,25 @@ export default function ConsultaDanoItem({ item }) {
   );
 }
 
-/* ------------------ */
-/* 🎨 Styles */
-/* ------------------ */
-
 const styles = StyleSheet.create({
   wrapper: {
-    //height: 380,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden", // 🔒 nada detrás
+    overflow: "hidden",
     borderRadius: 22,
+    marginBottom: 20,
+  },
+  cardCounter: {
+    position: "absolute",
+    top: 8,
+    right: 14,
+    backgroundColor: "#00000050",
+    color: "#fff",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    fontWeight: "700",
+    zIndex: 10,
   },
   card: {
     width: "100%",
@@ -196,15 +241,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "700",
   },
-  modal: { margin: 0 },
-  modalCounter: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
-    position: "absolute",
-    top: 50,
-    alignSelf: "center",
-  },
   pictsContainer: {
     marginTop: 20,
     height: 150,
@@ -214,5 +250,14 @@ const styles = StyleSheet.create({
     height: 100,
     marginRight: 8,
     borderRadius: 6,
+  },
+  modal: { margin: 0 },
+  modalCounter: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+    position: "absolute",
+    top: 50,
+    alignSelf: "center",
   },
 });
