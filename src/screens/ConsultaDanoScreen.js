@@ -1,3 +1,4 @@
+import { BlurView } from "expo-blur";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -8,8 +9,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { Button, TextInput } from "react-native-paper";
-import ConsultaDanoItem from "../components/ConsultaDanoItem";
+import { Button, IconButton, TextInput } from "react-native-paper";
+import ConsultaDanoCard from "../components/ConsultaDanoCard";
 import { fetchDamageInfo } from "../services/CRUD";
 
 export default function ConsultaDanoScreen() {
@@ -21,56 +22,44 @@ export default function ConsultaDanoScreen() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // 🎬 Animación input
-  const focusAnim = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  const translate = useRef(new Animated.Value(20)).current;
 
-  // 🎬 Animación resultados
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateAnim = useRef(new Animated.Value(20)).current;
-
-  const isValidVin = vin.length === 17;
-  const isInvalidVin = vin.length > 0 && vin.length < 17;
-
-  // 🔎 Buscar VIN
   const search = async (value) => {
     if (value.length !== 17) return;
 
-    try {
-      setLoading(true);
-      setSearched(true);
-      setData([]); // 🔴 limpia datos previos
+    setLoading(true);
+    setSearched(true);
+    setData([]);
 
+    try {
       const res = await fetchDamageInfo(value);
       setData(res || []);
     } catch (e) {
-      console.error(e);
-      setData([]);
+      console.log(e);
     } finally {
       setLoading(false);
     }
   };
 
-  // 📲 VIN desde scanner
   useEffect(() => {
-    if (typeof vinFromScanner === "string" && vinFromScanner.length === 17) {
+    if (vinFromScanner?.length === 17) {
       setVin(vinFromScanner);
       search(vinFromScanner);
     }
   }, [vinFromScanner]);
 
-  // 🎬 Animar cards
   useEffect(() => {
     if (data.length > 0) {
-      fadeAnim.setValue(0);
-      translateAnim.setValue(20);
-
+      fade.setValue(0);
+      translate.setValue(20);
       Animated.parallel([
-        Animated.timing(fadeAnim, {
+        Animated.timing(fade, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
         }),
-        Animated.timing(translateAnim, {
+        Animated.timing(translate, {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
@@ -79,126 +68,68 @@ export default function ConsultaDanoScreen() {
     }
   }, [data]);
 
-  // 🎬 Animar focus input
-  const handleFocus = () => {
-    Animated.spring(focusAnim, {
-      toValue: 1,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const handleBlur = () => {
-    Animated.spring(focusAnim, {
-      toValue: 0,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const animatedScale = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.02],
-  });
-
-  const animatedShadow = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.25],
-  });
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Consulta de Daños por VIN</Text>
+      {/* Glass panel */}
+      <BlurView intensity={40} tint="light" style={styles.glass}>
+        <Text style={styles.title}>Consulta de Daños</Text>
 
-      {/* 🔤 INPUT VIN */}
-      <Animated.View
-        style={{
-          transform: [{ scale: animatedScale }],
-          shadowColor: isValidVin
-            ? "#2ecc71"
-            : isInvalidVin
-            ? "#e74c3c"
-            : "#000",
-          shadowOpacity: animatedShadow,
-          shadowRadius: 6,
-          shadowOffset: { width: 0, height: 3 },
-        }}
-      >
         <TextInput
-          value={vin}
-          label="Ingresar VIN"
-          maxLength={17}
+          label="VIN"
           mode="outlined"
-          style={styles.input}
+          value={vin}
+          maxLength={17}
           autoCapitalize="characters"
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onChangeText={(text) => setVin(text.toUpperCase())}
-          theme={{
-            colors: {
-              primary: isValidVin
-                ? "#2ecc71"
-                : isInvalidVin
-                ? "#e74c3c"
-                : "#6200ee",
-              outline: isValidVin
-                ? "#2ecc71"
-                : isInvalidVin
-                ? "#e74c3c"
-                : "#999",
-              background: "#fff",
-            },
-          }}
+          style={styles.input}
+          onChangeText={(t) => setVin(t.toUpperCase())}
+          right={
+            vin.length === 17 && (
+              <TextInput.Icon icon="check-circle" color="#2ecc71" />
+            )
+          }
         />
-      </Animated.View>
 
-      {isInvalidVin && (
-        <Text style={styles.vinError}>VIN incompleto ({vin.length}/17)</Text>
-      )}
+        <View style={styles.actions}>
+          <Button
+            mode="contained"
+            icon="magnify"
+            onPress={() => search(vin)}
+            disabled={vin.length !== 17 || loading}
+            style={styles.searchBtn}
+          >
+            Consultar
+          </Button>
 
-      {isValidVin && <Text style={styles.vinOk}>VIN válido ✓</Text>}
+          <IconButton
+            icon="barcode-scan"
+            size={34}
+            style={styles.scanBtn}
+            onPress={() => router.push("/ScannerSolo")}
+          />
+        </View>
+      </BlurView>
 
-      {/* 🔘 BOTONES */}
-      <Button
-        mode="contained"
-        onPress={() => search(vin)}
-        disabled={!isValidVin}
-        style={styles.button}
-      >
-        Consultar
-      </Button>
-
-      <Button
-        mode="outlined"
-        onPress={() => router.replace("/(app)/ScannerSolo")}
-        style={styles.button}
-      >
-        Escanear
-      </Button>
-
-      {/* 🧾 RESULTADOS */}
-      <View style={styles.cardContainer}>
+      {/* Results */}
+      <View style={styles.results}>
         {loading && <ActivityIndicator size="large" />}
 
         {!loading && searched && data.length === 0 && (
-          <Text style={styles.emptyText}>
-            No se encontraron daños para el VIN proporcionado
-          </Text>
+          <Text style={styles.empty}>No existen daños para este VIN</Text>
         )}
 
         {!loading && data.length > 0 && (
           <Animated.View
             style={{
               flex: 1,
-              opacity: fadeAnim,
-              transform: [{ translateY: translateAnim }],
+              opacity: fade,
+              transform: [{ translateY: translate }],
             }}
           >
             <FlatList
               data={data}
-              keyExtractor={(item) =>
-                item.supabase_id?.toString() ?? Math.random().toString()
-              }
-              renderItem={({ item }) => <ConsultaDanoItem item={item} />}
-              showsVerticalScrollIndicator={false}
+              keyExtractor={(item) => item.supabase_id.toString()}
+              renderItem={({ item }) => <ConsultaDanoCard item={item} />}
+              contentContainerStyle={{ paddingBottom: 30 }}
             />
           </Animated.View>
         )}
@@ -210,40 +141,61 @@ export default function ConsultaDanoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
+
+  /* Glass panel superior */
+  glass: {
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: "rgba(255,255,255,0.35)",
+    overflow: "hidden",
+  },
+
   title: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: "700",
+    marginBottom: 12,
     textAlign: "center",
-    marginVertical: 10,
-    color: "#242424b8",
+    color: "#262626c8",
   },
+
   input: {
-    marginTop: 15,
-    backgroundColor: "#fff", // 🔴 FIX label sobre línea
+    marginBottom: 12,
+    backgroundColor: "rgba(255,255,255,0.85)",
   },
-  button: {
-    marginTop: 15,
+
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
   },
-  cardContainer: {
+
+  searchBtn: {
     flex: 1,
-    marginTop: 20,
+    borderRadius: 14,
+    paddingVertical: 6,
+    backgroundColor: "#444df0b1",
   },
-  emptyText: {
+
+  scanBtn: {
+    marginLeft: 12,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 14,
+  },
+
+  /* Resultados */
+  results: {
+    flex: 1,
+    marginTop: 8,
+  },
+
+  empty: {
+    marginTop: 40,
     textAlign: "center",
-    marginTop: 20,
     fontSize: 16,
-    opacity: 0.7,
-  },
-  vinError: {
-    color: "#e74c3c",
-    marginTop: 5,
-    fontWeight: "700",
-  },
-  vinOk: {
-    color: "#2ecc71",
-    marginTop: 5,
-    fontWeight: "700",
+    opacity: 0.6,
   },
 });

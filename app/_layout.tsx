@@ -33,7 +33,7 @@ function RootContainer() {
     <ImageBackground
       source={require("./background-cars.jpg")}
       style={styles.background}
-      imageStyle={{ opacity: 0.2 }}
+      imageStyle={{ opacity: 0.35 }}
     >
       <View style={styles.overlay} />
       <Slot />
