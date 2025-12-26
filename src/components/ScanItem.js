@@ -177,7 +177,7 @@ function ScanItem({ item, isActive, onDelete }) {
       {item.damages[0].area !== null && (
         <View style={styles.danosContainer}>
           <Button
-            buttonColor="rgba(133, 207, 189, 0.98)"
+            buttonColor="rgba(87, 178, 155, 0.78)"
             mode="contained"
             onPress={toggleDanos}
             style={styles.button}
@@ -198,7 +198,7 @@ function ScanItem({ item, isActive, onDelete }) {
             <ConsultaDanoItem
               item={{
                 damages: item.damages,
-                pictures: localPicts,
+                fotos: localPicts,
               }}
             />
           </View>
@@ -213,7 +213,7 @@ function ScanItem({ item, isActive, onDelete }) {
             <ConsultaDanoItem
               item={{
                 damages: item.damages,
-                pictures: localPicts,
+                fotos: localPicts,
               }}
             />
           </Animated.View>
@@ -224,7 +224,7 @@ function ScanItem({ item, isActive, onDelete }) {
         <IconButton
           size={40}
           icon="camera-plus"
-          iconColor="rgba(133, 207, 189, 0.98)"
+          iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
@@ -235,7 +235,7 @@ function ScanItem({ item, isActive, onDelete }) {
         <IconButton
           size={40}
           icon="car-2-plus"
-          iconColor="rgba(133, 207, 189, 0.98)"
+          iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
             router.push({
               pathname: "/(app)/DanoScreen",
@@ -246,7 +246,7 @@ function ScanItem({ item, isActive, onDelete }) {
         <IconButton
           size={40}
           icon="delete"
-          iconColor="rgba(244, 157, 157, 0.91)"
+          iconColor="rgba(241, 125, 125, 0.81)"
           onPress={handleDelete}
         />
       </View>
@@ -256,7 +256,7 @@ function ScanItem({ item, isActive, onDelete }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#86b2aa20",
+    backgroundColor: "#86b2aa7f",
     borderColor: "#ededed71",
     borderWidth: 1,
     borderRadius: 8,
@@ -276,6 +276,8 @@ const styles = StyleSheet.create({
   button: {
     marginBottom: 12,
     marginTop: 12,
+    width: "90%",
+    alignSelf: "center",
   },
   actionBtnsContainer: {
     flexDirection: "row",
