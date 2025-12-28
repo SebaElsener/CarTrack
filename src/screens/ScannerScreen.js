@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Button as PaperButton } from "react-native-paper";
 import playSound from "../components/plySound";
+import { useScans } from "../context/ScanContext";
 import { getScan, saveScan } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
@@ -127,6 +128,7 @@ export default function ScannerScreen() {
   const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
   const scanLock = useRef(false);
+  const { increment } = useScans();
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -190,6 +192,7 @@ export default function ScannerScreen() {
       setTimeout(() => {
         scanLock.current = false;
         setAligned(false);
+        increment();
       }, 1200);
     } else {
       await playSound("error");
@@ -305,7 +308,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   result: {
     position: "absolute",
-    bottom: 150,
+    bottom: 200,
     alignSelf: "center",
     backgroundColor: "rgba(245,245,245,0.95)",
     padding: 30,
@@ -318,7 +321,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     marginBottom: 30,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#2f2f2f",
     textAlign: "center",

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
+import { ScansProvider } from "../../src/context/ScanContext";
 import InfoBar from "../../src/screens/InfoBar";
 import SyncManager from "./SyncManager";
 
@@ -24,60 +25,61 @@ export default function AppLayout() {
   return (
     <>
       <SyncManager onSyncChange={setSyncing} />
+      <ScansProvider>
+        <Stack
+          screenOptions={{
+            contentStyle: {
+              backgroundColor: "transparent", // 🔥 CLAVE
+            },
+            header: () => (
+              <Appbar.Header style={styles.appBarContainer}>
+                <View style={styles.appBarItemsContainer}>
+                  <Appbar.Action
+                    icon="home"
+                    color="white"
+                    size={30}
+                    onPress={() => router.replace("/(app)/HomeScreen")}
+                  />
+                  <Appbar.Action
+                    icon="barcode-scan"
+                    color="white"
+                    size={30}
+                    onPress={() => router.replace("/(app)/ScannerScreen")}
+                  />
+                  <Appbar.Action
+                    icon="clipboard-list-outline"
+                    color="white"
+                    size={30}
+                    onPress={() => router.replace("/(app)/HistoryScreen")}
+                  />
 
-      <Stack
-        screenOptions={{
-          contentStyle: {
-            backgroundColor: "transparent", // 🔥 CLAVE
-          },
-          header: () => (
-            <Appbar.Header style={styles.appBarContainer}>
-              <View style={styles.appBarItemsContainer}>
-                <Appbar.Action
-                  icon="home"
-                  color="white"
-                  size={30}
-                  onPress={() => router.replace("/(app)/HomeScreen")}
-                />
-                <Appbar.Action
-                  icon="barcode-scan"
-                  color="white"
-                  size={30}
-                  onPress={() => router.replace("/(app)/ScannerScreen")}
-                />
-                <Appbar.Action
-                  icon="clipboard-list-outline"
-                  color="white"
-                  size={30}
-                  onPress={() => router.replace("/(app)/HistoryScreen")}
-                />
-
-                {syncing && (
-                  <View style={styles.lottieContainer}>
-                    {syncing && <Text style={{ color: "white" }}>SYNC</Text>}
-                    <LottieView
-                      source={require("../../src/utils/Syncwhite.json")}
-                      autoPlay
-                      loop
-                      style={{ width: 30, height: 30 }}
-                    />
-                  </View>
-                )}
-                <View style={{ flex: 1 }} />
-                <Appbar.Action
-                  icon="logout"
-                  color="white"
-                  size={30}
-                  onPress={logout}
-                />
-              </View>
-              <View style={styles.appBarDate}>
-                <InfoBar />
-              </View>
-            </Appbar.Header>
-          ),
-        }}
-      />
+                  {syncing && (
+                    <View style={styles.lottieContainer}>
+                      {syncing && <Text style={{ color: "white" }}>SYNC</Text>}
+                      <LottieView
+                        source={require("../../src/utils/Syncwhite.json")}
+                        autoPlay
+                        loop
+                        style={{ width: 30, height: 30 }}
+                      />
+                    </View>
+                  )}
+                  <View style={{ flex: 1 }} />
+                  <Appbar.Action
+                    icon="logout"
+                    color="white"
+                    size={30}
+                    onPress={logout}
+                  />
+                </View>
+                <View style={styles.appBarDate}>
+                  <InfoBar />
+                </View>
+              </Appbar.Header>
+            ),
+          }}
+        />
+      </ScansProvider>
     </>
   );
 }
@@ -92,13 +94,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.25)",
     display: "flex",
     flexDirection: "column",
-    marginTop: 20,
+    //marginTop: 20,
     alignItems: "flex-start",
     justifyContent: "center",
     height: 85,
   },
   appBarDate: {
-    marginLeft: 6,
+    //justifyContent: "space-between",
+    //marginLeft: 6,
   },
   lottieContainer: {
     justifyContent: "center",

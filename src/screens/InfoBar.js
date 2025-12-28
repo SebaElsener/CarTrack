@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Text } from "react-native-paper";
+import { useScans } from "../context/ScanContext";
 
 export default function InfoBar() {
   const [hora, setHora] = useState(new Date());
+  const { scansCount } = useScans();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -27,10 +29,31 @@ export default function InfoBar() {
   })}`;
 
   return (
-    <View>
-      <Text style={{ color: "#eeeeeeff", fontWeight: 700, fontSize: 13.5 }}>
-        {fechaHora}
-      </Text>
+    <View
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+        paddingHorizontal: 20,
+      }}
+    >
+      <View>
+        <Text style={{ color: "#eeeeeeff", fontWeight: 700, fontSize: 13.5 }}>
+          {fechaHora}
+        </Text>
+      </View>
+      <View>
+        <Text
+          style={{
+            color: "#eeeeeeff",
+            fontWeight: 700,
+            fontSize: 13.5,
+          }}
+        >
+          VIN escaneados: {scansCount}
+        </Text>
+      </View>
     </View>
   );
 }

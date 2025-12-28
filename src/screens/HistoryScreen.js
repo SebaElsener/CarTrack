@@ -2,11 +2,13 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { FlatList, View } from "react-native";
 import ScanItem from "../components/ScanItem";
+import { useScans } from "../context/ScanContext";
 import { deleteScan, getScans } from "../database/Database";
 
 export default function HistoryScreen() {
   const [data, setData] = useState([]);
   const { vin } = useLocalSearchParams();
+  const { decrement } = useScans();
 
   const listRef = useRef(null);
   const [activeCode, setActiveCode] = useState(null);
@@ -14,6 +16,7 @@ export default function HistoryScreen() {
   const handleDeleteScan = async (id) => {
     await deleteScan(id); // borra en SQLite
     setData((prev) => prev.filter((item) => item.id !== id)); // borra la card
+    decrement();
   };
 
   const loadData = async () => {
