@@ -48,6 +48,7 @@ export const danoCloudUpdate = async () => {
   let syncedCount = 0;
   for (const item of unsyncedDamages) {
     const { error } = await supabase.from("damages").insert({
+      id: item.id,
       area: item.area,
       averia: item.averia,
       grav: item.grav,
