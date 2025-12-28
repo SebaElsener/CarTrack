@@ -8,12 +8,10 @@ export default function HistoryScreen() {
   const [search, setSearch] = useState("");
   const [filtered, setFiltered] = useState([]);
   const [activeVin, setActiveVin] = useState(null);
-
   const listRef = useRef(null);
+  const debounceTimeout = useRef(null);
 
-  const ITEM_HEIGHT = 180; // ajusta según la altura de tu ScanItem
-
-  // Cargar datos iniciales
+  // Carga inicial
   const loadData = async () => {
     const scans = await getScans();
     setData(scans);
@@ -24,63 +22,63 @@ export default function HistoryScreen() {
     loadData();
   }, []);
 
-  // Filtrado con highlight
+  // Filtrado con debounce
   useEffect(() => {
-    if (!search) {
-      setFiltered(data);
-      setActiveVin(null);
-    } else {
-      const matches = data.filter((d) =>
-        d.vin.toLowerCase().includes(search.toLowerCase())
-      );
-      setFiltered(matches);
-      if (matches.length > 0) setActiveVin(matches[0].vin);
-      else setActiveVin(null);
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      if (search === "") {
+        setFiltered(data);
+        setActiveVin(null);
+      } else {
+        const result = data.filter((d) =>
+          d.vin.toLowerCase().includes(search.toLowerCase())
+        );
+        setFiltered(result);
+        setActiveVin(result.length > 0 ? result[0].vin : null);
+      }
+    }, 200);
+
+    return () => clearTimeout(debounceTimeout.current);
   }, [search, data]);
 
-  // Scroll automático al primer match
-  useEffect(() => {
-    if (!activeVin || filtered.length === 0) return;
-
-    const index = filtered.findIndex((d) => d.vin === activeVin);
-    if (index === -1) return;
-
-    requestAnimationFrame(() => {
-      listRef.current?.scrollToIndex({
-        index,
-        animated: true,
-        viewPosition: 0.5,
-      });
-    });
-  }, [activeVin, filtered]);
-
-  // Eliminar scan
+  // Delete scan
   const handleDeleteScan = async (vin) => {
     await deleteScan(vin);
     const newData = data.filter((d) => d.vin !== vin);
     setData(newData);
     setFiltered(newData);
+    if (activeVin === vin) setActiveVin(null);
   };
 
-  // Highlight del texto coincidente
-  const renderVin = (vin) => {
-    if (!search) return <Text style={styles.vinText}>{vin}</Text>;
+  // Scroll seguro al item activo
+  useEffect(() => {
+    if (!activeVin) return;
+    const index = filtered.findIndex((d) => d.vin === activeVin);
+    if (index === -1) return;
 
+    setTimeout(() => {
+      if (listRef.current && filtered.length > 0 && index < filtered.length) {
+        listRef.current.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
+      }
+    }, 50);
+  }, [activeVin, filtered]);
+
+  // Resaltado de caracteres
+  const renderVin = (vin) => {
+    if (!search) return <Text style={styles.vin}>{vin}</Text>;
     const regex = new RegExp(`(${search})`, "i");
     const parts = vin.split(regex);
-
     return (
-      <Text style={styles.vinText}>
-        {parts.map((part, i) =>
-          regex.test(part) ? (
-            <Text key={i} style={styles.highlight}>
-              {part}
-            </Text>
-          ) : (
-            <Text key={i}>{part}</Text>
-          )
-        )}
+      <Text style={styles.vin}>
+        {parts.map((part, i) => (
+          <Text key={i} style={regex.test(part) ? styles.highlight : {}}>
+            {part}
+          </Text>
+        ))}
       </Text>
     );
   };
@@ -98,20 +96,14 @@ export default function HistoryScreen() {
         ref={listRef}
         data={filtered}
         keyExtractor={(item) => item.vin}
-        getItemLayout={(_, index) => ({
-          length: ITEM_HEIGHT,
-          offset: ITEM_HEIGHT * index,
-          index,
-        })}
         renderItem={({ item }) => (
           <ScanItem
             item={item}
             isActive={item.vin === activeVin}
             onDelete={handleDeleteScan}
-            renderVin={renderVin} // <-- pasamos la función highlight
+            renderVin={renderVin} // pasar render function
           />
         )}
-        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -120,20 +112,21 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 8 },
   input: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#ccc",
-    backgroundColor: "#f1f1f17a",
     padding: 10,
     borderRadius: 6,
     marginBottom: 8,
     width: "95%",
     alignSelf: "center",
   },
-  vinText: {
+  vin: {
+    fontSize: 19,
     fontWeight: "bold",
-    fontSize: 21,
+    color: "#4d4d4d",
     textAlign: "center",
-    color: "#171717d3",
   },
-  highlight: { backgroundColor: "yellow" },
+  highlight: {
+    backgroundColor: "yellow",
+  },
 });

@@ -180,8 +180,9 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
       {item.damages[0].area !== null && (
         <View style={styles.danosContainer}>
           <Button
-            buttonColor="rgba(87, 178, 155, 0.78)"
+            buttonColor="rgba(108, 178, 160, 0.78)"
             mode="contained"
+            labelStyle={{ fontSize: 13 }}
             onPress={toggleDanos}
             style={styles.button}
           >
@@ -220,7 +221,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
 
       <View style={styles.actionBtnsContainer}>
         <IconButton
-          size={40}
+          size={35}
           icon="camera-plus"
           iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
@@ -231,7 +232,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
           }
         />
         <IconButton
-          size={40}
+          size={35}
           icon="car-2-plus"
           iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
@@ -242,7 +243,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
           }
         />
         <IconButton
-          size={40}
+          size={35}
           icon="delete"
           iconColor="rgba(241, 125, 125, 0.81)"
           onPress={handleDelete}
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
   },
   danosContainer: {},
   button: {
-    marginBottom: 12,
+    //marginBottom: 12,
     marginTop: 12,
     width: "90%",
     alignSelf: "center",
