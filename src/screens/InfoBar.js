@@ -17,16 +17,23 @@ export default function InfoBar() {
 
   const weekday = hora
     .toLocaleDateString("es-AR", { weekday: "short" })
+    .replace(".", "")
     .replace(/^./, (c) => c.toUpperCase());
 
-  const fechaHora = `${weekday} ${hora.toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "short",
-  })} ${hora.toLocaleTimeString("es-AR", {
+  const month = hora
+    .toLocaleDateString("es-AR", { month: "short" })
+    .replace(".", "")
+    .replace(/^./, (c) => c.toUpperCase());
+
+  const day = hora.toLocaleDateString("es-AR", { day: "2-digit" });
+
+  const time = hora.toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  })}`;
+  });
+
+  const fechaHora = `${weekday} ${day} ${month} · ${time}`;
 
   return (
     <View
