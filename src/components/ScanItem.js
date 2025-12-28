@@ -5,7 +5,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text } from "react-native-paper";
 import ConsultaDanoItem from "./ConsultaDanoItem";
 
-function ScanItem({ item, isActive, onDelete }) {
+function ScanItem({ item, isActive, onDelete, renderVin }) {
   const router = useRouter();
   const [localPicts, setLocalPicts] = useState([]);
 
@@ -15,9 +15,7 @@ function ScanItem({ item, isActive, onDelete }) {
     const loadPicts = async () => {
       try {
         const pictures = await getPictsLocalUri();
-        if (mounted) {
-          setLocalPicts(pictures);
-        }
+        if (mounted) setLocalPicts(pictures);
       } catch (e) {
         console.log("Error cargando fotos", e);
       }
@@ -172,7 +170,12 @@ function ScanItem({ item, isActive, onDelete }) {
         />
       )}
 
-      <Text style={styles.code}>{item.vin}</Text>
+      {/* VIN con highlight si renderVin está presente */}
+      {renderVin ? (
+        renderVin(item.vin)
+      ) : (
+        <Text style={styles.code}>{item.vin}</Text>
+      )}
 
       {item.damages[0].area !== null && (
         <View style={styles.danosContainer}>
@@ -188,12 +191,7 @@ function ScanItem({ item, isActive, onDelete }) {
           {/* Hidden measure */}
           <View
             style={{ position: "absolute", opacity: 0, zIndex: -1 }}
-            onLayout={(e) => {
-              // if (contentHeight === 0) {
-              //   setContentHeight(e.nativeEvent.layout.height);
-              // }
-              setContentHeight(e.nativeEvent.layout.height);
-            }}
+            onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
           >
             <ConsultaDanoItem
               item={{
@@ -264,15 +262,7 @@ const styles = StyleSheet.create({
     margin: 10,
     boxShadow: "1px 1px 6px 1px rgba(145, 145, 145, 0.79)",
   },
-  code: {
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 23,
-    color: "#4d4d4de2",
-  },
-  danosContainer: {
-    //margin: 5,
-  },
+  danosContainer: {},
   button: {
     marginBottom: 12,
     marginTop: 12,

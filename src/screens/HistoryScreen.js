@@ -1,44 +1,51 @@
-import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import ScanItem from "../components/ScanItem";
-import { useScans } from "../context/ScanContext";
 import { deleteScan, getScans } from "../database/Database";
 
 export default function HistoryScreen() {
   const [data, setData] = useState([]);
-  const { vin } = useLocalSearchParams();
-  const { decrement } = useScans();
+  const [search, setSearch] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const [activeVin, setActiveVin] = useState(null);
 
   const listRef = useRef(null);
-  const [activeCode, setActiveCode] = useState(null);
 
-  const handleDeleteScan = async (id) => {
-    await deleteScan(id); // borra en SQLite
-    setData((prev) => prev.filter((item) => item.id !== id)); // borra la card
-    decrement();
-  };
+  const ITEM_HEIGHT = 180; // ajusta según la altura de tu ScanItem
 
+  // Cargar datos iniciales
   const loadData = async () => {
-    setData(await getScans());
+    const scans = await getScans();
+    setData(scans);
+    setFiltered(scans);
   };
-
-  useEffect(() => {
-    setActiveCode(null);
-  }, []);
 
   useEffect(() => {
     loadData();
   }, []);
 
+  // Filtrado con highlight
   useEffect(() => {
-    setActiveCode(vin);
-  }, [vin]);
+    if (!search) {
+      setFiltered(data);
+      setActiveVin(null);
+    } else {
+      const matches = data.filter((d) =>
+        d.vin.toLowerCase().includes(search.toLowerCase())
+      );
+      setFiltered(matches);
+      if (matches.length > 0) setActiveVin(matches[0].vin);
+      else setActiveVin(null);
+    }
+  }, [search, data]);
 
+  // Scroll automático al primer match
   useEffect(() => {
-    if (!activeCode || data.length === 0) return;
-    const index = data.findIndex((s) => s.vin === activeCode);
+    if (!activeVin || filtered.length === 0) return;
+
+    const index = filtered.findIndex((d) => d.vin === activeVin);
     if (index === -1) return;
+
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({
         index,
@@ -46,31 +53,87 @@ export default function HistoryScreen() {
         viewPosition: 0.5,
       });
     });
-  }, [activeCode, data]);
+  }, [activeVin, filtered]);
+
+  // Eliminar scan
+  const handleDeleteScan = async (vin) => {
+    await deleteScan(vin);
+    const newData = data.filter((d) => d.vin !== vin);
+    setData(newData);
+    setFiltered(newData);
+  };
+
+  // Highlight del texto coincidente
+  const renderVin = (vin) => {
+    if (!search) return <Text style={styles.vinText}>{vin}</Text>;
+
+    const regex = new RegExp(`(${search})`, "i");
+    const parts = vin.split(regex);
+
+    return (
+      <Text style={styles.vinText}>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <Text key={i} style={styles.highlight}>
+              {part}
+            </Text>
+          ) : (
+            <Text key={i}>{part}</Text>
+          )
+        )}
+      </Text>
+    );
+  };
 
   return (
-    <View style={{ flex: 1, padding: 4 }}>
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Buscar VIN..."
+        value={search}
+        onChangeText={setSearch}
+        style={styles.input}
+      />
+
       <FlatList
         ref={listRef}
-        data={data}
-        keyExtractor={(item) => item.scan_id.toString()}
+        data={filtered}
+        keyExtractor={(item) => item.vin}
+        getItemLayout={(_, index) => ({
+          length: ITEM_HEIGHT,
+          offset: ITEM_HEIGHT * index,
+          index,
+        })}
         renderItem={({ item }) => (
           <ScanItem
             item={item}
-            isActive={item.vin === activeCode}
+            isActive={item.vin === activeVin}
             onDelete={handleDeleteScan}
+            renderVin={renderVin} // <-- pasamos la función highlight
           />
         )}
-        onScrollToIndexFailed={() => {
-          // fallback (por si aún no está medido)
-          setTimeout(() => {
-            listRef.current?.scrollToIndex({
-              index: 0,
-              animated: true,
-            });
-          }, 300);
-        }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 8 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#f1f1f17a",
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 8,
+    width: "95%",
+    alignSelf: "center",
+  },
+  vinText: {
+    fontWeight: "bold",
+    fontSize: 21,
+    textAlign: "center",
+    color: "#171717d3",
+  },
+  highlight: { backgroundColor: "yellow" },
+});

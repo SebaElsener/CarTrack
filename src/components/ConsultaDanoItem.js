@@ -17,7 +17,6 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 
 function ConsultaDanoItem({ item }) {
   const { damages = [], fotos = [] } = item;
-
   const [topIndex, setTopIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
@@ -60,16 +59,11 @@ function ConsultaDanoItem({ item }) {
             duration: 200,
             useNativeDriver: false,
           }).start(() => {
-            // Avanzar al siguiente índice
             setTopIndex((prev) => (prev + 1) % damages.length);
-
-            // Reset posición
             position.setValue({ x: 0, y: 0 });
             topScale.setValue(1);
             nextOpacity.setValue(0.7);
-
-            // Animación de rebote de la nueva siguiente card
-            nextScale.setValue(0.85); // inicia más pequeño
+            nextScale.setValue(0.85);
             Animated.spring(nextScale, {
               toValue: 0.95,
               friction: 6,
@@ -99,14 +93,12 @@ function ConsultaDanoItem({ item }) {
   ).current;
 
   const modalImages = fotos.map((uri) => ({ url: uri }));
-
   const topDamage = damages[topIndex];
   const nextDamage = damages[(topIndex + 1) % damages.length];
 
   return (
     <View style={styles.card}>
       <View style={styles.carouselContainer}>
-        {/* Siguiente card (bump + bounce) */}
         {nextDamage && (
           <Animated.View
             style={[
@@ -118,13 +110,14 @@ function ConsultaDanoItem({ item }) {
               },
             ]}
           >
-            <Text style={styles.items}>
-              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+            <Text style={styles.items}>{`Fecha: ${new Intl.DateTimeFormat(
+              "es-AR",
+              {
                 dateStyle: "short",
                 timeStyle: "short",
                 timeZone: "America/Argentina/Buenos_Aires",
-              }).format(new Date(nextDamage.date))}`}
-            </Text>
+              }
+            ).format(new Date(nextDamage.date))}`}</Text>
             <Text style={styles.items}>Área: {nextDamage.area}</Text>
             <Text style={styles.items}>Avería: {nextDamage.averia}</Text>
             <Text style={styles.items}>Gravedad: {nextDamage.grav}</Text>
@@ -132,8 +125,6 @@ function ConsultaDanoItem({ item }) {
             <Text style={styles.items}>Código: {nextDamage.codigo}</Text>
           </Animated.View>
         )}
-
-        {/* Card superior */}
         {topDamage && (
           <Animated.View
             key={topIndex}
@@ -157,13 +148,14 @@ function ConsultaDanoItem({ item }) {
               },
             ]}
           >
-            <Text style={styles.items}>
-              {`Fecha: ${new Intl.DateTimeFormat("es-AR", {
+            <Text style={styles.items}>{`Fecha: ${new Intl.DateTimeFormat(
+              "es-AR",
+              {
                 dateStyle: "short",
                 timeStyle: "short",
                 timeZone: "America/Argentina/Buenos_Aires",
-              }).format(new Date(topDamage.date))}`}
-            </Text>
+              }
+            ).format(new Date(topDamage.date))}`}</Text>
             <Text style={styles.items}>Área: {topDamage.area}</Text>
             <Text style={styles.items}>Avería: {topDamage.averia}</Text>
             <Text style={styles.items}>Gravedad: {topDamage.grav}</Text>
@@ -173,12 +165,10 @@ function ConsultaDanoItem({ item }) {
         )}
       </View>
 
-      {/* Contador */}
       <Text style={styles.counter}>
         {topIndex + 1} / {damages.length}
       </Text>
 
-      {/* Fotos */}
       {fotos.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -200,7 +190,6 @@ function ConsultaDanoItem({ item }) {
         </View>
       )}
 
-      {/* Modal */}
       <Modal
         isVisible={modalVisible}
         onBackdropPress={() => setModalVisible(false)}
@@ -226,11 +215,7 @@ function ConsultaDanoItem({ item }) {
 export default memo(ConsultaDanoItem);
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 4,
-  },
+  card: { padding: 10, marginBottom: 15, borderRadius: 4 },
   carouselContainer: {
     width: "100%",
     height: 210,
@@ -247,26 +232,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 5 },
     shadowRadius: 5,
-    //boxShadow: "0px 1px 3px 2px #aaaaaaff",
     borderWidth: 1,
     borderColor: "#c5c1c1ff",
   },
-  items: {
-    padding: 3,
-    fontSize: 15,
-    color: "#3b3b3be6",
-  },
-  counter: {
-    marginTop: 5,
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  image: {
-    width: 100,
-    height: 100,
-    marginRight: 8,
-    borderRadius: 6,
-  },
+  items: { padding: 3, fontSize: 15, color: "#3b3b3be6" },
+  counter: { marginTop: 5, textAlign: "center", fontWeight: "bold" },
+  image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
   modal: { margin: 0 },
   modalCounter: {
     color: "#fff",
