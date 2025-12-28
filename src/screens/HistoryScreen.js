@@ -2,6 +2,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import ScanItem from "../components/ScanItem";
+import { useScans } from "../context/ScanContext";
 import { deleteScan, getScans } from "../database/Database";
 
 export default function HistoryScreen() {
@@ -11,6 +12,7 @@ export default function HistoryScreen() {
   const [activeVin, setActiveVin] = useState(null);
   const listRef = useRef(null);
   const debounceTimeout = useRef(null);
+  const { decrement } = useScans();
 
   // Carga inicial
   const loadData = async () => {
@@ -56,6 +58,7 @@ export default function HistoryScreen() {
     setData(newData);
     setFiltered(newData);
     if (activeVin === vin) setActiveVin(null);
+    decrement();
   };
 
   // Scroll seguro al item activo
