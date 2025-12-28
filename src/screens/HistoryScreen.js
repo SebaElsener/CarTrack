@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import ScanItem from "../components/ScanItem";
 import { deleteScan, getScans } from "../database/Database";
@@ -17,6 +18,13 @@ export default function HistoryScreen() {
     setData(scans);
     setFiltered(scans);
   };
+
+  // 🔄 Actualizar al ganar foco
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   useEffect(() => {
     loadData();
