@@ -1,6 +1,5 @@
 import * as SQLite from "expo-sqlite";
 
-//const db = SQLite.openDatabaseSync('scanner.db');
 let db = null;
 let initializing = null;
 

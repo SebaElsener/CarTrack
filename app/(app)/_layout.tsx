@@ -2,8 +2,10 @@
 import { Stack, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
+import InfoBar from "../../src/screens/InfoBar";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
@@ -29,44 +31,49 @@ export default function AppLayout() {
             backgroundColor: "transparent", // 🔥 CLAVE
           },
           header: () => (
-            <Appbar.Header style={{ backgroundColor: "rgba(0,0,0,0.25)" }}>
-              <Appbar.Action
-                icon="home"
-                color="white"
-                size={30}
-                onPress={() => router.replace("/(app)/HomeScreen")}
-              />
-              <Appbar.Action
-                icon="barcode-scan"
-                color="white"
-                size={30}
-                onPress={() => router.replace("/(app)/ScannerScreen")}
-              />
-              <Appbar.Action
-                icon="clipboard-list-outline"
-                color="white"
-                size={30}
-                onPress={() => router.replace("/(app)/HistoryScreen")}
-              />
-
-              {syncing && <Text style={{ color: "white" }}>SYNC</Text>}
-              {syncing && (
-                <LottieView
-                  source={require("../../src/utils/Syncwhite.json")}
-                  autoPlay
-                  loop
-                  style={{ width: 30, height: 30 }}
+            <Appbar.Header style={styles.appBarContainer}>
+              <View style={styles.appBarItemsContainer}>
+                <Appbar.Action
+                  icon="home"
+                  color="white"
+                  size={30}
+                  onPress={() => router.replace("/(app)/HomeScreen")}
                 />
-              )}
+                <Appbar.Action
+                  icon="barcode-scan"
+                  color="white"
+                  size={30}
+                  onPress={() => router.replace("/(app)/ScannerScreen")}
+                />
+                <Appbar.Action
+                  icon="clipboard-list-outline"
+                  color="white"
+                  size={30}
+                  onPress={() => router.replace("/(app)/HistoryScreen")}
+                />
 
-              <Appbar.Content title="" />
-
-              <Appbar.Action
-                icon="logout"
-                color="white"
-                size={30}
-                onPress={logout}
-              />
+                {syncing && (
+                  <View style={styles.lottieContainer}>
+                    {syncing && <Text style={{ color: "white" }}>SYNC</Text>}
+                    <LottieView
+                      source={require("../../src/utils/Syncwhite.json")}
+                      autoPlay
+                      loop
+                      style={{ width: 30, height: 30 }}
+                    />
+                  </View>
+                )}
+                <View style={{ flex: 1 }} />
+                <Appbar.Action
+                  icon="logout"
+                  color="white"
+                  size={30}
+                  onPress={logout}
+                />
+              </View>
+              <View style={styles.appBarDate}>
+                <InfoBar />
+              </View>
             </Appbar.Header>
           ),
         }}
@@ -74,3 +81,32 @@ export default function AppLayout() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  appBarItemsContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  appBarContainer: {
+    backgroundColor: "rgba(0,0,0,0.25)",
+    display: "flex",
+    flexDirection: "column",
+    marginTop: 20,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    height: 85,
+  },
+  appBarDate: {
+    marginLeft: 6,
+  },
+  lottieContainer: {
+    justifyContent: "center",
+    width: 60,
+    height: 55,
+    alignItems: "center",
+    display: "flex",
+    flexDirection: "row",
+    marginLeft: 10,
+  },
+});
