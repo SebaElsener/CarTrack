@@ -8,44 +8,77 @@ import ConsultaDanoItem from "./ConsultaDanoItem";
 
 function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const router = useRouter();
-  const [damagesState, setDamagesState] = useState(item?.damages || []);
+  const [damagesState, setDamagesState] = useState([]); // solo para animaciones
   const [pulseLocked, setPulseLocked] = useState(false);
   const pulseTimeoutRef = useRef(null);
+  const contentRef = useRef(null);
 
-  useEffect(() => {
-    if (item?.damages) setDamagesState(item.damages);
-  }, [item?.damages]);
-
-  useEffect(() => {
-    setDamagesState(item.damages);
-
-    if (item.damages.length === 0) {
-      setDamaged(false);
-      danosAnim.setValue(0);
-    } else if (damaged) {
-      // recalcular altura si card abierta
-      setTimeout(() => {
-        setContentHeight(measuredHeight.current || 0);
-        danosAnim.setValue(1);
-      }, 0);
-    }
-  }, [item.damages]);
-
-  /** ------------------ Pulse ------------------ */
-  const pulseAnim = useRef(new Animated.Value(0)).current;
-  const loopRef = useRef(null);
-
-  /** ------------------ Delete animation ------------------ */
-  const heightAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-  const measuredHeight = useRef(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  /** ------------------ Daños ------------------ */
   const [damaged, setDamaged] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const danosAnim = useRef(new Animated.Value(0)).current;
+  const heightAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  /** ------------------ Inicializar damagesState ------------------ */
+  useEffect(() => {
+    setDamagesState(item?.damages || []);
+  }, [item?.damages]);
+
+  /** ------------------ Pulse effect ------------------ */
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isActive) {
+      setPulseLocked(true);
+      clearTimeout(pulseTimeoutRef.current);
+      pulseTimeoutRef.current = setTimeout(() => setPulseLocked(false), 3000);
+    }
+    return () => clearTimeout(pulseTimeoutRef.current);
+  }, [isActive]);
+
+  useEffect(() => {
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(0);
+    if (!pulseLocked) return;
+
+    const loop = () => {
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+      ]).start(({ finished }) => finished && pulseLocked && loop());
+    };
+    loop();
+    return () => pulseAnim.stopAnimation();
+  }, [pulseLocked]);
+
+  /** ------------------ Interpolaciones ------------------ */
+  const borderColor = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["rgba(255,0,0,0)", "rgba(255, 60, 60, 0.84)"],
+  });
+  const shadowOpacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.6],
+  });
+  const danosHeight = danosAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, contentHeight],
+  });
+  const danosOpacity = danosAnim.interpolate({
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  /** ------------------ Toggle daños ------------------ */
   const toggleDanos = () => {
     Animated.timing(danosAnim, {
       toValue: damaged ? 0 : 1,
@@ -55,37 +88,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
     setDamaged((prev) => !prev);
   };
 
-  /** ------------------ Interpolaciones ------------------ */
-  const borderColor = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["rgba(255,0,0,0)", "rgba(255, 60, 60, 0.84)"],
-  });
-
-  const shadowOpacity = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.6],
-  });
-
-  const danosHeight = danosAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, contentHeight],
-  });
-
-  const danosOpacity = danosAnim.interpolate({
-    inputRange: [0, 0.15, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  /** ------------------ Measure height ONCE ------------------ */
-  const onLayout = (e) => {
-    if (measuredHeight.current != null) return;
-    const h = e.nativeEvent.layout.height;
-    measuredHeight.current = h;
-    heightAnim.setValue(h);
-    setContentHeight(h); // importante para dañosAnim
-  };
-
-  /** ------------------ Delete handler ------------------ */
+  /** ------------------ Delete scan ------------------ */
   const handleDelete = () => {
     if (isDeleting) return;
     setIsDeleting(true);
@@ -101,132 +104,33 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         duration: 250,
         useNativeDriver: false,
       }),
-    ]).start(() => {
-      onDelete(item.vin);
-    });
+    ]).start(() => onDelete(item.vin));
   };
 
-  /** ------------------ Pulse effect ------------------ */
-  // useEffect(() => {
-
-  //   if (isActive) {
-  //     loopRef.current = Animated.loop(
-  //       Animated.sequence([
-  //         Animated.timing(pulseAnim, {
-  //           toValue: 1,
-  //           duration: 600,
-  //           useNativeDriver: false,
-  //         }),
-  //         Animated.timing(pulseAnim, {
-  //           toValue: 0,
-  //           duration: 600,
-  //           useNativeDriver: false,
-  //         }),
-  //       ])
-  //     );
-  //     loopRef.current.start();
-  //   } else {
-  //     loopRef.current?.stop();
-  //     pulseAnim.setValue(0);
-  //   }
-
-  //   return () => loopRef.current?.stop();
-  // }, [isActive]);
-
-  // const startPulse = () => {
-  //   pulseAnim.setValue(0);
-
-  //   Animated.sequence([
-  //     Animated.timing(pulseAnim, {
-  //       toValue: 1,
-  //       duration: 600,
-  //       useNativeDriver: false,
-  //     }),
-  //     Animated.timing(pulseAnim, {
-  //       toValue: 0,
-  //       duration: 600,
-  //       useNativeDriver: false,
-  //     }),
-  //   ]).start(({ finished }) => {
-  //     if (finished && isActive) {
-  //       startPulse(); // 🔁 loop manual REAL
-  //     }
-  //   });
-  // };
-
-  useEffect(() => {
-    if (isActive) {
-      setPulseLocked(true);
-      clearTimeout(pulseTimeoutRef.current);
-      pulseTimeoutRef.current = setTimeout(() => {
-        setPulseLocked(false); // dura 3s, ajustable
-      }, 3000);
-    }
-
-    return () => clearTimeout(pulseTimeoutRef.current);
-  }, [isActive]);
-
-  useEffect(() => {
-    pulseAnim.stopAnimation();
-    pulseAnim.setValue(0);
-
-    if (!pulseLocked) return;
-
-    const loop = () => {
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: false,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: false,
-        }),
-      ]).start(({ finished }) => {
-        if (finished && pulseLocked) loop();
-      });
-    };
-
-    loop();
-
-    return () => pulseAnim.stopAnimation();
-  }, [pulseLocked]);
-
-  //Manejar evento eliminar daño desde CansultaDanoItem
+  /** ------------------ Delete damage ------------------ */
   const handleDeleteDamage = async (damageToDelete) => {
-    setDamagesState((prev) => {
-      const updated = prev.filter((d) => d.id !== damageToDelete.id);
+    setDamagesState((prev) => prev.filter((d) => d.id !== damageToDelete.id));
 
-      // si no quedan daños → cerrar card
-      if (updated.length === 0) {
-        setDamaged(false);
-        danosAnim.setValue(0);
-      }
-
-      return updated;
-    });
-
-    // 2️⃣ SQLite (offline)
     try {
       await markToDelete(damageToDelete.id);
-    } catch (e) {
-      console.error("SQLite pending delete error", e);
-    }
-
-    // 3️⃣ Supabase (online, best effort)
-    try {
       await deleteDamagePerVINandID(damageToDelete.id);
     } catch (e) {
-      console.warn("Supabase sync pendiente", e);
+      console.warn("Error eliminando daño", e);
+    }
+  };
+
+  /** ------------------ Medir altura real del contenido ------------------ */
+  const onContentLayout = (e) => {
+    const h = e.nativeEvent.layout.height;
+    if (h !== contentHeight) {
+      setContentHeight(h);
+      if (damaged) danosAnim.setValue(1);
     }
   };
 
   /** ------------------ Render ------------------ */
   return (
     <Animated.View
-      onLayout={onLayout}
       style={[
         styles.card,
         isDeleting && {
@@ -251,7 +155,6 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         />
       )}
 
-      {/* VIN con highlight si renderVin está presente */}
       {renderVin ? (
         renderVin(item.vin)
       ) : (
@@ -270,7 +173,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             {damaged ? "OCULTAR" : "VER DAÑOS"}
           </Button>
 
-          {/* ---------- MEDICIÓN INVISIBLE (NO INTERACTIVA) ---------- */}
+          {/* MEDICIÓN INVISIBLE */}
           <View
             pointerEvents="none"
             style={{
@@ -289,14 +192,15 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             />
           </View>
 
-          {/* ---------- CONTENIDO ANIMADO REAL ---------- */}
+          {/* CONTENIDO ANIMADO REAL */}
           <Animated.View
+            key={damagesState.length + "-" + item.vin} // 🔹 Fuerza remount al cambiar nro de daños
             style={{
               height: danosHeight,
               opacity: danosOpacity,
               overflow: "hidden",
             }}
-            pointerEvents={damaged ? "auto" : "none"} // ✅ bloquea clicks
+            pointerEvents={damaged ? "auto" : "none"}
           >
             <ConsultaDanoItem
               item={{
@@ -353,17 +257,17 @@ const styles = StyleSheet.create({
     margin: 10,
     boxShadow: "1px 1px 6px 1px rgba(145, 145, 145, 0.79)",
   },
-  danosContainer: {
-    //height: 300,
-  },
-  button: {
-    marginTop: 12,
-    width: "90%",
-    alignSelf: "center",
-  },
+  danosContainer: {},
+  button: { marginTop: 12, width: "90%", alignSelf: "center" },
   actionBtnsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  code: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#4d4d4d",
+    textAlign: "center",
   },
 });
 
