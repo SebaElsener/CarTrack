@@ -1,34 +1,18 @@
-import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
 import { memo, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text } from "react-native-paper";
+import { markToDelete } from "../database/Database";
+import { deleteDamagePerVINandID } from "../services/sync";
 import ConsultaDanoItem from "./ConsultaDanoItem";
 
-function ScanItem({ item, isActive, onDelete, renderVin }) {
+function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const router = useRouter();
-  const [localPicts, setLocalPicts] = useState([]);
+  const [damagesState, setDamagesState] = useState(item.damages);
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadPicts = async () => {
-      try {
-        const pictures = await getPictsLocalUri();
-        if (mounted) setLocalPicts(pictures);
-      } catch (e) {
-        console.log("Error cargando fotos", e);
-      }
-    };
-
-    if (localPicts.length === 0 && item?.fotos?.length > 0) {
-      loadPicts();
-    }
-
-    return () => {
-      mounted = false;
-    };
-  }, [item]);
+    setDamagesState(item.damages);
+  }, [item.damages]);
 
   /** ------------------ Pulse ------------------ */
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -131,34 +115,33 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
     return () => loopRef.current?.stop();
   }, [isActive]);
 
-  /////// Traer fotos localmente
-  const getPictsLocalUri = async () => {
-    const path = item?.fotos?.[0];
-    if (!path) return [];
-
-    const archivos = await FileSystem.readDirectoryAsync(path);
-    const lista = archivos
-      .filter((a) => a.endsWith(".jpg"))
-      .map((a) => path + a);
-    return lista;
-  };
-
   //Manejar evento eliminar daño desde CansultaDanoItem
-  const handleDeleteDamage = (damage) => {
-    // 1. actualizar daños en memoria
-    item.damages = item.damages.filter((d) => d !== damage);
+  const handleDeleteDamage = async (damageToDelete) => {
+    setDamagesState((prev) => {
+      const updated = prev.filter((d) => d.id !== damageToDelete.id);
 
-    // 2. si borraste el último daño → cerrar card
-    if (item.damages.length === 0) {
-      setDamaged(false);
-      danosAnim.setValue(0);
+      // si no quedan daños → cerrar card
+      if (updated.length === 0) {
+        setDamaged(false);
+        danosAnim.setValue(0);
+      }
+
+      return updated;
+    });
+
+    // 2️⃣ SQLite (offline)
+    try {
+      await markToDelete(damageToDelete.id);
+    } catch (e) {
+      console.error("SQLite pending delete error", e);
     }
 
-    // 3. opcional: borrar en DB
-    // deleteDamageFromDB(damage.id);
-
-    // fuerza re-render
-    setContentHeight((h) => h);
+    // 3️⃣ Supabase (online, best effort)
+    try {
+      await deleteDamagePerVINandID(damageToDelete.id);
+    } catch (e) {
+      console.warn("Supabase sync pendiente", e);
+    }
   };
 
   /** ------------------ Render ------------------ */
@@ -196,7 +179,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
         <Text style={styles.code}>{item.vin}</Text>
       )}
 
-      {item.damages[0].area !== null && (
+      {damagesState.length > 0 && (
         <View style={styles.danosContainer}>
           <Button
             buttonColor="rgba(108, 178, 160, 0.78)"
@@ -221,7 +204,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
           >
             <ConsultaDanoItem
               item={{
-                damages: item.damages,
+                damages: damagesState,
                 fotos: localPicts,
               }}
             />
@@ -238,7 +221,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
           >
             <ConsultaDanoItem
               item={{
-                damages: item.damages,
+                damages: damagesState,
                 fotos: localPicts,
               }}
               onDeleteDamage={handleDeleteDamage}

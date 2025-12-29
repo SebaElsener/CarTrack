@@ -140,33 +140,34 @@ export const syncPendingPicts = async () => {
 };
 
 //Eliminar un daño por VIN / ID de daño en supabase
-export const deleteDamagePerVINandID = async () => {
+export const deleteDamagePerVINandID = async (damageId) => {
   await waitForDb();
   const db = await getDb();
-  await syncPendingImages();
-  const unsyncedPicts = await db.getAllAsync(
-    `SELECT * FROM pictures WHERE synced = 0`
+  const damagesToDelete = await db.getAllAsync(
+    `SELECT * from damages WHERE deleted = 1`
   );
-  if (!unsyncedPicts || unsyncedPicts.length === 0) {
+
+  if (!damagesToDelete || damagesToDelete.length === 0) {
     return 0; // nada pendiente
   }
   let syncedCount = 0;
-  for (const picts of unsyncedPicts) {
-    const { error } = await supabase.from("pictures").insert({
-      vin: picts.vin,
-      pictureurl: picts.pictureurl,
-      metadata: picts.metadata,
-    });
+  for (const damage of damagesToDelete) {
+    const { error } = await supabase
+      .from("damages")
+      .delete()
+      .eq("id", damage.id);
     if (!error) {
       await db.runAsync(
-        `UPDATE pictures SET synced = 1 WHERE id = ?`,
-        picts.id
+        `UPDATE damages SET deleted = 0 WHERE id = ?`,
+        damage.id
       );
+      await db.runAsync(`DELETE FROM damages WHERE id = ?`, damage.id);
       syncedCount++;
     } else {
+      console.log("Error al eliminar daño de supabase", error);
       break;
     }
   }
   // devolvemos cuántas fotos quedan pendientes
-  return unsyncedPicts.length - syncedCount;
+  return damagesToDelete.length - syncedCount;
 };

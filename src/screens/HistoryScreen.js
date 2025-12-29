@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system/legacy";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
@@ -13,6 +14,7 @@ export default function HistoryScreen() {
   const listRef = useRef(null);
   const debounceTimeout = useRef(null);
   const { decrement } = useScans();
+  const [localPictsMap, setLocalPictsMap] = useState({});
 
   // Carga inicial
   const loadData = async () => {
@@ -50,6 +52,44 @@ export default function HistoryScreen() {
 
     return () => clearTimeout(debounceTimeout.current);
   }, [search, data]);
+
+  //////////////// fotos /////////////////
+  /////////////// fotos //////////////////////////////// fotos /////////////////
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAllPicts = async () => {
+      const map = {};
+      for (const scan of data) {
+        if (scan.fotos?.length > 0) {
+          try {
+            const path = scan.fotos[0]; // carpeta del scan
+            const archivos = await FileSystem.readDirectoryAsync(path);
+            map[scan.vin] = archivos
+              .filter((a) => a.endsWith(".jpg"))
+              .map((a) => path + a);
+          } catch (e) {
+            console.log("Error cargando fotos de VIN", scan.vin, e);
+            map[scan.vin] = [];
+          }
+        } else {
+          map[scan.vin] = [];
+        }
+      }
+      if (mounted) setLocalPictsMap(map);
+    };
+
+    loadAllPicts();
+
+    return () => {
+      mounted = false;
+    };
+  }, [data]);
+
+  /////////////// fotos /////////////////
+  /////////////// fotos /////////////////
+  /////////////// fotos /////////////////
+  /////////////// fotos /////////////////
 
   // Delete scan
   const handleDeleteScan = async (vin) => {
@@ -110,6 +150,7 @@ export default function HistoryScreen() {
         renderItem={({ item }) => (
           <ScanItem
             item={item}
+            localPicts={localPictsMap[item.vin] || []}
             isActive={item.vin === activeVin}
             onDelete={handleDeleteScan}
             renderVin={renderVin} // pasar render function

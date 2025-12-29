@@ -63,6 +63,7 @@ export const initDB = async () => {
         grav TEXT NOT NULL,
         obs TEXT,
         codigo TEXT NOT NULL,
+        deleted INTEGER DEFAULT 0,
         synced INTEGER DEFAULT 0)
       `
   );
@@ -189,25 +190,28 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
   );
 
   // Transformar los JSON strings en arrays JS
-  const result = rows.map((row) => ({
-    ...row,
-    damages: JSON.parse(row.damages),
-    fotos: JSON.parse(row.fotos),
-  }));
+  const result = rows.map((row) => {
+    let damages = JSON.parse(row.damages);
 
-  return result;
-};
+    // Filtrar daños que tengan al menos un campo no nulo
+    damages = damages.filter(
+      (d) =>
+        d.area !== null ||
+        d.averia !== null ||
+        d.grav !== null ||
+        d.obs !== null ||
+        d.codigo !== null
+    );
 
-// Buscar un vin en base local
-export const getScan = async (vin) => {
-  const db = await getDb();
-  const result = await db.getAllAsync(`SELECT * FROM scans WHERE vin = ?`, [
-    vin,
-  ]);
+    return {
+      ...row,
+      damages,
+      fotos: JSON.parse(row.fotos),
+    };
+  });
 
-  if (result.length === 0) return null;
-
-  return result;
+  if (result.length > 0) return result;
+  else return false;
 };
 
 // Añadir información al vin colectado
@@ -256,4 +260,22 @@ export const clearDb = async () => {
   await SQLite.deleteDatabaseAsync("scanner.db");
 };
 
-// export default db
+export const markToDelete = async (damageId) => {
+  const db = await getDb();
+  try {
+    await db.runAsync(`UPDATE damages SET deleted = 1 WHERE id = ?`, damageId);
+  } catch (error) {
+    console.log("Error al marcar daño a eliminar: ", damageId);
+    return error;
+  }
+};
+
+export const deleteDamageById = async () => {
+  const db = await getDb();
+  try {
+    await db.runAsync("DELETE FROM damages WHERE deleted = 1");
+  } catch (error) {
+    console.log("Error al eliminar registro de daño: ", error);
+    return error;
+  }
+};

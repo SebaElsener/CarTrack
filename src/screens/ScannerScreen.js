@@ -13,7 +13,7 @@ import {
 import { Button as PaperButton } from "react-native-paper";
 import playSound from "../components/plySound";
 import { useScans } from "../context/ScanContext";
-import { getScan, saveScan } from "../database/Database";
+import { getScans, saveScan } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
 /// Area de escaneo
@@ -183,8 +183,9 @@ export default function ScannerScreen() {
     setScanned(true);
     setLastResult(vin);
     Vibration.vibrate(120);
-
-    const alreadyScanned = await getScan(vin);
+    console.log(vin);
+    const alreadyScanned = await getScans(vin);
+    console.log("Ya escaneado?", alreadyScanned);
     if (!alreadyScanned) {
       await playSound("success");
       await saveScan(vin, type);

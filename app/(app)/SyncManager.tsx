@@ -2,9 +2,10 @@ import { registerSyncTrigger } from "@/src/services/syncTrigger";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
-import { getDb, initDB } from "../../src/database/Database";
+import { initDB } from "../../src/database/Database";
 import {
   danoCloudUpdate,
+  deleteDamagePerVINandID,
   syncPendingPicts,
   syncPendingScans,
 } from "../../src/services/sync";
@@ -40,12 +41,17 @@ export default function SyncManager({ onSyncChange }: Props) {
     onSyncChange?.(true);
 
     try {
-      const db = await getDb();
       const pendingScans = await syncPendingScans();
       const pendingPicts = await syncPendingPicts();
       const pendingDanos = await danoCloudUpdate();
+      const pendingDamagesToDelete = await deleteDamagePerVINandID();
 
-      if (pendingScans === 0 && pendingPicts === 0 && pendingDanos === 0) {
+      if (
+        pendingScans === 0 &&
+        pendingPicts === 0 &&
+        pendingDanos === 0 &&
+        pendingDamagesToDelete === 0
+      ) {
         console.log("✅ Sync complete");
         stopRetry();
       } else {
