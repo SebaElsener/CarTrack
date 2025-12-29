@@ -8,12 +8,27 @@ import ConsultaDanoItem from "./ConsultaDanoItem";
 
 function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const router = useRouter();
-  const [damagesState, setDamagesState] = useState(item.damages);
+  const [damagesState, setDamagesState] = useState(item?.damages || []);
   const [pulseLocked, setPulseLocked] = useState(false);
   const pulseTimeoutRef = useRef(null);
 
   useEffect(() => {
+    if (item?.damages) setDamagesState(item.damages);
+  }, [item?.damages]);
+
+  useEffect(() => {
     setDamagesState(item.damages);
+
+    if (item.damages.length === 0) {
+      setDamaged(false);
+      danosAnim.setValue(0);
+    } else if (damaged) {
+      // recalcular altura si card abierta
+      setTimeout(() => {
+        setContentHeight(measuredHeight.current || 0);
+        danosAnim.setValue(1);
+      }, 0);
+    }
   }, [item.damages]);
 
   /** ------------------ Pulse ------------------ */

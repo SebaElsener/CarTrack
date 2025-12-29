@@ -169,16 +169,21 @@ export default function HistoryScreen() {
       <FlatList
         ref={listRef}
         data={filtered}
+        extraData={filtered} // 🔹 fuerza re-render al cambiar daños
         keyExtractor={(item) => item.vin}
-        renderItem={({ item }) => (
-          <ScanItem
-            item={item}
-            localPicts={localPictsMap[item.vin] || []}
-            isActive={item.vin === activeVin}
-            onDelete={handleDeleteScan}
-            renderVin={renderVin} // pasar render function
-          />
-        )}
+        renderItem={({ item }) => {
+          if (!item) return null; // 🔹 evita crash si item es undefined
+          return (
+            <ScanItem
+              key={item.vin + (item.damages?.length || 0)} // forzar remount si cambia cantidad de daños
+              item={item}
+              localPicts={localPictsMap[item.vin] || []}
+              isActive={item.vin === activeVin}
+              onDelete={handleDeleteScan}
+              renderVin={renderVin}
+            />
+          );
+        }}
       />
     </View>
   );
