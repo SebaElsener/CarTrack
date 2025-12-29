@@ -81,6 +81,7 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
     const h = e.nativeEvent.layout.height;
     measuredHeight.current = h;
     heightAnim.setValue(h);
+    setContentHeight(h); // importante para dañosAnim
   };
 
   /** ------------------ Delete handler ------------------ */
@@ -142,6 +143,24 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
     return lista;
   };
 
+  //Manejar evento eliminar daño desde CansultaDanoItem
+  const handleDeleteDamage = (damage) => {
+    // 1. actualizar daños en memoria
+    item.damages = item.damages.filter((d) => d !== damage);
+
+    // 2. si borraste el último daño → cerrar card
+    if (item.damages.length === 0) {
+      setDamaged(false);
+      danosAnim.setValue(0);
+    }
+
+    // 3. opcional: borrar en DB
+    // deleteDamageFromDB(damage.id);
+
+    // fuerza re-render
+    setContentHeight((h) => h);
+  };
+
   /** ------------------ Render ------------------ */
   return (
     <Animated.View
@@ -189,9 +208,15 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
             {damaged ? "OCULTAR" : "VER DAÑOS"}
           </Button>
 
-          {/* Hidden measure */}
+          {/* ---------- MEDICIÓN INVISIBLE (NO INTERACTIVA) ---------- */}
           <View
-            style={{ position: "absolute", opacity: 0, zIndex: -1 }}
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              opacity: 0,
+              zIndex: -1,
+              width: "100%",
+            }}
             onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
           >
             <ConsultaDanoItem
@@ -202,18 +227,21 @@ function ScanItem({ item, isActive, onDelete, renderVin }) {
             />
           </View>
 
+          {/* ---------- CONTENIDO ANIMADO REAL ---------- */}
           <Animated.View
             style={{
               height: danosHeight,
               opacity: danosOpacity,
               overflow: "hidden",
             }}
+            pointerEvents={damaged ? "auto" : "none"} // ✅ bloquea clicks
           >
             <ConsultaDanoItem
               item={{
                 damages: item.damages,
                 fotos: localPicts,
               }}
+              onDeleteDamage={handleDeleteDamage}
             />
           </Animated.View>
         </View>
@@ -258,14 +286,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#86b2aa7f",
     borderColor: "#ededed71",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 15,
     margin: 10,
     boxShadow: "1px 1px 6px 1px rgba(145, 145, 145, 0.79)",
   },
-  danosContainer: {},
+  danosContainer: {
+    //height: 300,
+  },
   button: {
-    //marginBottom: 12,
     marginTop: 12,
     width: "90%",
     alignSelf: "center",

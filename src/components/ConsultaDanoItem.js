@@ -12,20 +12,29 @@ import {
 } from "react-native";
 import ImageViewer from "react-native-image-zoom-viewer";
 import Modal from "react-native-modal";
+import { Button, Dialog, Portal } from "react-native-paper";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-function ConsultaDanoItem({ item }) {
+function ConsultaDanoItem({ item, onDeleteDamage, onUndoDelete }) {
   const { damages = [], fotos = [] } = item;
+
   const [topIndex, setTopIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [pictsCurrentIndex, setPictsCurrentIndex] = useState(0);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const pendingDelete = useRef(null);
 
   const position = useRef(new Animated.ValueXY()).current;
   const topScale = useRef(new Animated.Value(1)).current;
   const nextScale = useRef(new Animated.Value(0.95)).current;
   const nextOpacity = useRef(new Animated.Value(0.7)).current;
 
+  const deleteOpacity = useRef(new Animated.Value(1)).current;
+  const deleteTranslate = useRef(new Animated.Value(0)).current;
+
+  /** Inicializar animaciones nextDamage */
   useEffect(() => {
     Animated.parallel([
       Animated.spring(nextScale, {
@@ -41,17 +50,21 @@ function ConsultaDanoItem({ item }) {
     ]).start();
   }, []);
 
+  /** PanResponder (swipe bloqueable mientras borra) */
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 5,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        !isDeleting && Math.abs(gesture.dx) > 5,
       onPanResponderMove: (_, gesture) => {
+        if (isDeleting) return;
         position.setValue({ x: gesture.dx, y: 0 });
         const progress = Math.min(Math.abs(gesture.dx) / 120, 1);
         nextScale.setValue(0.95 + 0.05 * progress);
         nextOpacity.setValue(0.7 + 0.3 * progress);
       },
       onPanResponderRelease: (_, gesture) => {
-        if (Math.abs(gesture.dx) > 120) {
+        if (isDeleting) return;
+        if (Math.abs(gesture.dx) > 120 && damages.length > 1) {
           const direction =
             gesture.dx > 0 ? SCREEN_WIDTH + 100 : -SCREEN_WIDTH - 100;
           Animated.timing(position, {
@@ -92,9 +105,43 @@ function ConsultaDanoItem({ item }) {
     })
   ).current;
 
+  /** Confirm delete */
+  const confirmDelete = () => {
+    pendingDelete.current = damages[topIndex];
+    setConfirmVisible(true);
+  };
+
+  const executeDelete = () => {
+    setConfirmVisible(false);
+    setIsDeleting(true);
+
+    Animated.parallel([
+      Animated.timing(deleteOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+      Animated.timing(deleteTranslate, {
+        toValue: -40,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start(() => {
+      onDeleteDamage?.(pendingDelete.current);
+      setTopIndex((prev) => Math.max(0, prev - 1));
+      setIsDeleting(false);
+      deleteOpacity.setValue(1);
+      deleteTranslate.setValue(0);
+      setTopIndex(0);
+    });
+  };
+
   const modalImages = fotos.map((uri) => ({ url: uri }));
   const topDamage = damages[topIndex];
-  const nextDamage = damages[(topIndex + 1) % damages.length];
+  const nextDamage =
+    damages.length > 1 ? damages[(topIndex + 1) % damages.length] : null;
+
+  if (!topDamage) return null;
 
   return (
     <View style={styles.card}>
@@ -118,13 +165,14 @@ function ConsultaDanoItem({ item }) {
                 timeZone: "America/Argentina/Buenos_Aires",
               }
             ).format(new Date(nextDamage.date))}`}</Text>
-            <Text style={styles.items}>Área: {nextDamage.area}</Text>
+            <Text style={styles.items}>Area: {nextDamage.area}</Text>
             <Text style={styles.items}>Avería: {nextDamage.averia}</Text>
             <Text style={styles.items}>Gravedad: {nextDamage.grav}</Text>
             <Text style={styles.items}>Obs: {nextDamage.obs}</Text>
             <Text style={styles.items}>Código: {nextDamage.codigo}</Text>
           </Animated.View>
         )}
+
         {topDamage && (
           <Animated.View
             key={topIndex}
@@ -132,18 +180,11 @@ function ConsultaDanoItem({ item }) {
             style={[
               styles.tinderCard,
               {
+                opacity: deleteOpacity,
                 transform: [
                   ...position.getTranslateTransform(),
-                  {
-                    rotate: position.x.interpolate({
-                      inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
-                      outputRange: ["-10deg", "0deg", "10deg"],
-                      extrapolate: "clamp",
-                    }),
-                  },
-                  { scale: topScale },
+                  { translateY: deleteTranslate },
                 ],
-                opacity: 1,
                 zIndex: 1,
               },
             ]}
@@ -156,11 +197,19 @@ function ConsultaDanoItem({ item }) {
                 timeZone: "America/Argentina/Buenos_Aires",
               }
             ).format(new Date(topDamage.date))}`}</Text>
-            <Text style={styles.items}>Área: {topDamage.area}</Text>
+            <Text style={styles.items}>Area: {topDamage.area}</Text>
             <Text style={styles.items}>Avería: {topDamage.averia}</Text>
             <Text style={styles.items}>Gravedad: {topDamage.grav}</Text>
             <Text style={styles.items}>Obs: {topDamage.obs}</Text>
             <Text style={styles.items}>Código: {topDamage.codigo}</Text>
+
+            <Button
+              mode="contained-tonal"
+              onPress={confirmDelete}
+              style={{ marginTop: 8 }}
+            >
+              Eliminar daño
+            </Button>
           </Animated.View>
         )}
       </View>
@@ -201,13 +250,24 @@ function ConsultaDanoItem({ item }) {
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}
           saveToLocalByLongPress={false}
-          renderIndicator={(current, total) => (
-            <Text style={styles.modalCounter}>
-              {current} / {total}
-            </Text>
-          )}
         />
       </Modal>
+
+      <Portal>
+        <Dialog
+          visible={confirmVisible}
+          onDismiss={() => setConfirmVisible(false)}
+        >
+          <Dialog.Title>¿Eliminar daño?</Dialog.Title>
+          <Dialog.Content>
+            <Text>Esta acción no se puede deshacer.</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmVisible(false)}>Cancelar</Button>
+            <Button onPress={executeDelete}>Eliminar</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -215,12 +275,13 @@ function ConsultaDanoItem({ item }) {
 export default memo(ConsultaDanoItem);
 
 const styles = StyleSheet.create({
-  card: { padding: 10, marginBottom: 15, borderRadius: 4 },
+  card: { padding: 5, marginBottom: 15, borderRadius: 4 },
   carouselContainer: {
     width: "100%",
-    height: 210,
+    height: 235,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 10,
   },
   tinderCard: {
     position: "absolute",
@@ -228,23 +289,14 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#f4f1f1ff",
     borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 5,
-    borderWidth: 1,
-    borderColor: "#c5c1c1ff",
   },
-  items: { padding: 3, fontSize: 15, color: "#3b3b3be6" },
-  counter: { marginTop: 5, textAlign: "center", fontWeight: "bold" },
+  items: { padding: 3, fontSize: 15, color: "#2a2a2ae6" },
+  counter: {
+    marginTop: 5,
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "#262626b1",
+  },
   image: { width: 100, height: 100, marginRight: 8, borderRadius: 6 },
   modal: { margin: 0 },
-  modalCounter: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
-    position: "absolute",
-    top: 50,
-    alignSelf: "center",
-  },
 });

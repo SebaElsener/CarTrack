@@ -138,3 +138,35 @@ export const syncPendingPicts = async () => {
   // devolvemos cuántas fotos quedan pendientes
   return unsyncedPicts.length - syncedCount;
 };
+
+//Eliminar un daño por VIN / ID de daño en supabase
+export const deleteDamagePerVINandID = async () => {
+  await waitForDb();
+  const db = await getDb();
+  await syncPendingImages();
+  const unsyncedPicts = await db.getAllAsync(
+    `SELECT * FROM pictures WHERE synced = 0`
+  );
+  if (!unsyncedPicts || unsyncedPicts.length === 0) {
+    return 0; // nada pendiente
+  }
+  let syncedCount = 0;
+  for (const picts of unsyncedPicts) {
+    const { error } = await supabase.from("pictures").insert({
+      vin: picts.vin,
+      pictureurl: picts.pictureurl,
+      metadata: picts.metadata,
+    });
+    if (!error) {
+      await db.runAsync(
+        `UPDATE pictures SET synced = 1 WHERE id = ?`,
+        picts.id
+      );
+      syncedCount++;
+    } else {
+      break;
+    }
+  }
+  // devolvemos cuántas fotos quedan pendientes
+  return unsyncedPicts.length - syncedCount;
+};
