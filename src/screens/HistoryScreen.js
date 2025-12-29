@@ -1,5 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import ScanItem from "../components/ScanItem";
@@ -15,6 +15,8 @@ export default function HistoryScreen() {
   const debounceTimeout = useRef(null);
   const { decrement } = useScans();
   const [localPictsMap, setLocalPictsMap] = useState({});
+  const pendingVinRef = useRef(null);
+  const { vin } = useLocalSearchParams();
 
   // Carga inicial
   const loadData = async () => {
@@ -23,6 +25,10 @@ export default function HistoryScreen() {
     setFiltered(scans);
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
   // 🔄 Actualizar al ganar foco
   useFocusEffect(
     useCallback(() => {
@@ -30,23 +36,40 @@ export default function HistoryScreen() {
     }, [])
   );
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // ------------------- Mantener activeVin desde ScannerScreen -------------------
+  useFocusEffect(
+    useCallback(() => {
+      if (vin) {
+        pendingVinRef.current = vin;
+      }
+    }, [vin])
+  );
 
-  // Filtrado con debounce
+  useEffect(() => {
+    if (!pendingVinRef.current) return;
+    if (filtered.length === 0) return;
+
+    const index = filtered.findIndex((d) => d.vin === pendingVinRef.current);
+
+    if (index === -1) return;
+
+    setActiveVin(pendingVinRef.current);
+    pendingVinRef.current = null;
+  }, [filtered]);
+
+  // ------------------- Filtrado con debounce -------------------
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       if (search === "") {
         setFiltered(data);
-        setActiveVin(null);
+        // ❌ No tocar activeVin aquí, se mantiene el que vino de ScannerScreen
       } else {
         const result = data.filter((d) =>
           d.vin.toLowerCase().includes(search.toLowerCase())
         );
         setFiltered(result);
-        setActiveVin(result.length > 0 ? result[0].vin : null);
+        setActiveVin(result.length > 0 ? result[0].vin : null); // solo si hay búsqueda
       }
     }, 200);
 

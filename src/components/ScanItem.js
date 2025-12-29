@@ -9,6 +9,8 @@ import ConsultaDanoItem from "./ConsultaDanoItem";
 function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const router = useRouter();
   const [damagesState, setDamagesState] = useState(item.damages);
+  const [pulseLocked, setPulseLocked] = useState(false);
+  const pulseTimeoutRef = useRef(null);
 
   useEffect(() => {
     setDamagesState(item.damages);
@@ -90,30 +92,92 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   };
 
   /** ------------------ Pulse effect ------------------ */
+  // useEffect(() => {
+
+  //   if (isActive) {
+  //     loopRef.current = Animated.loop(
+  //       Animated.sequence([
+  //         Animated.timing(pulseAnim, {
+  //           toValue: 1,
+  //           duration: 600,
+  //           useNativeDriver: false,
+  //         }),
+  //         Animated.timing(pulseAnim, {
+  //           toValue: 0,
+  //           duration: 600,
+  //           useNativeDriver: false,
+  //         }),
+  //       ])
+  //     );
+  //     loopRef.current.start();
+  //   } else {
+  //     loopRef.current?.stop();
+  //     pulseAnim.setValue(0);
+  //   }
+
+  //   return () => loopRef.current?.stop();
+  // }, [isActive]);
+
+  // const startPulse = () => {
+  //   pulseAnim.setValue(0);
+
+  //   Animated.sequence([
+  //     Animated.timing(pulseAnim, {
+  //       toValue: 1,
+  //       duration: 600,
+  //       useNativeDriver: false,
+  //     }),
+  //     Animated.timing(pulseAnim, {
+  //       toValue: 0,
+  //       duration: 600,
+  //       useNativeDriver: false,
+  //     }),
+  //   ]).start(({ finished }) => {
+  //     if (finished && isActive) {
+  //       startPulse(); // 🔁 loop manual REAL
+  //     }
+  //   });
+  // };
+
   useEffect(() => {
     if (isActive) {
-      loopRef.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: false,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 0,
-            duration: 600,
-            useNativeDriver: false,
-          }),
-        ])
-      );
-      loopRef.current.start();
-    } else {
-      loopRef.current?.stop();
-      pulseAnim.setValue(0);
+      setPulseLocked(true);
+      clearTimeout(pulseTimeoutRef.current);
+      pulseTimeoutRef.current = setTimeout(() => {
+        setPulseLocked(false); // dura 3s, ajustable
+      }, 3000);
     }
 
-    return () => loopRef.current?.stop();
+    return () => clearTimeout(pulseTimeoutRef.current);
   }, [isActive]);
+
+  useEffect(() => {
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(0);
+
+    if (!pulseLocked) return;
+
+    const loop = () => {
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: false,
+        }),
+      ]).start(({ finished }) => {
+        if (finished && pulseLocked) loop();
+      });
+    };
+
+    loop();
+
+    return () => pulseAnim.stopAnimation();
+  }, [pulseLocked]);
 
   //Manejar evento eliminar daño desde CansultaDanoItem
   const handleDeleteDamage = async (damageToDelete) => {

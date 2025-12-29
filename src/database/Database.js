@@ -144,20 +144,21 @@ export const savePict = async (vin, metadata) => {
  */
 export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
   const db = await getDb();
-
-  // Condición WHERE opcional
   const whereClause = vin ? `WHERE s.vin = ?` : "";
 
-  // Traemos scans con daños concatenados y fotos por VIN
+  const params = vin ? [vin, limit, offset] : [limit, offset];
+
   const rows = await db.getAllAsync(
     `
-      SELECT
-        s.id AS scan_id,
-        s.vin,
-        s.date AS scan_date,
-        -- Array de daños como JSON
-        IFNULL(
-          json_group_array(
+    SELECT
+      s.id AS scan_id,
+      s.vin,
+      s.date AS scan_date,
+
+      -- 🛠 Daños
+      IFNULL(
+        (
+          SELECT json_group_array(
             json_object(
               'id', d.id,
               'area', d.area,
@@ -167,33 +168,33 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
               'codigo', d.codigo,
               'date', d.date
             )
-          ),
-          '[]'
-        ) AS damages,
-        -- Array de carpetas de fotos por VIN
-        IFNULL(
-          (
-            SELECT json_group_array(JSON_EXTRACT(p.metadata, '$.carpeta'))
-            FROM pictures p
-            WHERE p.vin = s.vin
-          ),
-          '[]'
-        ) AS fotos
-      FROM scans s
-      LEFT JOIN damages d ON s.vin = d.vin
-      ${whereClause}
-      GROUP BY s.id
-      ORDER BY s.id DESC
-      LIMIT ? OFFSET ?;
-  `,
-    vin ? [vin, limit, offset] : [limit, offset]
-  );
+          )
+          FROM damages d
+          WHERE d.vin = s.vin
+        ),
+        '[]'
+      ) AS damages,
 
-  // Transformar los JSON strings en arrays JS
+      -- 📸 Fotos
+      IFNULL(
+        (
+          SELECT json_group_array(JSON_EXTRACT(p.metadata, '$.carpeta'))
+          FROM pictures p
+          WHERE p.vin = s.vin
+        ),
+        '[]'
+      ) AS fotos
+
+    FROM scans s
+    ${whereClause}
+    ORDER BY s.id DESC
+    LIMIT ? OFFSET ?;
+    `,
+    params
+  );
   const result = rows.map((row) => {
     let damages = JSON.parse(row.damages);
 
-    // Filtrar daños que tengan al menos un campo no nulo
     damages = damages.filter(
       (d) =>
         d.area !== null ||
@@ -210,8 +211,7 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
     };
   });
 
-  if (result.length > 0) return result;
-  else return false;
+  return result.length ? result : false;
 };
 
 // Añadir información al vin colectado

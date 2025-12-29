@@ -183,9 +183,7 @@ export default function ScannerScreen() {
     setScanned(true);
     setLastResult(vin);
     Vibration.vibrate(120);
-    console.log(vin);
-    const alreadyScanned = await getScans(vin);
-    console.log("Ya escaneado?", alreadyScanned);
+    const alreadyScanned = await getScans({ vin: vin });
     if (!alreadyScanned) {
       await playSound("success");
       await saveScan(vin, type);
