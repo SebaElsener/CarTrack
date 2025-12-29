@@ -129,7 +129,7 @@ export default function ConsultaDanoItem({ item }) {
           ]}
         >
           <BlurView intensity={35} tint="light" style={styles.glass}>
-            <Text style={styles.text}>Área: {current.area || "-"}</Text>
+            <Text style={styles.text}>Area: {current.area || "-"}</Text>
             <Text style={styles.text}>Avería: {current.averia}</Text>
             <Text style={styles.text}>Gravedad: {current.grav}</Text>
             <Text style={styles.text}>Código: {current.codigo}</Text>

@@ -146,6 +146,11 @@ export default function ConsultaDanoScreen() {
         {loading && <ActivityIndicator size="large" />}
 
         {!loading && searched && data.length === 0 && (
+          <Text style={styles.empty}>
+            El VIN consultado{"\n"}no existe en la base de datos
+          </Text>
+        )}
+        {!loading && searched && data[0]?.damages?.length === 0 && (
           <Text style={styles.empty}>No existen daños para este VIN</Text>
         )}
 
@@ -226,7 +231,7 @@ const styles = StyleSheet.create({
   empty: {
     marginTop: 40,
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 18,
     opacity: 0.6,
   },
 });
