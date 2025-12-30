@@ -42,9 +42,15 @@ export default function SyncManager({ onSyncChange }: Props) {
 
     try {
       const pendingScans = await syncPendingScans();
+      console.log("Scans pendientes: ", pendingScans);
       const pendingPicts = await syncPendingPicts();
+      console.log("Fotos pendientes: ", syncPendingPicts);
+
       const pendingDanos = await danoCloudUpdate();
+      console.log("Daños pendientes: ", danoCloudUpdate);
+
       const pendingDamagesToDelete = await deleteDamagePerVINandID();
+      console.log("Daños pendientes de eliminar: ", deleteDamagePerVINandID);
 
       if (
         pendingScans === 0 &&

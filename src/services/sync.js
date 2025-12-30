@@ -25,12 +25,13 @@ export const syncPendingScans = async () => {
       type: item.type,
       date: item.date,
     });
-    if (!error) {
-      await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
-      syncedCount++;
-    } else {
-      break;
+    if (error) {
+      console.log("❌ scan sync error", item.id, error);
+      continue; // 🔑 CLAVE
     }
+
+    await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
+    syncedCount++;
   }
   return unsyncedScans.length - syncedCount;
 };
@@ -57,12 +58,12 @@ export const danoCloudUpdate = async () => {
       vin: item.vin,
       date: item.date,
     });
-    if (!error) {
-      await db.runAsync(`UPDATE damages SET synced = 1 WHERE id = ?`, item.id);
-      syncedCount++;
-    } else {
-      break;
+    if (error) {
+      console.log("❌ damage sync error", item.id, error);
+      continue;
     }
+    await db.runAsync(`UPDATE damages SET synced = 1 WHERE id = ?`, item.id);
+    syncedCount++;
   }
   // devolvemos cuántos daños quedaron pendientes
   return unsyncedDamages.length - syncedCount;
@@ -97,7 +98,7 @@ export const syncPendingImages = async () => {
     );
     if (error) {
       console.log("ERROR SUBIENDO FOTO:", img.name, error);
-      return null;
+      continue;
     } else {
       await db.runAsync(
         `UPDATE tableForPendingImages SET synced = 1 WHERE id = ?`,
@@ -111,7 +112,11 @@ export const syncPendingImages = async () => {
 export const syncPendingPicts = async () => {
   await waitForDb();
   const db = await getDb();
-  await syncPendingImages();
+  try {
+    await syncPendingImages();
+  } catch (e) {
+    console.log("Error syncing images", e);
+  }
   const unsyncedPicts = await db.getAllAsync(
     `SELECT * FROM pictures WHERE synced = 0`
   );
@@ -125,15 +130,12 @@ export const syncPendingPicts = async () => {
       pictureurl: picts.pictureurl,
       metadata: picts.metadata,
     });
-    if (!error) {
-      await db.runAsync(
-        `UPDATE pictures SET synced = 1 WHERE id = ?`,
-        picts.id
-      );
-      syncedCount++;
-    } else {
-      break;
+    if (error) {
+      console.log("❌ picture sync error", picts.id, error);
+      continue;
     }
+    await db.runAsync(`UPDATE pictures SET synced = 1 WHERE id = ?`, picts.id);
+    syncedCount++;
   }
   // devolvemos cuántas fotos quedan pendientes
   return unsyncedPicts.length - syncedCount;
@@ -156,17 +158,13 @@ export const deleteDamagePerVINandID = async (damageId) => {
       .from("damages")
       .delete()
       .eq("id", damage.id);
-    if (!error) {
-      await db.runAsync(
-        `UPDATE damages SET deleted = 0 WHERE id = ?`,
-        damage.id
-      );
-      await db.runAsync(`DELETE FROM damages WHERE id = ?`, damage.id);
-      syncedCount++;
-    } else {
-      console.log("Error al eliminar daño de supabase", error);
-      break;
+    if (error) {
+      console.log("❌ delete damage error", damage.id, error);
+      continue;
     }
+    await db.runAsync(`UPDATE damages SET deleted = 0 WHERE id = ?`, damage.id);
+    await db.runAsync(`DELETE FROM damages WHERE id = ?`, damage.id);
+    syncedCount++;
   }
   // devolvemos cuántas fotos quedan pendientes
   return damagesToDelete.length - syncedCount;
