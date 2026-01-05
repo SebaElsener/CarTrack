@@ -193,7 +193,7 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 8 },
+  container: { flex: 1, padding: 8, paddingBottom: 50 },
   input: {
     borderWidth: 2,
     borderColor: "#ccc",

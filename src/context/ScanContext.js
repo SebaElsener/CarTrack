@@ -20,6 +20,9 @@ export const ScansProvider = ({ children }) => {
     setTotalScans(count ?? 0);
   };
 
+  //Clima
+  const [weatherCondition, setWeatherCondition] = useState(null);
+
   /** ---------------- DESCARGA ACTUAL ---------------- */
   const incrementTransportScan = () => {
     setTransportScans((prev) => {
@@ -83,6 +86,9 @@ export const ScansProvider = ({ children }) => {
         incrementTransportScan,
         decrementTransportScan,
         resetTransport,
+
+        weatherCondition,
+        setWeatherCondition,
       }}
     >
       {children}

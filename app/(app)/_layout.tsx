@@ -8,6 +8,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { ScansProvider } from "../../src/context/ScanContext";
 import InfoBar from "../../src/screens/InfoBar";
 import TransportBar from "../../src/screens/TransportBar";
+import WeatherCondition from "../../src/screens/WeatherCondition";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
@@ -79,6 +80,9 @@ export default function AppLayout() {
                 <View style={styles.appBarDate}>
                   <TransportBar />
                 </View>
+                <View style={styles.appBarWeather}>
+                  <WeatherCondition />
+                </View>
               </Appbar.Header>
             ),
           }}
@@ -101,7 +105,7 @@ const styles = StyleSheet.create({
     //paddingTop: 30,
     alignItems: "flex-start",
     justifyContent: "center",
-    height: 150,
+    height: 205,
     //width: "100%",
   },
   appBarDate: {
@@ -119,5 +123,11 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     marginLeft: 10,
+  },
+  appBarWeather: {
+    //paddingBottom: 20,
+    width: "100%",
+    //paddingHorizontal: 10,
+    justifyContent: "center",
   },
 });
