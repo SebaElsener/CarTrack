@@ -202,6 +202,18 @@ export default function ScannerScreen() {
     }
   };
 
+  const [orientation, setOrientation] = useState(
+    height >= width ? "portrait" : "landscape"
+  );
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setOrientation(window.height >= window.width ? "portrait" : "landscape");
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
   if (hasPermission === false)
     return <Text>No se tiene permiso de cámara</Text>;
@@ -239,9 +251,15 @@ export default function ScannerScreen() {
             <Animated.View
               style={[
                 styles.scanLine,
-                { transform: [{ translateY: scanLineAnim }] },
+                {
+                  transform: [
+                    { translateY: scanLineAnim },
+                    { rotate: orientation === "landscape" ? "-90deg" : "0deg" },
+                  ],
+                },
               ]}
             />
+
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />

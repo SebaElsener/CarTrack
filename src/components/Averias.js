@@ -45,7 +45,7 @@ export default function Averias({ averias, onSelect, selectedValue }) {
       <View style={styles.buttonContainer}>
         <Button
           textColor="#424242e5"
-          labelStyle={{ fontSize: 16, textAlign: "left", padding: 5 }}
+          labelStyle={{ fontSize: 15, textAlign: "left", padding: 2 }}
           buttonColor="#eaeaea87"
           mode="outlined"
           onPress={() => setVisible(true)}

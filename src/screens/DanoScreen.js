@@ -88,10 +88,13 @@ export default function DanoScreen() {
           mode="outlined"
           autoCapitalize="characters"
           outlineStyle={{ borderRadius: 6 }}
-          style={{ padding: 2, textAlign: "center" }}
+          style={{ textAlign: "center" }}
           outlineColor="#afafafbc"
           activeOutlineColor="#afafafbc"
-          contentStyle={{ backgroundColor: "#eaeaea87", fontWeight: "medium" }}
+          contentStyle={{
+            backgroundColor: "#eaeaea87",
+            fontWeight: "medium",
+          }}
           placeholder="Observación"
           onChangeText={(text) => setObs(text)}
         />
@@ -107,7 +110,7 @@ export default function DanoScreen() {
         <View style={styles.takePhotoContainer}>
           <IconButton
             style={styles.iconButton}
-            size={40}
+            size={35}
             icon="camera-plus"
             iconColor="rgba(133, 207, 189, 0.98)"
             onPress={() =>
@@ -121,8 +124,7 @@ export default function DanoScreen() {
         <Button
           style={{ marginBottom: 15 }}
           labelStyle={{
-            fontSize: 16,
-            paddingVertical: 4,
+            fontSize: 14,
             color: "#343333d2",
           }}
           mode="contained"
@@ -133,7 +135,7 @@ export default function DanoScreen() {
           GUARDAR
         </Button>
         <Button
-          labelStyle={{ fontSize: 16, paddingVertical: 4, color: "#343333d2" }}
+          labelStyle={{ fontSize: 14, color: "#343333d2" }}
           mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
           //textColor='rgba(41, 30, 30, 0.89)'
@@ -162,10 +164,10 @@ const styles = StyleSheet.create({
   },
   code: {
     fontWeight: "bold",
-    fontSize: 25,
+    fontSize: 22,
     color: "#312f2fce",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 10,
     //marginTop: 30,
   },
   buttonContainer: {
@@ -176,6 +178,6 @@ const styles = StyleSheet.create({
     boxShadow: "0px 2px 3px 0px #1a1a1a29",
   },
   takePhotoContainer: {
-    marginBottom: 20,
+    //marginBottom: 20,
   },
 });
