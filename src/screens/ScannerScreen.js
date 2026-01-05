@@ -128,7 +128,7 @@ export default function ScannerScreen() {
   const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
   const scanLock = useRef(false);
-  const { refreshScansCount, incrementScan } = useScans();
+  const { refreshTotalScans, incrementTransportScan } = useScans();
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -191,8 +191,8 @@ export default function ScannerScreen() {
       setTimeout(() => {
         scanLock.current = false;
         setAligned(false);
-        refreshScansCount();
-        incrementScan();
+        refreshTotalScans();
+        incrementTransportScan();
       }, 1200);
     } else {
       await playSound("error");

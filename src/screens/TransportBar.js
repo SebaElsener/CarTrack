@@ -4,6 +4,7 @@ import {
   DefaultTheme,
   Modal,
   Portal,
+  ProgressBar,
   Text,
   TextInput,
 } from "react-native-paper";
@@ -11,14 +12,18 @@ import { useScans } from "../context/ScanContext";
 
 export default function TransportBar() {
   const {
-    scansCount,
     transportUnit,
+    transportActive,
     setTransportUnit,
+    transportScans,
     totalUnits,
     setTotalUnits,
     completed,
-    resetDownload,
+    resetTransport,
   } = useScans();
+
+  const progress =
+    totalUnits > 0 ? Math.min(transportScans / totalUnits, 1) : 0;
 
   const customTheme = {
     ...DefaultTheme,
@@ -35,43 +40,55 @@ export default function TransportBar() {
 
   return (
     <View>
-      <View style={styles.scanBar}>
-        <View style={{ flex: 1 }}>
-          <TextInput
-            label="Batea Nro."
-            value={transportUnit}
-            onChangeText={setTransportUnit}
-            contentStyle={{
-              fontWeight: 700,
-              color: "#eeeeeeff",
-            }}
-            underlineColor="transparent"
-            mode="flat"
-            style={styles.input}
-            theme={customTheme}
-          />
+      <View style={{ flexDirection: "column" }}>
+        <View style={styles.scanBar}>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              label="Batea Nro."
+              keyboardType="number-pad"
+              value={transportUnit}
+              onChangeText={setTransportUnit}
+              contentStyle={{
+                fontWeight: 700,
+                color: "#eeeeeeff",
+              }}
+              underlineColor="transparent"
+              mode="flat"
+              style={styles.input}
+              theme={customTheme}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              label="Unidades"
+              keyboardType="number-pad"
+              value={totalUnits ? String(totalUnits) : ""}
+              onChangeText={(v) => setTotalUnits(Number(v))}
+              underlineColor="transparent"
+              contentStyle={{
+                fontWeight: 700,
+                color: "#eeeeeeff",
+              }}
+              theme={customTheme}
+              mode="flat"
+              style={styles.inputSmall}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.counter}>
+              {transportScans} / {totalUnits || "-"}
+            </Text>
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <TextInput
-            label="Unidades"
-            value={totalUnits ? String(totalUnits) : ""}
-            onChangeText={(v) => setTotalUnits(Number(v))}
-            underlineColor="transparent"
-            contentStyle={{
-              fontWeight: 700,
-              color: "#eeeeeeff",
-            }}
-            theme={customTheme}
-            keyboardType="numeric"
-            mode="flat"
-            style={styles.inputSmall}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.counter}>
-            {scansCount} / {totalUnits || "-"}
-          </Text>
-        </View>
+        {transportActive && (
+          <View>
+            <ProgressBar
+              progress={progress}
+              color={completed ? "#2ecc71" : "#4fa3a5"}
+              style={styles.progress}
+            />
+          </View>
+        )}
       </View>
 
       <Portal>
@@ -82,11 +99,11 @@ export default function TransportBar() {
         >
           <Text style={styles.modalTitle}>Descarga completa</Text>
           <Text>Equipo: {transportUnit}</Text>
-          <Text>Unidades: {scansCount}</Text>
+          <Text>Unidades: {transportScans}</Text>
 
           <Button
             mode="contained"
-            onPress={resetDownload}
+            onPress={resetTransport}
             style={{ marginTop: 16 }}
           >
             Nueva descarga
@@ -103,7 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     //width: "100%",
     paddingLeft: 4,
-    paddingBottom: 33,
+    //paddingBottom: 33,
     alignItems: "center",
   },
   input: {
@@ -137,5 +154,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+  },
+  progress: {
+    height: 6,
+    borderRadius: 4,
+    //marginVertical: 8,
   },
 });

@@ -13,7 +13,7 @@ export default function HistoryScreen() {
   const [activeVin, setActiveVin] = useState(null);
   const listRef = useRef(null);
   const debounceTimeout = useRef(null);
-  const { refreshScansCount } = useScans();
+  const { refreshTotalScans, decrementTransportScan } = useScans();
   const [localPictsMap, setLocalPictsMap] = useState({});
   const pendingVinRef = useRef(null);
   const { vin } = useLocalSearchParams();
@@ -123,7 +123,8 @@ export default function HistoryScreen() {
     setData(newData);
     setFiltered(newData);
     if (activeVin === vin) setActiveVin(null);
-    refreshScansCount();
+    refreshTotalScans();
+    decrementTransportScan();
   };
 
   // Scroll seguro al item activo

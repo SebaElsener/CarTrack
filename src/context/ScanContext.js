@@ -4,66 +4,85 @@ import { getScansCount } from "../database/Database";
 const ScansContext = createContext();
 
 export const ScansProvider = ({ children }) => {
-  const [scansCount, setScansCount] = useState(0);
+  // 🔢 TOTAL histórico (todos los VIN)
+  const [totalScans, setTotalScans] = useState(0);
 
-  // 🆕 datos de la descarga
+  // 🚚 descarga actual
   const [transportUnit, setTransportUnit] = useState("");
+  const [transportScans, setTransportScans] = useState(0);
   const [totalUnits, setTotalUnits] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [transportActive, setTransportActive] = useState(false);
 
-  const refreshScansCount = async () => {
+  /** ---------------- TOTAL HISTÓRICO ---------------- */
+  const refreshTotalScans = async () => {
     const count = await getScansCount();
-    const safeCount = count ?? 0;
-
-    setScansCount(safeCount);
-
-    // 🔔 detectar finalización
-    if (totalUnits > 0 && safeCount >= totalUnits) {
-      setCompleted(true);
-    }
+    setTotalScans(count ?? 0);
   };
 
-  // ➕ llamar cuando se agrega un scan nuevo
-  const incrementScan = () => {
-    setScansCount((prev) => {
+  /** ---------------- DESCARGA ACTUAL ---------------- */
+  const incrementTransportScan = () => {
+    setTransportScans((prev) => {
       const next = prev + 1;
+
+      // 🟢 activar barra al primer scan
+      if (next === 1) {
+        setTransportActive(true);
+      }
 
       if (totalUnits > 0 && next >= totalUnits) {
         setCompleted(true);
+        setTransportActive(false); // 🔴 ocultar barra
       }
 
       return next;
     });
   };
 
-  // 🔄 reset manual (nueva descarga)
-  const resetDownload = () => {
-    setScansCount(0);
+  const decrementTransportScan = () => {
+    setTransportScans((prev) => {
+      const next = Math.max(prev - 1, 0);
+
+      // si no quedan scans → ocultar barra
+      if (next === 0) {
+        setTransportActive(false);
+        setCompleted(false);
+      }
+
+      return next;
+    });
+  };
+
+  const resetTransport = () => {
+    setTransportScans(0);
     setTotalUnits(0);
     setTransportUnit("");
     setCompleted(false);
+    setTransportActive(false);
   };
 
-  // 🔁 cargar contador real al iniciar
+  /** ---------------- INIT ---------------- */
   useEffect(() => {
-    refreshScansCount();
+    refreshTotalScans();
   }, []);
 
   return (
     <ScansContext.Provider
       value={{
-        scansCount,
-        refreshScansCount,
-        incrementScan,
+        totalScans,
+        refreshTotalScans,
 
         transportUnit,
         setTransportUnit,
-
+        transportScans,
         totalUnits,
         setTotalUnits,
-
         completed,
-        resetDownload,
+
+        transportActive,
+        incrementTransportScan,
+        decrementTransportScan,
+        resetTransport,
       }}
     >
       {children}

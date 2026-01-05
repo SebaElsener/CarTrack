@@ -6,7 +6,7 @@ import { useScans } from "../context/ScanContext";
 
 export default function InfoBar() {
   const [hora, setHora] = useState(new Date());
-  const { scansCount } = useScans();
+  const { totalScans } = useScans();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -62,7 +62,7 @@ export default function InfoBar() {
         >
           VIN escaneados:
         </Text>
-        <AnimatedBadge value={scansCount} />
+        <AnimatedBadge value={totalScans} />
       </View>
     </View>
   );

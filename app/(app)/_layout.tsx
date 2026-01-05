@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.25)",
     display: "flex",
     flexDirection: "column",
-    paddingTop: 30,
+    //paddingTop: 30,
     alignItems: "flex-start",
     justifyContent: "center",
     height: 150,
