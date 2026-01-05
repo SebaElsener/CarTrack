@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 38, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    marginTop: 60,
+    marginTop: 30,
   },
   titleSpan: {
     fontStyle: "italic",
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     rowGap: 16,
     width: "100%",
     flex: 1,
-    marginTop: 70,
+    marginTop: 40,
   },
   cardWrapper: {
     width: "48%", // dos por fila

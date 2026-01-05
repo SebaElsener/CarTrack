@@ -7,6 +7,7 @@ import { Appbar, Text } from "react-native-paper";
 import { useAuth } from "../../src/context/AuthContext";
 import { ScansProvider } from "../../src/context/ScanContext";
 import InfoBar from "../../src/screens/InfoBar";
+import TransportBar from "../../src/screens/TransportBar";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
@@ -75,6 +76,9 @@ export default function AppLayout() {
                 <View style={styles.appBarDate}>
                   <InfoBar />
                 </View>
+                <View style={styles.appBarDate}>
+                  <TransportBar />
+                </View>
               </Appbar.Header>
             ),
           }}
@@ -94,14 +98,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.25)",
     display: "flex",
     flexDirection: "column",
-    //marginTop: 20,
+    paddingTop: 30,
     alignItems: "flex-start",
     justifyContent: "center",
-    height: 85,
+    height: 150,
+    //width: "100%",
   },
   appBarDate: {
     //justifyContent: "space-between",
     //marginLeft: 6,
+    width: "100%",
+    borderTopWidth: 0.3,
+    borderTopColor: "#edededc5",
   },
   lottieContainer: {
     justifyContent: "center",

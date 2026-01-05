@@ -44,6 +44,7 @@ export default function InfoBar() {
         justifyContent: "space-between",
         width: "100%",
         paddingHorizontal: 20,
+        paddingVertical: 5,
       }}
     >
       <View>
