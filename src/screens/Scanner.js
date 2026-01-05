@@ -1,4 +1,5 @@
 import { Camera, CameraView } from "expo-camera";
+import { useKeepAwake } from "expo-keep-awake";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -73,6 +74,7 @@ export function isValidVIN(vin) {
 
 export default function Scanner() {
   const router = useRouter();
+  useKeepAwake();
 
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);

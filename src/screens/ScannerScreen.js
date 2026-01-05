@@ -1,4 +1,5 @@
 import { Camera, CameraView } from "expo-camera";
+import { useKeepAwake } from "expo-keep-awake";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -121,6 +122,7 @@ function AnimatedButton({ label, onPress, color, textColor, style }) {
 // ---------------------------
 export default function ScannerScreen() {
   const router = useRouter();
+  useKeepAwake();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [lastResult, setLastResult] = useState("");
