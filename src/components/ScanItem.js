@@ -11,7 +11,6 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const [damagesState, setDamagesState] = useState([]); // solo para animaciones
   const [pulseLocked, setPulseLocked] = useState(false);
   const pulseTimeoutRef = useRef(null);
-  const contentRef = useRef(null);
 
   const [damaged, setDamaged] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
@@ -113,18 +112,9 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
 
     try {
       await markToDelete(damageToDelete.id);
-      await deleteDamagePerVINandID(damageToDelete.id);
+      await deleteDamagePerVINandID();
     } catch (e) {
       console.warn("Error eliminando daño", e);
-    }
-  };
-
-  /** ------------------ Medir altura real del contenido ------------------ */
-  const onContentLayout = (e) => {
-    const h = e.nativeEvent.layout.height;
-    if (h !== contentHeight) {
-      setContentHeight(h);
-      if (damaged) danosAnim.setValue(1);
     }
   };
 

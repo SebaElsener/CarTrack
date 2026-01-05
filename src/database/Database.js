@@ -55,7 +55,8 @@ export const initDB = async () => {
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS damages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        local_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        supabase_id UUID NULL,
         vin TEXT NOT NULL,
         date TEXT NOT NULL,
         area TEXT NOT NULL,
@@ -160,7 +161,7 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
         (
           SELECT json_group_array(
             json_object(
-              'id', d.id,
+              'id', d.local_id,
               'area', d.area,
               'averia', d.averia,
               'grav', d.grav,
@@ -263,7 +264,10 @@ export const clearDb = async () => {
 export const markToDelete = async (damageId) => {
   const db = await getDb();
   try {
-    await db.runAsync(`UPDATE damages SET deleted = 1 WHERE id = ?`, damageId);
+    await db.runAsync(
+      `UPDATE damages SET deleted = 1 WHERE local_id = ?`,
+      damageId
+    );
   } catch (error) {
     console.log("Error al marcar daño a eliminar: ", damageId);
     return error;

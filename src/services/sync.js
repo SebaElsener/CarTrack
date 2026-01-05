@@ -48,21 +48,28 @@ export const danoCloudUpdate = async () => {
   }
   let syncedCount = 0;
   for (const item of unsyncedDamages) {
-    const { error } = await supabase.from("damages").insert({
-      id: item.id,
-      area: item.area,
-      averia: item.averia,
-      grav: item.grav,
-      obs: item.obs,
-      codigo: item.codigo,
-      vin: item.vin,
-      date: item.date,
-    });
+    const { data, error } = await supabase
+      .from("damages")
+      .insert({
+        area: item.area,
+        averia: item.averia,
+        grav: item.grav,
+        obs: item.obs,
+        codigo: item.codigo,
+        vin: item.vin,
+        date: item.date,
+      })
+      .select("id")
+      .single();
     if (error) {
       console.log("❌ damage sync error", item.id, error);
       continue;
     }
-    await db.runAsync(`UPDATE damages SET synced = 1 WHERE id = ?`, item.id);
+    await db.runAsync(
+      `UPDATE damages SET synced = 1, supabase_id = ? WHERE local_id = ?`,
+      data.id,
+      item.local_id
+    );
     syncedCount++;
   }
   // devolvemos cuántos daños quedaron pendientes
@@ -142,7 +149,7 @@ export const syncPendingPicts = async () => {
 };
 
 //Eliminar un daño por VIN / ID de daño en supabase
-export const deleteDamagePerVINandID = async (damageId) => {
+export const deleteDamagePerVINandID = async () => {
   await waitForDb();
   const db = await getDb();
   const damagesToDelete = await db.getAllAsync(
@@ -157,15 +164,21 @@ export const deleteDamagePerVINandID = async (damageId) => {
     const { error } = await supabase
       .from("damages")
       .delete()
-      .eq("id", damage.id);
+      .eq("id", damage.supabase_id);
     if (error) {
-      console.log("❌ delete damage error", damage.id, error);
+      console.log("❌ delete damage error", damage.supabase_id, error);
       continue;
     }
-    await db.runAsync(`UPDATE damages SET deleted = 0 WHERE id = ?`, damage.id);
-    await db.runAsync(`DELETE FROM damages WHERE id = ?`, damage.id);
+    await db.runAsync(
+      `UPDATE damages SET deleted = 0 WHERE local_id = ?`,
+      damage.local_id
+    );
+    await db.runAsync(
+      `DELETE FROM damages WHERE local_id = ?`,
+      damage.local_id
+    );
     syncedCount++;
   }
-  // devolvemos cuántas fotos quedan pendientes
+  // devolvemos cuántos daños quedan pendientes
   return damagesToDelete.length - syncedCount;
 };

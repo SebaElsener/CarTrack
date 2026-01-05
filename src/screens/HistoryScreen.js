@@ -80,8 +80,10 @@ export default function HistoryScreen() {
   /////////////// fotos //////////////////////////////// fotos /////////////////
   useEffect(() => {
     let mounted = true;
-
     const loadAllPicts = async () => {
+      if (!Array.isArray(data)) {
+        return;
+      }
       const map = {};
       for (const scan of data) {
         if (scan.fotos?.length > 0) {
