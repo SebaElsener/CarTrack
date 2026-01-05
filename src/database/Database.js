@@ -283,3 +283,9 @@ export const deleteDamageById = async () => {
     return error;
   }
 };
+
+//Contar scans guardados para actualizar barra contador scans
+export async function getScansCount() {
+  const result = await db.getFirstAsync(`SELECT COUNT(*) as count FROM scans`);
+  return result?.count ?? 0;
+}

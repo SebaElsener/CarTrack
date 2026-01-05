@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Text } from "react-native-paper";
+import AnimatedBadge from "../components/AnimatedBadge";
 import { useScans } from "../context/ScanContext";
 
 export default function InfoBar() {
@@ -50,7 +51,7 @@ export default function InfoBar() {
           {fechaHora}
         </Text>
       </View>
-      <View>
+      <View style={{ flexDirection: "row" }}>
         <Text
           style={{
             color: "#eeeeeeff",
@@ -58,8 +59,9 @@ export default function InfoBar() {
             fontSize: 13.5,
           }}
         >
-          VIN escaneados: {scansCount}
+          VIN escaneados:
         </Text>
+        <AnimatedBadge value={scansCount} />
       </View>
     </View>
   );

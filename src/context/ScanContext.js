@@ -1,15 +1,28 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getScansCount } from "../database/Database";
 
 const ScansContext = createContext();
 
 export const ScansProvider = ({ children }) => {
-  const [scansCount, setScansCount] = useState(0); // contador de VINs
+  const [scansCount, setScansCount] = useState(0);
 
-  const increment = () => setScansCount((prev) => prev + 1);
-  const decrement = () => setScansCount((prev) => (prev > 0 ? prev - 1 : 0));
+  const refreshScansCount = async () => {
+    const count = await getScansCount();
+    setScansCount(count ?? 0);
+  };
+
+  // 🔁 cargar al iniciar la app
+  useEffect(() => {
+    refreshScansCount();
+  }, []);
 
   return (
-    <ScansContext.Provider value={{ scansCount, increment, decrement }}>
+    <ScansContext.Provider
+      value={{
+        scansCount,
+        refreshScansCount,
+      }}
+    >
       {children}
     </ScansContext.Provider>
   );
