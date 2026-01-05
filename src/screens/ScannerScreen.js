@@ -19,7 +19,7 @@ import { requestSync } from "../services/syncTrigger";
 /// Area de escaneo
 const { width, height } = Dimensions.get("window");
 const SCAN_SIZE = width * 0.7;
-const TOP = (height - SCAN_SIZE) / 2;
+const TOP = (height - SCAN_SIZE) / 2 - 150;
 const LEFT = (width - SCAN_SIZE) / 2;
 
 // Mapa y pesos VIN para validación
@@ -305,10 +305,12 @@ export default function ScannerScreen() {
 // ---------------------------
 const CORNER = 28;
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+  },
   result: {
     position: "absolute",
-    bottom: 200,
+    bottom: 150,
     alignSelf: "center",
     backgroundColor: "rgba(245,245,245,0.95)",
     padding: 30,
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     marginBottom: 30,
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "bold",
     color: "#2f2f2f",
     textAlign: "center",
@@ -332,10 +334,18 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     marginBottom: 16,
   },
-  overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+  },
   mask: { backgroundColor: "rgba(0,0,0,0.6)" },
   centerRow: { flexDirection: "row" },
-  scanArea: { width: SCAN_SIZE, height: SCAN_SIZE, position: "relative" },
+  scanArea: {
+    width: SCAN_SIZE,
+    height: SCAN_SIZE,
+    // position: "fixed",
+    // top: "-150",
+  },
   scanLine: { height: 2, width: "100%", backgroundColor: "#00ff88" },
   helperText: {
     position: "absolute",
@@ -348,7 +358,7 @@ const styles = StyleSheet.create({
   },
   flashButton: {
     position: "absolute",
-    top: 50,
+    top: 20,
     right: 20,
     backgroundColor: "rgba(0,0,0,0.6)",
     padding: 10,

@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     //paddingTop: 30,
     alignItems: "flex-start",
     justifyContent: "center",
-    height: 205,
+    height: 210,
     //width: "100%",
   },
   appBarDate: {
