@@ -111,7 +111,10 @@ export default function DanoScreen() {
         <Areas
           areas={areasDropdown}
           selectedValue={area}
-          onSelect={(item) => setArea(item.value)}
+          onSelect={(item) => {
+            setArea(item.value);
+            setErrors((prev) => ({ ...prev, area: false })); // 🔹 limpia error
+          }}
           error={errors.area}
         />
       </View>
@@ -120,7 +123,10 @@ export default function DanoScreen() {
         <Averias
           averias={averiasDropdown}
           selectedValue={averia}
-          onSelect={(item) => setAveria(item.value)}
+          onSelect={(item) => {
+            setAveria(item.value);
+            setErrors((prev) => ({ ...prev, averia: false })); // 🔹 limpia error
+          }}
           error={errors.averia}
         />
       </View>
@@ -129,7 +135,10 @@ export default function DanoScreen() {
         <Gravedades
           gravedades={gravedadesDropdown}
           selectedValue={grav}
-          onSelect={(item) => setGrav(item.value)}
+          onSelect={(item) => {
+            setGrav(item.value);
+            setErrors((prev) => ({ ...prev, grav: false })); // 🔹 limpia error
+          }}
           error={errors.grav}
         />
       </View>
@@ -153,7 +162,10 @@ export default function DanoScreen() {
         <Codigos
           codigos={codigosDropdown}
           selectedValue={codigo}
-          onSelect={(item) => setCodigo(item.value)}
+          onSelect={(item) => {
+            setCodigo(item.value);
+            setErrors((prev) => ({ ...prev, codigo: false })); // 🔹 limpia error
+          }}
           error={errors.codigo}
         />
       </View>
