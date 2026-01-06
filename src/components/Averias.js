@@ -9,7 +9,12 @@ import {
   Searchbar,
 } from "react-native-paper";
 
-export default function Averias({ averias, onSelect, selectedValue }) {
+export default function Averias({
+  averias,
+  onSelect,
+  selectedValue,
+  error = false,
+}) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(
@@ -46,7 +51,7 @@ export default function Averias({ averias, onSelect, selectedValue }) {
         <Button
           textColor="#424242e5"
           labelStyle={{ fontSize: 15, textAlign: "left", padding: 2 }}
-          buttonColor="#eaeaea87"
+          buttonColor={error ? "#ff6b6b55" : "#eaeaea87"} // 🔹 fondo rojo si error          mode="outlined"
           mode="outlined"
           onPress={() => setVisible(true)}
           style={{ borderWidth: 1, borderColor: "#afafafbc" }}

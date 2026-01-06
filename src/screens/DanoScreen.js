@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { Button, IconButton, Text, TextInput } from "react-native-paper";
+import { StyleSheet, Text, View } from "react-native";
+import { Button, IconButton, TextInput } from "react-native-paper";
 import Areas from "../components/Areas";
 import Averias from "../components/Averias";
 import Codigos from "../components/Codigos";
@@ -30,60 +30,110 @@ export default function DanoScreen() {
   const [obs, setObs] = useState("");
   const [codigo, setCodigo] = useState("");
 
+  // 🔹 errores por campo (solo dropdowns)
+  const [errors, setErrors] = useState({
+    area: false,
+    averia: false,
+    grav: false,
+    codigo: false,
+  });
+
   const areasDropdown = areas.map((p) => ({
-    label: p.descripcion, // 👈 lo que se muestra
-    value: p.id, // 👈 lo que se guarda
+    label: p.descripcion,
+    value: p.id,
   }));
-
   const averiasDropdown = averias.map((p) => ({
-    label: p.descripcion, // 👈 lo que se muestra
-    value: p.id, // 👈 lo que se guarda
+    label: p.descripcion,
+    value: p.id,
   }));
-
   const gravedadesDropdown = gravedades.map((p) => ({
-    label: p.descripcion, // 👈 lo que se muestra
-    value: p.id, // 👈 lo que se guarda
+    label: p.descripcion,
+    value: p.id,
   }));
-
   const codigosDropdown = codigos.map((p) => ({
-    label: p.descripcion, // 👈 lo que se muestra
-    value: p.id, // 👈 lo que se guarda
+    label: p.descripcion,
+    value: p.id,
   }));
 
-  const updateInfo = async (vin, area, averia, grav, obs, codigo, user) => {
-    let result = await addInfo(vin, area, averia, grav, obs, codigo, user);
+  // 🔹 validar campos obligatorios (solo dropdowns)
+  const validateFields = () => {
+    const newErrors = {
+      area: !area,
+      averia: !averia,
+      grav: !grav,
+      codigo: !codigo,
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((e) => e);
+  };
+
+  const handleSave = async () => {
+    if (!validateFields()) {
+      showToast("Complete todos los campos obligatorios", "error");
+      return;
+    }
+
+    const result = await addInfo(
+      vin,
+      area,
+      averia,
+      grav,
+      obs,
+      codigo,
+      user?.email
+    );
     requestSync();
     if (result === "Información actualizada")
       showToast("ACTUALIZADO OK!", "success");
-    else {
-      showToast("Error al actualizar", "error");
-    }
+    else showToast("Error al actualizar", "error");
   };
 
   return (
     <View style={styles.card}>
+      <View style={styles.takePhotoContainer}>
+        <IconButton
+          style={styles.iconButton}
+          size={35}
+          icon="camera-plus"
+          iconColor="rgba(133, 207, 189, 0.98)"
+          onPress={() =>
+            router.push({
+              pathname: "/(app)/CameraScreen",
+              params: { vinFromRouter: vin },
+            })
+          }
+        />
+      </View>
+
       <Text style={styles.code}>{vin}</Text>
+
       <View>
         <Areas
           areas={areasDropdown}
           selectedValue={area}
           onSelect={(item) => setArea(item.value)}
+          error={errors.area}
         />
       </View>
+
       <View>
         <Averias
           averias={averiasDropdown}
           selectedValue={averia}
           onSelect={(item) => setAveria(item.value)}
+          error={errors.averia}
         />
       </View>
+
       <View>
         <Gravedades
           gravedades={gravedadesDropdown}
           selectedValue={grav}
           onSelect={(item) => setGrav(item.value)}
+          error={errors.grav}
         />
       </View>
+
       <View style={styles.textInputContainer}>
         <TextInput
           value={obs}
@@ -91,64 +141,42 @@ export default function DanoScreen() {
           autoCapitalize="characters"
           outlineStyle={{ borderRadius: 6 }}
           style={{ textAlign: "center" }}
-          outlineColor="#afafafbc"
+          outlineColor="#afafafbc" // 🔹 no validar
           activeOutlineColor="#afafafbc"
-          contentStyle={{
-            backgroundColor: "#eaeaea87",
-            fontWeight: "medium",
-          }}
+          contentStyle={{ backgroundColor: "#eaeaea87", fontWeight: "medium" }}
           placeholder="Observación"
           onChangeText={(text) => setObs(text)}
         />
       </View>
+
       <View>
         <Codigos
           codigos={codigosDropdown}
           selectedValue={codigo}
           onSelect={(item) => setCodigo(item.value)}
+          error={errors.codigo}
         />
       </View>
+
       <View style={styles.buttonContainer}>
-        <View style={styles.takePhotoContainer}>
-          <IconButton
-            style={styles.iconButton}
-            size={35}
-            icon="camera-plus"
-            iconColor="rgba(133, 207, 189, 0.98)"
-            onPress={() =>
-              router.push({
-                pathname: "/(app)/CameraScreen",
-                params: { vinFromRouter: vin },
-              })
-            }
-          ></IconButton>
-        </View>
         <Button
           style={{ marginBottom: 15 }}
-          labelStyle={{
-            fontSize: 14,
-            color: "#343333d2",
-          }}
+          labelStyle={{ fontSize: 14, color: "#343333d2" }}
           mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
-          //textColor='rgba(41, 30, 30, 0.89)'
-          onPress={() =>
-            updateInfo(vin, area, averia, grav, obs, codigo, user?.email)
-          }
+          onPress={handleSave}
         >
           GUARDAR
         </Button>
+
         <Button
           labelStyle={{ fontSize: 14, color: "#343333d2" }}
           mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
-          //textColor='rgba(41, 30, 30, 0.89)'
           onPress={() =>
             router.replace({
               pathname: "/(app)/DanoScreen",
-              params: {
-                vinFromRouter: vin,
-              },
+              params: { vinFromRouter: vin },
             })
           }
         >
@@ -172,16 +200,18 @@ const styles = StyleSheet.create({
     color: "#312f2fce",
     textAlign: "center",
     marginBottom: 10,
-    //marginTop: 30,
+    marginTop: 15,
   },
   buttonContainer: {
-    //marginTop: 10,
+    marginTop: 25,
   },
   textInputContainer: {
     marginBottom: 10,
     boxShadow: "0px 2px 3px 0px #1a1a1a29",
   },
   takePhotoContainer: {
-    //marginBottom: 20,
+    marginTop: -10,
+    marginLeft: -8,
+    position: "absolute",
   },
 });

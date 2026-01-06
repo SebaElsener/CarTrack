@@ -9,7 +9,12 @@ import {
   Searchbar,
 } from "react-native-paper";
 
-export default function Gravedades({ gravedades, onSelect, selectedValue }) {
+export default function Gravedades({
+  gravedades,
+  onSelect,
+  selectedValue,
+  error = false, // 🔹 nueva prop
+}) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(
@@ -46,7 +51,7 @@ export default function Gravedades({ gravedades, onSelect, selectedValue }) {
         <Button
           textColor="#424242e5"
           labelStyle={{ fontSize: 15, textAlign: "left", padding: 2 }}
-          buttonColor="#eaeaea87"
+          buttonColor={error ? "#ff6b6b55" : "#eaeaea87"} // 🔹 fondo rojo si error
           mode="outlined"
           onPress={() => setVisible(true)}
           style={{ borderWidth: 1, borderColor: "#afafafbc" }}
@@ -64,7 +69,6 @@ export default function Gravedades({ gravedades, onSelect, selectedValue }) {
             { maxHeight: windowHeight * 0.8 },
           ]}
         >
-          {/* Botón cerrar X */}
           <View style={styles.header}>
             <Text style={styles.title}>Seleccionar Gravedad</Text>
             <IconButton
@@ -74,7 +78,6 @@ export default function Gravedades({ gravedades, onSelect, selectedValue }) {
             />
           </View>
 
-          {/* Buscador */}
           <Searchbar
             placeholder="Buscar..."
             value={search}
@@ -82,7 +85,6 @@ export default function Gravedades({ gravedades, onSelect, selectedValue }) {
             style={{ marginBottom: 8 }}
           />
 
-          {/* Lista o mensaje */}
           {filtered.length > 0 ? (
             <FlatList
               data={filtered}
