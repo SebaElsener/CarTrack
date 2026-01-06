@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useToast } from "../components/ToastProvider";
+import { useAuth } from "../context/AuthContext";
 import { savePendingImage, savePict } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
@@ -35,7 +36,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState(null);
   const [fotos, setFotos] = useState([]);
-
+  const { user } = useAuth();
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
   const { vinFromRouter } = useLocalSearchParams();
   const vin = vinFromRouter;
@@ -133,7 +134,7 @@ export default function CameraScreen() {
     const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
     // Guardar en DB local
-    const pictId = await savePict(vin, JSON.stringify(metadatos));
+    const pictId = await savePict(vin, JSON.stringify(metadatos), user?.email);
 
     //  Guardar name + binary en tabla local para subir luego a supabase bucket
     await savePendingImage(pictId, nombre, binary); /// lastInsertRowId devuelve el id único AUTOINCREMENT que asigna sqlite

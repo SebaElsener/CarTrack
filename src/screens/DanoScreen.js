@@ -7,9 +7,10 @@ import Averias from "../components/Averias";
 import Codigos from "../components/Codigos";
 import Gravedades from "../components/Gravedades";
 import { useToast } from "../components/ToastProvider";
+import { useAuth } from "../context/AuthContext";
 import { addInfo } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
-//import areas from '../utils/areas.json' with { type: 'json' };
+
 const areas = require("../utils/areas.json");
 const averias = require("../utils/averias.json");
 const gravedades = require("../utils/gravedades.json");
@@ -18,6 +19,7 @@ const codigos = require("../utils/codigos.json");
 export default function DanoScreen() {
   const { showToast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
 
   const { vinFromRouter } = useLocalSearchParams();
   const vin = vinFromRouter;
@@ -48,8 +50,8 @@ export default function DanoScreen() {
     value: p.id, // 👈 lo que se guarda
   }));
 
-  const updateInfo = async (vin, area, averia, grav, obs, codigo) => {
-    let result = await addInfo(vin, area, averia, grav, obs, codigo);
+  const updateInfo = async (vin, area, averia, grav, obs, codigo, user) => {
+    let result = await addInfo(vin, area, averia, grav, obs, codigo, user);
     requestSync();
     if (result === "Información actualizada")
       showToast("ACTUALIZADO OK!", "success");
@@ -130,7 +132,9 @@ export default function DanoScreen() {
           mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
           //textColor='rgba(41, 30, 30, 0.89)'
-          onPress={() => updateInfo(vin, area, averia, grav, obs, codigo)}
+          onPress={() =>
+            updateInfo(vin, area, averia, grav, obs, codigo, user?.email)
+          }
         >
           GUARDAR
         </Button>

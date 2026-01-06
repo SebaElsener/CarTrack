@@ -10,9 +10,13 @@ export const ScansProvider = ({ children }) => {
   // 🚚 descarga actual
   const [transportUnit, setTransportUnit] = useState("");
   const [transportScans, setTransportScans] = useState(0);
-  const [totalUnits, setTotalUnits] = useState(0);
+  const [totalUnits, setTotalUnits] = useState("");
   const [completed, setCompleted] = useState(false);
   const [transportActive, setTransportActive] = useState(false);
+
+  //Validar cant unidades si se ingresa nro batea y clima
+  const [transportError, setTransportError] = useState("");
+  const [weatherError, setWeatherError] = useState("");
 
   /** ---------------- TOTAL HISTÓRICO ---------------- */
   const refreshTotalScans = async () => {
@@ -25,6 +29,9 @@ export const ScansProvider = ({ children }) => {
 
   /** ---------------- DESCARGA ACTUAL ---------------- */
   const incrementTransportScan = () => {
+    if (!transportUnit?.trim()) {
+      return;
+    }
     setTransportScans((prev) => {
       const next = prev + 1;
 
@@ -58,11 +65,26 @@ export const ScansProvider = ({ children }) => {
 
   const resetTransport = () => {
     setTransportScans(0);
-    setTotalUnits(0);
+    setTotalUnits("");
     setTransportUnit("");
     setCompleted(false);
     setTransportActive(false);
   };
+
+  useEffect(() => {
+    if (!transportUnit) {
+      setTransportUnit("");
+      setTransportError("");
+    }
+  }, [transportUnit]);
+
+  useEffect(() => {
+    if (transportUnit?.trim() && !totalUnits?.toString().trim()) {
+      setTransportError("Debe ingresar la cantidad de unidades");
+    } else {
+      setTransportError("");
+    }
+  }, [transportUnit, totalUnits]);
 
   /** ---------------- INIT ---------------- */
   useEffect(() => {
@@ -89,6 +111,12 @@ export const ScansProvider = ({ children }) => {
 
         weatherCondition,
         setWeatherCondition,
+
+        transportError,
+        setTransportError,
+
+        weatherError,
+        setWeatherError,
       }}
     >
       {children}

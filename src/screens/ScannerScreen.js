@@ -13,17 +13,14 @@ import {
 } from "react-native";
 import { Button as PaperButton } from "react-native-paper";
 import playSound from "../components/plySound";
+import { useAuth } from "../context/AuthContext";
 import { useScans } from "../context/ScanContext";
 import { getScans, saveScan } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
-/// Area de escaneo
-const { width, height } = Dimensions.get("window");
-const SCAN_SIZE = width * 0.7;
-const TOP = (height - SCAN_SIZE) / 2 - 150;
-const LEFT = (width - SCAN_SIZE) / 2;
-
-// Mapa y pesos VIN para validación
+// ---------------------------
+// VIN validation
+// ---------------------------
 const VIN_MAP = {
   A: 1,
   B: 2,
@@ -66,16 +63,14 @@ export function isValidVIN(vin) {
   if (/[IOQ]/.test(vin)) return false;
 
   let sum = 0;
-  for (let i = 0; i < 17; i++) {
-    sum += VIN_MAP[vin[i]] * VIN_WEIGHTS[i];
-  }
+  for (let i = 0; i < 17; i++) sum += VIN_MAP[vin[i]] * VIN_WEIGHTS[i];
   const check = sum % 11;
   const checkChar = check === 10 ? "X" : String(check);
   return vin[8] === checkChar;
 }
 
 // ---------------------------
-// Animated Button Component
+// Animated Button
 // ---------------------------
 function AnimatedButton({ label, onPress, color, textColor, style }) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -87,7 +82,6 @@ function AnimatedButton({ label, onPress, color, textColor, style }) {
       useNativeDriver: true,
     }).start();
   };
-
   const handlePressOut = () => {
     Animated.spring(scale, {
       toValue: 1,
@@ -122,7 +116,7 @@ function AnimatedButton({ label, onPress, color, textColor, style }) {
 // ---------------------------
 export default function ScannerScreen() {
   const router = useRouter();
-  useKeepAwake();
+  useKeepAwake(); // Mantener pantalla activa
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [lastResult, setLastResult] = useState("");
@@ -130,8 +124,41 @@ export default function ScannerScreen() {
   const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
   const scanLock = useRef(false);
-  const { refreshTotalScans, incrementTransportScan } = useScans();
+  const errorLock = useRef(false);
+  const {
+    refreshTotalScans,
+    incrementTransportScan,
+    weatherCondition,
+    transportUnit,
+    transportError,
+    setWeatherError,
+  } = useScans();
+  const { user } = useAuth();
 
+  // ---------------------------
+  // Detectar orientación
+  // ---------------------------
+  const [dimensions, setDimensions] = useState(Dimensions.get("window"));
+  const orientation =
+    dimensions.height >= dimensions.width ? "portrait" : "landscape";
+
+  useEffect(() => {
+    const sub = Dimensions.addEventListener("change", ({ window }) =>
+      setDimensions(window)
+    );
+    return () => sub?.remove();
+  }, []);
+
+  // ---------------------------
+  // Calcular área de escaneo dinámicamente
+  // ---------------------------
+  const SCAN_SIZE = dimensions.width * 0.7;
+  const TOP = (dimensions.height - SCAN_SIZE) / 2 - 150;
+  const LEFT = (dimensions.width - SCAN_SIZE) / 2;
+
+  // ---------------------------
+  // Camera permissions
+  // ---------------------------
   useEffect(() => {
     const getCameraPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -140,6 +167,9 @@ export default function ScannerScreen() {
     getCameraPermissions();
   }, []);
 
+  // ---------------------------
+  // Animación de línea
+  // ---------------------------
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -155,9 +185,34 @@ export default function ScannerScreen() {
         }),
       ])
     ).start();
-  }, []);
+  }, [SCAN_SIZE]);
 
+  // ---------------------------
+  // Manejo de scans
+  // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
+    if (scanLock.current || errorLock.current) return;
+    if (transportError) {
+      errorLock.current = true;
+      Vibration.vibrate(120);
+      await playSound("error");
+      setTimeout(() => {
+        errorLock.current = false;
+      }, 800);
+      return;
+    }
+    // 🚫 validar clima
+    if (!weatherCondition) {
+      errorLock.current = true;
+      setWeatherError("Debe seleccionar la condición climática");
+      Vibration.vibrate(120);
+      await playSound("error");
+      setTimeout(() => {
+        errorLock.current = false;
+      }, 800);
+      return;
+    }
+
     if (!cornerPoints || scanLock.current) return;
     if (!data || data.length < 6) return;
 
@@ -165,6 +220,7 @@ export default function ScannerScreen() {
       cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
     const centerY =
       cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
+
     const inside =
       centerX > LEFT &&
       centerX < LEFT + SCAN_SIZE &&
@@ -188,7 +244,7 @@ export default function ScannerScreen() {
     const alreadyScanned = await getScans({ vin: vin });
     if (!alreadyScanned) {
       await playSound("success");
-      await saveScan(vin, type);
+      await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
       requestSync();
       setTimeout(() => {
         scanLock.current = false;
@@ -202,22 +258,13 @@ export default function ScannerScreen() {
     }
   };
 
-  const [orientation, setOrientation] = useState(
-    height >= width ? "portrait" : "landscape"
-  );
-
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener("change", ({ window }) => {
-      setOrientation(window.height >= window.width ? "portrait" : "landscape");
-    });
-
-    return () => subscription?.remove();
-  }, []);
-
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
   if (hasPermission === false)
     return <Text>No se tiene permiso de cámara</Text>;
 
+  // ---------------------------
+  // Render
+  // ---------------------------
   return (
     <View style={styles.container}>
       <CameraView
@@ -243,8 +290,13 @@ export default function ScannerScreen() {
             style={[
               styles.scanArea,
               {
+                width: SCAN_SIZE,
+                height: SCAN_SIZE,
                 borderColor: aligned ? "#00ff88" : "rgba(255,255,255,0.3)",
                 borderWidth: 2,
+                transform: [
+                  { rotate: orientation === "landscape" ? "-90deg" : "0deg" },
+                ],
               },
             ]}
           >
@@ -259,7 +311,6 @@ export default function ScannerScreen() {
                 },
               ]}
             />
-
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
@@ -325,9 +376,7 @@ export default function ScannerScreen() {
 // ---------------------------
 const CORNER = 28;
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   result: {
     position: "absolute",
     bottom: 150,
@@ -354,18 +403,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     marginBottom: 16,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-  },
+  overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
   mask: { backgroundColor: "rgba(0,0,0,0.6)" },
   centerRow: { flexDirection: "row" },
-  scanArea: {
-    width: SCAN_SIZE,
-    height: SCAN_SIZE,
-    // position: "fixed",
-    // top: "-150",
-  },
+  scanArea: { width: 0, height: 0 },
   scanLine: { height: 2, width: "100%", backgroundColor: "#00ff88" },
   helperText: {
     position: "absolute",

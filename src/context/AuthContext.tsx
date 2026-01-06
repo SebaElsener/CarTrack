@@ -1,4 +1,4 @@
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import {
   createContext,
   ReactNode,
@@ -19,6 +19,7 @@ type SnackbarState = {
 
 const AuthContext = createContext<{
   session: Session | null;
+  user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
   setLoading: (value: boolean) => void;
@@ -30,6 +31,7 @@ const AuthContext = createContext<{
   hideSnackbar: () => void;
 }>({
   session: null,
+  user: null,
   loading: true,
   logout: async () => {},
   setLoading: () => {},
@@ -106,6 +108,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         session,
+        user: session?.user ?? null,
         loading,
         logout,
         setLoading,

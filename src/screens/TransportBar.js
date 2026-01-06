@@ -17,9 +17,11 @@ export default function TransportBar() {
     setTransportUnit,
     transportScans,
     totalUnits,
-    setTotalUnits,
+    setTransportError,
     completed,
     resetTransport,
+    transportError,
+    setTotalUnits,
   } = useScans();
 
   const progress =
@@ -47,11 +49,15 @@ export default function TransportBar() {
               label="Batea Nro."
               keyboardType="number-pad"
               value={transportUnit}
-              onChangeText={setTransportUnit}
-              contentStyle={{
-                fontWeight: 700,
-                color: "#eeeeeeff",
+              onChangeText={(v) => {
+                setTransportUnit(v);
+                if (v?.trim() && !(totalUnits + "").trim()) {
+                  setTransportError("Debe ingresar la cantidad de unidades");
+                } else {
+                  setTransportError("");
+                }
               }}
+              contentStyle={{ fontWeight: 700, color: "#eeeeeeff" }}
               underlineColor="transparent"
               mode="flat"
               style={styles.input}
@@ -60,18 +66,23 @@ export default function TransportBar() {
           </View>
           <View style={{ flex: 1 }}>
             <TextInput
-              label="Unidades"
+              label="Cantidad"
               keyboardType="number-pad"
               value={totalUnits ? String(totalUnits) : ""}
-              onChangeText={(v) => setTotalUnits(Number(v))}
-              underlineColor="transparent"
-              contentStyle={{
-                fontWeight: 700,
-                color: "#eeeeeeff",
+              onChangeText={(v) => {
+                setTotalUnits(v ? Number(v) : "");
+                if (transportUnit?.trim() && !v) {
+                  setTransportError("Debe ingresar la cantidad de unidades");
+                } else {
+                  setTransportError("");
+                }
               }}
+              underlineColor="transparent"
+              contentStyle={{ fontWeight: 700, color: "#eeeeeeff" }}
               theme={customTheme}
               mode="flat"
               style={styles.inputSmall}
+              editable={!!transportUnit?.trim()}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -80,6 +91,23 @@ export default function TransportBar() {
             </Text>
           </View>
         </View>
+        {transportError ? (
+          <Text
+            style={{
+              color: "#f14f4fff",
+              fontSize: 13,
+              fontWeight: "700",
+              position: "absolute",
+              marginTop: 117,
+              marginLeft: 50,
+              textShadowColor: "#020202ff",
+              textShadowOffset: 4,
+              textShadowRadius: 4,
+            }}
+          >
+            {transportError}
+          </Text>
+        ) : null}
         {transportActive && (
           <View>
             <ProgressBar
@@ -158,6 +186,8 @@ const styles = StyleSheet.create({
   progress: {
     height: 6,
     borderRadius: 4,
+    position: "absolute",
+    marginTop: -5,
     //marginVertical: 8,
   },
 });

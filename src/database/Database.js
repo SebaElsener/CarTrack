@@ -26,6 +26,9 @@ export const initDB = async () => {
         vin TEXT UNIQUE NOT NULL,
         type TEXT NOT NULL,
         date TEXT NOT NULL,
+        clima TEXT NOT NULL,
+        batea TEXT,
+        user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
       `
   );
@@ -37,6 +40,7 @@ export const initDB = async () => {
         vin TEXT NOT NULL,
         metadata TEXT NOT NULL,
         pictureurl TEXT,
+        user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
       `
   );
@@ -65,6 +69,7 @@ export const initDB = async () => {
         obs TEXT,
         codigo TEXT NOT NULL,
         deleted INTEGER DEFAULT 0,
+        user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
       `
   );
@@ -102,12 +107,21 @@ export const deleteTable = async () => {
 };
 
 // Guardar un escaneo
-export const saveScan = async (vin, type) => {
+export const saveScan = async (
+  vin,
+  type,
+  weatherCondition,
+  transportUnit,
+  user
+) => {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO scans (vin, type, date, synced) VALUES (?, ?, ?, 0);`,
+    `INSERT INTO scans (vin, type, clima, batea, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, 0);`,
     vin,
     type,
+    weatherCondition,
+    transportUnit,
+    user,
     new Date().toISOString()
   );
 };
@@ -125,12 +139,13 @@ export const savePendingImage = async (pictId, nombre, binary) => {
 };
 
 // Guardar fotos + metadata para subir a supabase
-export const savePict = async (vin, metadata) => {
+export const savePict = async (vin, metadata, user) => {
   const db = await getDb();
   const id = await db.runAsync(
-    `INSERT INTO pictures (vin, metadata, synced) VALUES (?, ?, 0);`,
+    `INSERT INTO pictures (vin, metadata, user, synced) VALUES (?, ?, ?, 0);`,
     vin,
-    metadata
+    metadata,
+    user
   );
   return id.lastInsertRowId;
 };
@@ -216,19 +231,20 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
 };
 
 // Añadir información al vin colectado
-export const addInfo = async (vin, area, averia, grav, obs, codigo) => {
+export const addInfo = async (vin, area, averia, grav, obs, codigo, user) => {
   const db = await getDb();
   try {
     const fecha = new Date().toISOString();
     const result = await db.runAsync(
-      `INSERT INTO damages (area, averia, grav, obs, codigo, synced, vin, date) VALUES (?, ?, ?, ?, ?, 0, ?, ?);`,
+      `INSERT INTO damages (area, averia, grav, obs, codigo, synced, vin, date, user) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?);`,
       area,
       averia,
       grav,
       obs,
       codigo,
       vin,
-      fecha
+      fecha,
+      user
     );
     console.log("Registros actualizados: ", result.changes);
     return "Información actualizada";

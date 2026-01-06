@@ -1,10 +1,15 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
-import { Icon, SegmentedButtons, Text } from "react-native-paper";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import { Icon, SegmentedButtons } from "react-native-paper";
 import { useScans } from "../context/ScanContext";
 
 export default function WeatherCondition() {
-  const { weatherCondition, setWeatherCondition } = useScans();
+  const {
+    weatherCondition,
+    setWeatherCondition,
+    weatherError,
+    setWeatherError,
+  } = useScans();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -28,24 +33,17 @@ export default function WeatherCondition() {
     return (
       <View style={{ alignItems: "center", gap: 4 }}>
         <Animated.View
-          style={{
-            transform: [{ scale: active ? scaleAnim : 1 }],
-          }}
+          style={{ transform: [{ scale: active ? scaleAnim : 1 }] }}
         >
           <Icon source={icon} size={22} color="#eeeeeeff" />
         </Animated.View>
-
-        <Text
-          variant="labelSmall"
-          style={{ fontSize: 11, textAlign: "center", color: "#eeeeeeff" }}
-        >
+        <Text style={{ fontSize: 11, textAlign: "center", color: "#eeeeeeff" }}>
           {label}
         </Text>
       </View>
     );
   };
 
-  // 🔹 colores de fondo por botón seleccionado
   const buttonColors = {
     sunny: "#FFC10755",
     night: "#673AB755",
@@ -54,27 +52,34 @@ export default function WeatherCondition() {
     frost: "#b0ecf474",
   };
 
-  // 🔹 aplicar color de fondo dinámico al botón activo
   const theme = {
     colors: {
       secondaryContainer: buttonColors[weatherCondition] || "#5964dc92",
     },
   };
 
+  // 🔹 validar directamente aquí
+  const handleValueChange = (value) => {
+    setWeatherCondition(value);
+
+    if (!value) {
+      setWeatherError("Debe seleccionar la condición climática");
+    } else {
+      setWeatherError("");
+    }
+  };
+
   return (
     <View style={styles.SegmentedButtonsContainer}>
       <SegmentedButtons
         value={weatherCondition}
-        onValueChange={setWeatherCondition}
+        onValueChange={handleValueChange}
         style={styles.SegmentedButtons}
-        theme={theme} // 🔹 aquí aplicamos el color dinámico
+        theme={theme}
         buttons={[
           {
             value: "sunny",
-            style: {
-              borderColor: "#eeeeeeff",
-              borderWidth: 0.4,
-            },
+            style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
             label: renderLabel("sunny", "weather-sunny", "Sol"),
           },
           {
@@ -99,6 +104,10 @@ export default function WeatherCondition() {
           },
         ]}
       />
+
+      {weatherError ? (
+        <Text style={styles.errorText}>{weatherError}</Text>
+      ) : null}
     </View>
   );
 }
@@ -108,5 +117,15 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: "center",
   },
-  SegmentedButtonsContainer: {},
+  SegmentedButtonsContainer: {
+    //marginTop: 8,
+  },
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 63,
+    marginLeft: 45,
+    position: "absolute",
+  },
 });

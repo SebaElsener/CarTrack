@@ -24,6 +24,9 @@ export const syncPendingScans = async () => {
       vin: item.vin,
       type: item.type,
       date: item.date,
+      clima: item.clima,
+      batea: item.batea,
+      user: item.user,
     });
     if (error) {
       console.log("❌ scan sync error", item.id, error);
@@ -58,6 +61,7 @@ export const danoCloudUpdate = async () => {
         codigo: item.codigo,
         vin: item.vin,
         date: item.date,
+        user: item.user,
       })
       .select("id")
       .single();
@@ -136,6 +140,7 @@ export const syncPendingPicts = async () => {
       vin: picts.vin,
       pictureurl: picts.pictureurl,
       metadata: picts.metadata,
+      user: picts.user,
     });
     if (error) {
       console.log("❌ picture sync error", picts.id, error);
