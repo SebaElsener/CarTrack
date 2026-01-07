@@ -4,7 +4,6 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Button, IconButton, TextInput } from "react-native-paper";
 import Areas from "../components/Areas";
 import Averias from "../components/Averias";
-import Codigos from "../components/Codigos";
 import Gravedades from "../components/Gravedades";
 import { useToast } from "../components/ToastProvider";
 import { useAuth } from "../context/AuthContext";
@@ -70,7 +69,7 @@ export default function DanoScreen() {
       area: !area,
       averia: !averia,
       grav: !grav,
-      codigo: !codigo,
+      //codigo: !codigo,
     };
     setErrors(newErrors);
     return !Object.values(newErrors).some((e) => e);
@@ -104,7 +103,7 @@ export default function DanoScreen() {
           style={styles.iconButton}
           size={35}
           icon="camera-plus"
-          iconColor="rgba(133, 207, 189, 0.98)"
+          iconColor="rgba(84, 188, 162, 0.96)"
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
@@ -169,7 +168,7 @@ export default function DanoScreen() {
         />
       </View>
 
-      <View>
+      {/* <View>
         <Codigos
           codigos={codigosDropdown}
           selectedValue={codigo}
@@ -179,7 +178,7 @@ export default function DanoScreen() {
           }}
           error={errors.codigo}
         />
-      </View>
+      </View> */}
 
       <View style={styles.buttonContainer}>
         <Button
@@ -222,8 +221,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: "#312f2fce",
     textAlign: "center",
-    marginBottom: 10,
-    marginTop: 15,
+    marginBottom: 25,
+    marginTop: 20,
   },
   buttonContainer: {
     marginTop: 25,

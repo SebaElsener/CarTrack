@@ -50,10 +50,15 @@ export default function Areas({
       <View style={styles.buttonContainer}>
         <Button
           textColor="#424242e5"
-          labelStyle={{ fontSize: 15, textAlign: "left", padding: 2 }}
+          labelStyle={{
+            fontSize: selected ? 18 : 15,
+            padding: 2,
+            color: selected ? "#48b839ff" : "",
+          }}
           buttonColor={error ? "#ff6b6b55" : "#eaeaea87"} // 🔹 fondo rojo si error          mode="outlined"
           onPress={() => setVisible(true)}
           style={{ borderWidth: 1, borderColor: "#afafafbc" }}
+          icon={selected ? "check-circle" : ""}
         >
           {selected ? selected.label : "Seleccionar Area"}
         </Button>
