@@ -5,13 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Keyboard,
+  Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   Vibration,
   View,
 } from "react-native";
-import { Button as PaperButton } from "react-native-paper";
+import {
+  IconButton,
+  Button as PaperButton,
+  TextInput,
+} from "react-native-paper";
 import playSound from "../components/plySound";
 import { useAuth } from "../context/AuthContext";
 import { useScans } from "../context/ScanContext";
@@ -134,6 +140,51 @@ export default function ScannerScreen() {
     setWeatherError,
   } = useScans();
   const { user } = useAuth();
+  const [handInput, setHandInput] = useState("");
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // ---------------------------
+  // Animación imput manual VIN
+  // ---------------------------
+  const translateY = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0.6)).current;
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -200, // sube el input
+          duration: 550,
+          useNativeDriver: true, // ✅ ahora sí
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 550,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0.8,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   // ---------------------------
   // Detectar orientación
@@ -186,6 +237,24 @@ export default function ScannerScreen() {
       ])
     ).start();
   }, [SCAN_SIZE]);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.85,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+
+    handleScan(null, "handInput", handInput);
+  };
 
   // ---------------------------
   // Manejo de scans
@@ -280,6 +349,65 @@ export default function ScannerScreen() {
       </TouchableWithoutFeedback>
 
       <Text style={styles.helperText}>Alinee el código dentro del marco</Text>
+
+      {/* ////////////////////////////////////////////////////// */}
+
+      <Animated.View
+        style={[
+          styles.handInputVINContainer,
+          {
+            transform: [{ translateY }],
+            opacity: opacityAnim,
+          },
+        ]}
+      >
+        <View>
+          <TextInput
+            label="INGRESO MANUAL DE VIN"
+            mode="outlined"
+            textColor="#1f1f1fff"
+            theme={{
+              colors: {
+                onSurfaceVariant: "#000000ff", // Cambia el color del label inactivo/placeholder
+                primary: "#141414ff", // Cambia el color del label activo y el borde activo
+              },
+            }}
+            outlineStyle={{ borderWidth: 0 }}
+            value={handInput}
+            maxLength={17}
+            autoCapitalize="characters"
+            style={styles.handInputVIN}
+            onChangeText={(t) => setHandInput(t.toUpperCase())}
+            right={
+              handInput.length === 17 && (
+                <TextInput.Icon icon="check-circle" color="#2ecc71" />
+              )
+            }
+          />
+        </View>
+
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={{
+            //alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <IconButton
+              mode="contained"
+              icon="upload-box"
+              size={55}
+              iconColor="#37c13afd"
+              style={styles.handInputBtn}
+              containerColor="transparent"
+            ></IconButton>
+          </Animated.View>
+        </Pressable>
+      </Animated.View>
+
+      {/* ////////////////////////////////////////////////////// */}
 
       {/* Overlay */}
       <View style={styles.overlay}>
@@ -376,7 +504,7 @@ export default function ScannerScreen() {
 // ---------------------------
 const CORNER = 28;
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, position: "relative" },
   result: {
     position: "absolute",
     bottom: 150,
@@ -410,12 +538,40 @@ const styles = StyleSheet.create({
   scanLine: { height: 2, width: "100%", backgroundColor: "#00ff88" },
   helperText: {
     position: "absolute",
-    bottom: 90,
+    bottom: 505,
     alignSelf: "center",
-    color: "#fff",
-    fontSize: 16,
-    opacity: 0.9,
+    color: "#1b1919f5",
+    fontSize: 14,
     zIndex: 20,
+    backgroundColor: "#e2a063f8",
+    padding: 8,
+    borderRadius: 15,
+  },
+  handInputVIN: {
+    //backgroundColor: "#c1d1d4ff",
+    width: 270,
+    //verticalAlign: "center",
+    //height: "100%",
+    //alignSelf: "center",
+  },
+  handInputVINContainer: {
+    position: "absolute",
+    bottom: 130,
+    //left: 0,
+    //right: 0,
+    alignSelf: "center",
+    flexDirection: "row",
+    borderColor: "rgba(249, 249, 249, 0.9)",
+    borderWidth: 0.4,
+    height: 65,
+    backgroundColor: "#aedbdcd2",
+    //paddingLeft: 10,
+    borderRadius: 20,
+    zIndex: 999,
+    //justifyContent: "space-between",
+    //alignContent: "center",
+    //display: "flex",
+    //alignItems: "center",
   },
   flashButton: {
     position: "absolute",
@@ -441,5 +597,9 @@ const styles = StyleSheet.create({
     right: 0,
     borderBottomWidth: 3,
     borderRightWidth: 3,
+  },
+  handInputBtn: {
+    justifyContent: "center",
+    //color: "gray",
   },
 });
