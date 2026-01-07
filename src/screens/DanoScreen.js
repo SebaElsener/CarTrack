@@ -21,7 +21,7 @@ import { useKeyboardHeight } from "../utils/useKeyboardHeight";
 const areas = require("../utils/areas.json");
 const averias = require("../utils/averias.json");
 const gravedades = require("../utils/gravedades.json");
-const codigos = require("../utils/codigos.json");
+//const codigos = require("../utils/codigos.json");
 
 export default function DanoScreen() {
   const { showToast } = useToast();
@@ -45,6 +45,21 @@ export default function DanoScreen() {
     grav: false,
     codigo: false,
   });
+
+  const [areaSearch, setAreaSearch] = useState("");
+  const [filteredAreas, setFilteredAreas] = useState(areasDropdown);
+
+  // Filtrado tipo "startsWith"
+  useEffect(() => {
+    if (!areaSearch) {
+      setFilteredAreas(areasDropdown); // si no hay búsqueda, mostrar todos
+    } else {
+      const filtered = areasDropdown.filter((item) =>
+        item.label.toLowerCase().startsWith(areaSearch.toLowerCase())
+      );
+      setFilteredAreas(filtered);
+    }
+  }, [areaSearch]);
 
   const screenHeight = Dimensions.get("window").height;
   const keyboardHeight = useKeyboardHeight();
@@ -76,10 +91,12 @@ export default function DanoScreen() {
       ? screenHeight - keyboardHeight - 200
       : screenHeight * 0.5;
 
-  const areasDropdown = areas.map((p) => ({
-    label: p.descripcion,
-    value: p.id,
-  }));
+  const areasDropdown = areas
+    .map((p) => ({
+      label: p.descripcion,
+      value: p.id,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
   const averiasDropdown = averias.map((p) => ({
     label: p.descripcion,
     value: p.id,
@@ -148,9 +165,11 @@ export default function DanoScreen() {
       <View>
         <Areas
           style={{ height: 300 }}
-          areas={areasDropdown}
+          areas={filteredAreas || []}
           selectedValue={area}
           maxHeight={dropdownMaxHeight}
+          searchValue={areaSearch}
+          onSearchChange={setAreaSearch}
           onSelect={(item) => {
             setArea(item.value);
             setErrors((prev) => ({ ...prev, area: false })); // 🔹 limpia error
