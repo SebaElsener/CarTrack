@@ -1,382 +1,100 @@
 [
-  {
-    "id": "01",
-    "descripcion": "Paragolpe delantero lado derecho"
-  },
-  {
-    "id": "02",
-    "descripcion": "Paragolpe delantero lado izquierdo"
-  },
-  {
-    "id": "03",
-    "descripcion": "Paragolpe delantero"
-  },
-  {
-    "id": "04",
-    "descripcion": "Autoradio"
-  },
-  {
-    "id": "05",
-    "descripcion": "Spoiler delantero"
-  },
-  {
-    "id": "06",
-    "descripcion": "Parrilla"
-  },
-  {
-    "id": "07",
-    "descripcion": "Faro delantero derecho"
-  },
-  {
-    "id": "08",
-    "descripcion": "Faro delantero izquierdo"
-  },
-  {
-    "id": "09",
-    "descripcion": "Luz giro delantero derecho"
-  },
-  {
-    "id": "10",
-    "descripcion": "Luz giro delantero izquierdo"
-  },
-  {
-    "id": "11",
-    "descripcion": "Rueda auxilio"
-  },
-  {
-    "id": "12",
-    "descripcion": "Herramientas"
-  },
-  {
-    "id": "13",
-    "descripcion": "Capot lado derecho"
-  },
-  {
-    "id": "14",
-    "descripcion": "Capot lado izquierdo"
-  },
-  {
-    "id": "15",
-    "descripcion": "Antena"
-  },
-  {
-    "id": "16",
-    "descripcion": "Tanque combustible"
-  },
-  {
-    "id": "17",
-    "descripcion": "Tapa tanque combustible"
-  },
-  {
-    "id": "18",
-    "descripcion": "Guardabarro delantero izquierdo"
-  },
-  {
-    "id": "19",
-    "descripcion": "Guardabarro delantero derecho"
-  },
-  {
-    "id": "20",
-    "descripcion": "Escobilla delantera izquierda"
-  },
-  {
-    "id": "21",
-    "descripcion": "Escobilla delantera derecha"
-  },
-  {
-    "id": "22",
-    "descripcion": "Espejo retrovisor interno"
-  },
-  {
-    "id": "23",
-    "descripcion": "Botiquín"
-  },
-  {
-    "id": "24",
-    "descripcion": "Goma escobilla delantera"
-  },
-  {
-    "id": "25",
-    "descripcion": "Control remoto (plip)"
-  },
-  {
-    "id": "26",
-    "descripcion": "Tapa válvula de rueda"
-  },
-  {
-    "id": "27",
-    "descripcion": "Batería"
-  },
-  {
-    "id": "28",
-    "descripcion": "Techo lado izquierdo"
-  },
-  {
-    "id": "29",
-    "descripcion": "Techo lado derecho"
-  },
-  {
-    "id": "30",
-    "descripcion": "Zócalo lado izquierdo"
-  },
-  {
-    "id": "31",
-    "descripcion": "Zócalo lado derecho"
-  },
-  {
-    "id": "32",
-    "descripcion": "Llave de ignición"
-  },
-  {
-    "id": "33",
-    "descripcion": "Interior lado conductor"
-  },
-  {
-    "id": "34",
-    "descripcion": "Puerta delantera izquierda"
-  },
-  {
-    "id": "35",
-    "descripcion": "Caño de escapes"
-  },
-  {
-    "id": "36",
-    "descripcion": "Manual"
-  },
-  {
-    "id": "37",
-    "descripcion": "Puerta delantera derecha"
-  },
-  {
-    "id": "38",
-    "descripcion": "Frente desmontable de stereo"
-  },
-  {
-    "id": "39",
-    "descripcion": "Encendedor"
-  },
-  {
-    "id": "40",
-    "descripcion": "Soporte de espejo izquierdo"
-  },
-  {
-    "id": "41",
-    "descripcion": "Soporte de espejo derecho"
-  },
-  {
-    "id": "42",
-    "descripcion": "Manija de puerta delantera izquierda"
-  },
-  {
-    "id": "43",
-    "descripcion": "Manija de puerta delantera derecha"
-  },
-  {
-    "id": "44",
-    "descripcion": "Puerta trasera izquierda"
-  },
-  {
-    "id": "45",
-    "descripcion": "Gancho remolque"
-  },
-  {
-    "id": "47",
-    "descripcion": "Puerta trasera derecha"
-  },
-  {
-    "id": "48",
-    "descripcion": "Lapicera"
-  },
-  {
-    "id": "49",
-    "descripcion": "Baliza"
-  },
-  {
-    "id": "50",
-    "descripcion": "Barra estabilizadora"
-  },
-  {
-    "id": "51",
-    "descripcion": "Crique"
-  },
-  {
-    "id": "52",
-    "descripcion": "Cubre cárter"
-  },
-  {
-    "id": "53",
-    "descripcion": "Tablero"
-  },
-  {
-    "id": "54",
-    "descripcion": "Parante trasero izquierdo"
-  },
-  {
-    "id": "55",
-    "descripcion": "Parante trasero derecho"
-  },
-  {
-    "id": "58",
-    "descripcion": "Guardabarro trasero izquierdo"
-  },
-  {
-    "id": "59",
-    "descripcion": "Guardabarro trasero derecho"
-  },
-  {
-    "id": "62",
-    "descripcion": "Moldura guardabarro trasero izquierdo"
-  },
-  {
-    "id": "63",
-    "descripcion": "Moldura guardabarro trasero derecho"
-  },
-  {
-    "id": "64",
-    "descripcion": "Matafuego"
-  },
-  {
-    "id": "65",
-    "descripcion": "Tapa baúl lado derecho"
-  },
-  {
-    "id": "66",
-    "descripcion": "Tapa baúl lado izquierdo"
-  },
-  {
-    "id": "67",
-    "descripcion": "Panel trasero izquierdo"
-  },
-  {
-    "id": "68",
-    "descripcion": "Panel trasero derecho"
-  },
-  {
-    "id": "69",
-    "descripcion": "Porta patente"
-  },
-  {
-    "id": "70",
-    "descripcion": "Faro trasero izquierdo"
-  },
-  {
-    "id": "71",
-    "descripcion": "Faro trasero derecho"
-  },
-  {
-    "id": "72",
-    "descripcion": "Paragolpe trasero lado izquierdo"
-  },
-  {
-    "id": "73",
-    "descripcion": "Paragolpe trasero lado derecho"
-  },
-  {
-    "id": "74",
-    "descripcion": "Paragolpe trasero"
-  },
-  {
-    "id": "75",
-    "descripcion": "Escobilla trasera"
-  },
-  {
-    "id": "76",
-    "descripcion": "Spoiler trasero"
-  },
-  {
-    "id": "77",
-    "descripcion": "Cubierta delantera derecha"
-  },
-  {
-    "id": "78",
-    "descripcion": "Cubierta delantera izquierda"
-  },
-  {
-    "id": "79",
-    "descripcion": "Taza rueda delantera derecha"
-  },
-  {
-    "id": "80",
-    "descripcion": "Taza rueda delantera izquierda"
-  },
-  {
-    "id": "81",
-    "descripcion": "Moldura guardabarro delantero derecho"
-  },
-  {
-    "id": "82",
-    "descripcion": "Moldura guardabarro delantero izquierdo"
-  },
-  {
-    "id": "83",
-    "descripcion": "Rueda trasera derecha"
-  },
-  {
-    "id": "84",
-    "descripcion": "Rueda trasera izquierda"
-  },
-  {
-    "id": "85",
-    "descripcion": "Taza rueda trasera derecha"
-  },
-  {
-    "id": "86",
-    "descripcion": "Taza rueda trasera izquierda"
-  },
-  {
-    "id": "87",
-    "descripcion": "Moldura puerta delantera derecha"
-  },
-  {
-    "id": "88",
-    "descripcion": "Moldura puerta delantera izquierda"
-  },
-  {
-    "id": "89",
-    "descripcion": "Parabrisas"
-  },
-  {
-    "id": "90",
-    "descripcion": "Moldura puerta trasera derecha"
-  },
-  {
-    "id": "91",
-    "descripcion": "Vidrio puerta delantera derecha"
-  },
-  {
-    "id": "92",
-    "descripcion": "Vidrio puerta delantera izquierda"
-  },
-  {
-    "id": "93",
-    "descripcion": "Vidrio puerta trasera derecha"
-  },
-  {
-    "id": "94",
-    "descripcion": "Vidrio puerta trasera izquierda"
-  },
-  {
-    "id": "95",
-    "descripcion": "Moldura puerta trasera izquierda"
-  },
-  {
-    "id": "96",
-    "descripcion": "Unidad"
-  },
-  {
-    "id": "97",
-    "descripcion": "Código"
-  },
-  {
-    "id": "98",
-    "descripcion": "Espejo retrovisor izquierdo"
-  },
-  {
-    "id": "99",
-    "descripcion": "Espejo retrovisor derecho"
-  },
-  {
-    "id": "00",
-    "descripcion": "Otros"
-  }
+  { "id": "01", "descripcion": "Antena" },
+  { "id": "02", "descripcion": "Batería" },
+  { "id": "03", "descripcion": "Paragolpe - Delantero" },
+  { "id": "04", "descripcion": "Paragolpe - Trasero" },
+  { "id": "05", "descripcion": "Defensa/ Tira del paragolpe - Delanteros" },
+  { "id": "06", "descripcion": "Defensa/ Tira del paragolpe - Traseros" },
+  { "id": "07", "descripcion": "Portón Furgón - Derecho (sólo Camiones)" },
+  { "id": "08", "descripcion": "Portón Furgón - Izquierdo (sólo Camiones)" },
+  { "id": "09", "descripcion": "Portón lateral - Derecho (sólo camiones)" },
+  { "id": "10", "descripcion": "Puerta - Delantera izquierda" },
+  { "id": "11", "descripcion": "Puerta - Trasera izquierda" },
+  { "id": "12", "descripcion": "Puerta - Delantera derecha" },
+  { "id": "13", "descripcion": "Puerta - Trasera derecha" },
+  { "id": "14", "descripcion": "Guardabarros - Delantero izquierdo" },
+  { "id": "15", "descripcion": "Lateral o caja de pick up - Izquierda" },
+  { "id": "16", "descripcion": "Guardabarros - Delantero derecho" },
+  { "id": "17", "descripcion": "Lateral o caja de pick up - Derechos" },
+  { "id": "18", "descripcion": "Alfombras - Delanteras" },
+  { "id": "19", "descripcion": "Alfombras - Traseras" },
+  { "id": "20", "descripcion": "Parabrisas" },
+  { "id": "21", "descripcion": "Luneta trasera" },
+  { "id": "22", "descripcion": "Parrilla" },
+  { "id": "23", "descripcion": "Bolsa de Accesorios / Caja" },
+  { "id": "24", "descripcion": "Luz de Cortesía /Cubierta/Señal de giro" },
+  { "id": "25", "descripcion": "Faros - Antinieblas/ Faro auxiliar" },
+  { "id": "26", "descripcion": "Tapizado del techo" },
+  { "id": "27", "descripcion": "Capot" },
+  { "id": "28", "descripcion": "Llaves" },
+  { "id": "29", "descripcion": "Llaves mando a distancia" },
+  { "id": "30", "descripcion": "Espejo exterior - Izquierdo" },
+  { "id": "31", "descripcion": "Espejo exterior - Derecho" },
+  { "id": "32", "descripcion": "Abierto" },
+  { "id": "33", "descripcion": "Radio/ Stereo/ CD." },
+  { "id": "34", "descripcion": "TV/DVD Display" },
+  { "id": "35", "descripcion": "Zócalo - Izquierdo" },
+  { "id": "36", "descripcion": "Zócalo - Derecho" },
+  { "id": "37", "descripcion": "Techo" },
+  { "id": "38", "descripcion": "Estribo - Izquierdo" },
+  { "id": "39", "descripcion": "Estribo - Derecho" },
+  { "id": "40", "descripcion": "Rueda de Auxilio" },
+  { "id": "41", "descripcion": "Abierto" },
+  { "id": "42", "descripcion": "Spoiler delantero" },
+  { "id": "43", "descripcion": "Abierto" },
+  { "id": "44", "descripcion": "Tanque de Combustible" },
+  { "id": "45", "descripcion": "Faro trasero" },
+  { "id": "46", "descripcion": "Abierto" },
+  { "id": "47", "descripcion": "Abierto" },
+  { "id": "48", "descripcion": "Panel interior puerta - Delantero izquierdo" },
+  { "id": "49", "descripcion": "Cambiador de CD / Unidad Independiente" },
+  { "id": "50", "descripcion": "Panel interior puerta - Delantero derecho" },
+  { "id": "51", "descripcion": "Abierto" },
+  { "id": "52", "descripcion": "Tapa de Baúl/ Puerta trasera" },
+  { "id": "53", "descripcion": "Techo corredizo/ semi- descapotable" },
+  { "id": "54", "descripcion": "Chasis/ Otros" },
+  { "id": "55", "descripcion": "Tapa baúl" },
+  { "id": "56", "descripcion": "Vinilo/ Descapotable" },
+  { "id": "57", "descripcion": "Tazas/ tapas/ anillos de ajuste" },
+  { "id": "58", "descripcion": "Parlantes" },
+  { "id": "59", "descripcion": "Escobilla Limpiaparabrisas" },
+  { "id": "60", "descripcion": "Uso Especial" },
+  { "id": "61", "descripcion": "Caja interior, pick up (sólo camiones)" },
+  { "id": "62", "descripcion": "Abierto" },
+  { "id": "63", "descripcion": "Vigas/ Caja/ Barras antivuelco" },
+  { "id": "64", "descripcion": "Deflectores/ alerón - Traseros" },
+  { "id": "65", "descripcion": "Portaequipajes (tiras)" },
+  { "id": "66", "descripcion": "Tablero/ Panel de instrumentos" },
+  { "id": "67", "descripcion": "Encendedor/ cenicero" },
+  { "id": "68", "descripcion": "Alfombra - Delantera" },
+  { "id": "69", "descripcion": "Parante - Central derecho" },
+  { "id": "70", "descripcion": "Parante - Central izquierdo" },
+  { "id": "71", "descripcion": "Parante parabrisas - Delantero derecho" },
+  { "id": "72", "descripcion": "Neumático Del L/Izq." },
+  { "id": "73", "descripcion": "Llanta Del L/Izq." },
+  { "id": "74", "descripcion": "Neumático Tras. L/Izq." },
+  { "id": "75", "descripcion": "Llanta Tras. L/Izq." },
+  { "id": "76", "descripcion": "Neumático Tras. L/Der." },
+  { "id": "77", "descripcion": "Llanta Tras. L/Der." },
+  { "id": "78", "descripcion": "Neumático Del L/Der." },
+  { "id": "79", "descripcion": "Llanta Del L/Der." },
+  { "id": "80", "descripcion": "Grilla Torpedo" },
+  { "id": "81", "descripcion": "Tapa tanque de combustible" },
+  { "id": "82", "descripcion": "Guardabarros - Tras L/Izq" },
+  { "id": "83", "descripcion": "Guardabarros - Tras L/Der." },
+  { "id": "84", "descripcion": "Herramientas / Gato" },
+  { "id": "85", "descripcion": "Comunicación / Unidad GPS" },
+  { "id": "86", "descripcion": "Sistema de Sensores de Estacionamiento" },
+  { "id": "87", "descripcion": "Abierto" },
+  { "id": "88", "descripcion": "Abierto" },
+  { "id": "90", "descripcion": "Chasis" },
+  { "id": "91", "descripcion": "Sistema de caño de escape" },
+  { "id": "92", "descripcion": "Soporte de matrícula" },
+  { "id": "93", "descripcion": "Volante / Airbag" },
+  { "id": "94", "descripcion": "Asiento - Delantero izquierdo" },
+  { "id": "95", "descripcion": "Asiento - Delantero derecho" },
+  { "id": "96", "descripcion": "Asiento - Trasero" },
+  { "id": "97", "descripcion": "Alfombra - Trasera" },
+  { "id": "98", "descripcion": "Otros Interior" },
+  { "id": "99", "descripcion": "Compartimiento del motor/ Otros" }
 ]

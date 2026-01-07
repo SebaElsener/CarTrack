@@ -66,11 +66,11 @@ export default function Gravedades({
           onDismiss={() => setVisible(false)}
           contentContainerStyle={[
             styles.modalContainer,
-            { maxHeight: windowHeight * 0.8 },
+            { maxHeight: windowHeight * 0.55 },
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Seleccionar Gravedad</Text>
+            <Text style={styles.title}>Seleccionar gravedad</Text>
             <IconButton
               icon="close"
               size={24}
@@ -82,7 +82,12 @@ export default function Gravedades({
             placeholder="Buscar..."
             value={search}
             onChangeText={setSearch}
-            style={{ marginBottom: 8 }}
+            style={{
+              marginBottom: 15,
+              height: 50,
+              backgroundColor: "#dcd4d4f1",
+              marginHorizontal: 10,
+            }}
           />
 
           {filtered.length > 0 ? (
@@ -105,10 +110,13 @@ export default function Gravedades({
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: "white",
+    position: "absolute",
+    top: 60,
+    backgroundColor: "#ebe7e7ff",
     marginHorizontal: 20,
     borderRadius: 12,
     padding: 10,
+    width: 336,
   },
   noResult: {
     alignItems: "center",
@@ -118,10 +126,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    paddingHorizontal: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "bold",
   },
   buttonContainer: {

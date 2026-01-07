@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Button, IconButton, TextInput } from "react-native-paper";
 import Areas from "../components/Areas";
 import Averias from "../components/Averias";
@@ -10,6 +10,7 @@ import { useToast } from "../components/ToastProvider";
 import { useAuth } from "../context/AuthContext";
 import { addInfo } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
+import { useKeyboardHeight } from "../utils/useKeyboardHeight";
 
 const areas = require("../utils/areas.json");
 const averias = require("../utils/averias.json");
@@ -37,6 +38,14 @@ export default function DanoScreen() {
     grav: false,
     codigo: false,
   });
+
+  const screenHeight = Dimensions.get("window").height;
+  const keyboardHeight = useKeyboardHeight();
+
+  const dropdownMaxHeight =
+    keyboardHeight > 0
+      ? screenHeight - keyboardHeight - 200
+      : screenHeight * 0.5;
 
   const areasDropdown = areas.map((p) => ({
     label: p.descripcion,
@@ -109,8 +118,10 @@ export default function DanoScreen() {
 
       <View>
         <Areas
+          style={{ height: 300 }}
           areas={areasDropdown}
           selectedValue={area}
+          maxHeight={dropdownMaxHeight}
           onSelect={(item) => {
             setArea(item.value);
             setErrors((prev) => ({ ...prev, area: false })); // 🔹 limpia error
