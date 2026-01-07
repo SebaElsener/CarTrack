@@ -1,6 +1,13 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Button, IconButton, TextInput } from "react-native-paper";
 import Areas from "../components/Areas";
 import Averias from "../components/Averias";
@@ -29,6 +36,7 @@ export default function DanoScreen() {
   const [grav, setGrav] = useState("");
   const [obs, setObs] = useState("");
   const [codigo, setCodigo] = useState("");
+  const translateY = useRef(new Animated.Value(0)).current;
 
   // 🔹 errores por campo (solo dropdowns)
   const [errors, setErrors] = useState({
@@ -40,6 +48,28 @@ export default function DanoScreen() {
 
   const screenHeight = Dimensions.get("window").height;
   const keyboardHeight = useKeyboardHeight();
+
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -keyboardHeight * 0.25,
+          duration: 250,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 200,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [keyboardHeight]);
 
   const dropdownMaxHeight =
     keyboardHeight > 0
@@ -58,10 +88,10 @@ export default function DanoScreen() {
     label: p.descripcion,
     value: p.id,
   }));
-  const codigosDropdown = codigos.map((p) => ({
-    label: p.descripcion,
-    value: p.id,
-  }));
+  // const codigosDropdown = codigos.map((p) => ({
+  //   label: p.descripcion,
+  //   value: p.id,
+  // }));
 
   // 🔹 validar campos obligatorios (solo dropdowns)
   const validateFields = () => {
@@ -153,7 +183,16 @@ export default function DanoScreen() {
         />
       </View>
 
-      <View style={styles.textInputContainer}>
+      <Animated.View
+        style={[
+          styles.textInputContainer,
+          {
+            borderRadius: 6,
+            overflow: "hidden",
+            transform: [{ translateY }],
+          },
+        ]}
+      >
         <TextInput
           value={obs}
           mode="outlined"
@@ -162,11 +201,14 @@ export default function DanoScreen() {
           style={{ textAlign: "center" }}
           outlineColor="#afafafbc" // 🔹 no validar
           activeOutlineColor="#afafafbc"
-          contentStyle={{ backgroundColor: "#eaeaea87", fontWeight: "medium" }}
+          contentStyle={{
+            backgroundColor: keyboardHeight === 0 ? "#eaeaea87" : "#eaeaeaff",
+            fontWeight: "medium",
+          }}
           placeholder="Observación"
           onChangeText={(text) => setObs(text)}
         />
-      </View>
+      </Animated.View>
 
       {/* <View>
         <Codigos
@@ -229,7 +271,9 @@ const styles = StyleSheet.create({
   },
   textInputContainer: {
     marginBottom: 10,
-    boxShadow: "0px 2px 3px 0px #1a1a1a29",
+    borderWidth: 0.5,
+    borderColor: "#9e9e9efe",
+    //boxShadow: "0px 2px 3px 0px #1a1a1a29",
   },
   takePhotoContainer: {
     marginTop: -10,
