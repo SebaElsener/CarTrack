@@ -10,27 +10,36 @@ import {
 } from "react-native-paper";
 
 export default function Averias({
-  averias,
+  averias = [], // 🔹 valor por defecto para evitar undefined
   onSelect,
   selectedValue,
   error = false,
 }) {
+  // Orden alfabético por label
+  const sortedAverias = [...averias].sort((a, b) =>
+    a.label.localeCompare(b.label)
+  );
+
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(
-    averias.find((a) => a.value === selectedValue) || null
+    Array.isArray(sortedAverias)
+      ? sortedAverias.find((a) => a.value === selectedValue) || null
+      : null
   );
 
   useEffect(() => {
-    if (selectedValue) {
-      const item = averias.find((a) => a.value === selectedValue);
+    if (selectedValue && Array.isArray(sortedAverias)) {
+      const item = sortedAverias.find((a) => a.value === selectedValue);
       if (item) setSelected(item);
     }
-  }, [selectedValue, averias]);
+  }, [selectedValue, sortedAverias]);
 
-  const filtered = averias.filter((a) =>
-    a.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = Array.isArray(sortedAverias)
+    ? sortedAverias.filter((a) =>
+        a.label.toLowerCase().startsWith(search.toLowerCase())
+      )
+    : [];
 
   const handleSelect = (item) => {
     setSelected(item);
@@ -55,7 +64,7 @@ export default function Averias({
             padding: 2,
             color: selected ? "#48b839ff" : "",
           }}
-          buttonColor={error ? "#ff6b6b55" : "#eaeaea87"} // 🔹 fondo rojo si error          mode="outlined"
+          buttonColor={error ? "#ff6b6b55" : "#eaeaea87"}
           onPress={() => setVisible(true)}
           style={{ borderWidth: 1, borderColor: "#afafafbc" }}
           icon={selected ? "check-circle" : ""}
@@ -73,7 +82,7 @@ export default function Averias({
             { maxHeight: windowHeight * 0.55 },
           ]}
         >
-          {/* Botón cerrar X */}
+          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Seleccionar avería</Text>
             <IconButton
@@ -83,7 +92,7 @@ export default function Averias({
             />
           </View>
 
-          {/* Buscador */}
+          {/* Search */}
           <Searchbar
             placeholder="Buscar..."
             value={search}
@@ -96,7 +105,7 @@ export default function Averias({
             }}
           />
 
-          {/* Lista o mensaje */}
+          {/* Lista */}
           {filtered.length > 0 ? (
             <FlatList
               data={filtered}

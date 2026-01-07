@@ -97,10 +97,14 @@ export default function DanoScreen() {
       value: p.id,
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
-  const averiasDropdown = averias.map((p) => ({
-    label: p.descripcion,
-    value: p.id,
-  }));
+
+  const averiasDropdown = averias
+    .map((p) => ({
+      label: p.descripcion,
+      value: p.id,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
   const gravedadesDropdown = gravedades.map((p) => ({
     label: p.descripcion,
     value: p.id,
