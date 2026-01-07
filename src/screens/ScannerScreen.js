@@ -75,6 +75,10 @@ export function isValidVIN(vin) {
   return vin[8] === checkChar;
 }
 
+function isValidVINSoft(vin) {
+  return vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
+}
+
 // ---------------------------
 // Animated Button
 // ---------------------------
@@ -148,6 +152,13 @@ export default function ScannerScreen() {
   // ---------------------------
   const translateY = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0.6)).current;
+  const fakeCornerPoints = [
+    /// Coordenada falsas para ingreso manual VIN
+    { x: 220.13072204589844, y: 277.6470642089844 },
+    { x: 220.13072204589844, y: 373.856201171875 },
+    { x: 326.2745056152344, y: 372.2875671386719 },
+    { x: 326.2745056152344, y: 276.601318359375 },
+  ];
 
   useEffect(() => {
     const show = Keyboard.addListener("keyboardDidShow", () => {
@@ -246,14 +257,18 @@ export default function ScannerScreen() {
     }).start();
   };
 
-  const handlePressOut = () => {
+  const handlePressOut = async () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
       friction: 3,
       useNativeDriver: true,
     }).start();
 
-    handleScan(null, "handInput", handInput);
+    await handleScan({
+      cornerPoints: fakeCornerPoints,
+      type: "handInput",
+      data: handInput,
+    });
   };
 
   // ---------------------------
@@ -261,6 +276,7 @@ export default function ScannerScreen() {
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
     if (scanLock.current || errorLock.current) return;
+
     if (transportError) {
       errorLock.current = true;
       Vibration.vibrate(120);
@@ -270,47 +286,63 @@ export default function ScannerScreen() {
       }, 800);
       return;
     }
-    // 🚫 validar clima
+
     if (!weatherCondition) {
       errorLock.current = true;
       setWeatherError("Debe seleccionar la condición climática");
-      Vibration.vibrate(120);
       await playSound("error");
-      setTimeout(() => {
-        errorLock.current = false;
-      }, 800);
+      setTimeout(() => (errorLock.current = false), 800);
       return;
     }
 
-    if (!cornerPoints || scanLock.current) return;
-    if (!data || data.length < 6) return;
+    // 🔹 Validación VIN primero
+    const vin = data?.trim().toUpperCase();
+    if (!vin || vin.length !== 17) {
+      await playSound("error");
+      return;
+    }
 
-    const centerX =
-      cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
-    const centerY =
-      cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
+    // Validar ingreso manual sin dígito verificador
+    if (type === "handInput") {
+      if (!isValidVINSoft(vin)) {
+        await playSound("error");
+        return;
+      }
+    }
+    // Validar ingreso por scanner con dígito verificador
+    if (type !== "handInput") {
+      if (!isValidVIN(vin)) {
+        await playSound("error");
+        return;
+      }
+    }
 
-    const inside =
-      centerX > LEFT &&
-      centerX < LEFT + SCAN_SIZE &&
-      centerY > TOP &&
-      centerY < TOP + SCAN_SIZE;
-    setAligned(inside);
-    if (!inside) return;
+    // 🔹 Validación geométrica SOLO para cámara
+    if (type !== "handInput") {
+      if (!cornerPoints) return;
+
+      const centerX =
+        cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
+      const centerY =
+        cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
+
+      const inside =
+        centerX > LEFT &&
+        centerX < LEFT + SCAN_SIZE &&
+        centerY > TOP &&
+        centerY < TOP + SCAN_SIZE;
+
+      setAligned(inside);
+      if (!inside) return;
+    }
 
     scanLock.current = true;
-    const vin = data.trim().toUpperCase();
-
-    if (!isValidVIN(vin)) {
-      await playSound("error");
-      scanLock.current = false;
-      return;
-    }
 
     setScanned(true);
     setLastResult(vin);
     Vibration.vibrate(120);
-    const alreadyScanned = await getScans({ vin: vin });
+
+    const alreadyScanned = await getScans({ vin });
     if (!alreadyScanned) {
       await playSound("success");
       await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
@@ -326,6 +358,76 @@ export default function ScannerScreen() {
       router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
     }
   };
+
+  // const handleScan = async ({ cornerPoints, type, data }) => {
+  //   console.log("points desde handlescan", cornerPoints);
+  //   console.log("data y type desde handlescan", data, type);
+  //   if (scanLock.current || errorLock.current) return;
+  //   if (transportError) {
+  //     errorLock.current = true;
+  //     Vibration.vibrate(120);
+  //     await playSound("error");
+  //     setTimeout(() => {
+  //       errorLock.current = false;
+  //     }, 800);
+  //     return;
+  //   }
+  //   // 🚫 validar clima
+  //   if (!weatherCondition) {
+  //     errorLock.current = true;
+  //     setWeatherError("Debe seleccionar la condición climática");
+  //     Vibration.vibrate(120);
+  //     await playSound("error");
+  //     setTimeout(() => {
+  //       errorLock.current = false;
+  //     }, 800);
+  //     return;
+  //   }
+
+  //   if (!cornerPoints || scanLock.current) return;
+  //   if (!data || data.length < 6) return;
+
+  //   const centerX =
+  //     cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
+  //   const centerY =
+  //     cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
+
+  //   const inside =
+  //     centerX > LEFT &&
+  //     centerX < LEFT + SCAN_SIZE &&
+  //     centerY > TOP &&
+  //     centerY < TOP + SCAN_SIZE;
+  //   setAligned(inside);
+  //   if (!inside) return;
+
+  //   scanLock.current = true;
+  //   const vin = data.trim().toUpperCase();
+
+  //   if (!isValidVIN(vin)) {
+  //     await playSound("error");
+  //     scanLock.current = false;
+  //     return;
+  //   }
+
+  //   setScanned(true);
+  //   setLastResult(vin);
+  //   Vibration.vibrate(120);
+  //   const alreadyScanned = await getScans({ vin: vin });
+  //   if (!alreadyScanned) {
+  //     await playSound("success");
+  //     await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
+  //     requestSync();
+  //     setTimeout(() => {
+  //       scanLock.current = false;
+  //       setAligned(false);
+  //       refreshTotalScans();
+  //       incrementTransportScan();
+  //     }, 1200);
+  //   } else {
+  //     await playSound("error");
+  //     router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
+  //   }
+  // };
 
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
   if (hasPermission === false)
@@ -488,6 +590,7 @@ export default function ScannerScreen() {
               setScanned(false);
               scanLock.current = false;
               setAligned(false);
+              setHandInput("");
             }}
             color="rgba(115, 175, 98, 1)"
             textColor="rgba(41, 30, 30, 0.89)"
@@ -517,6 +620,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
+    zIndex: 999999,
   },
   resultText: {
     marginBottom: 30,
@@ -564,7 +668,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(249, 249, 249, 0.9)",
     borderWidth: 0.4,
     height: 65,
-    backgroundColor: "#aedbdcd2",
+    backgroundColor: "#aedbdcf2",
     //paddingLeft: 10,
     borderRadius: 20,
     zIndex: 999,
