@@ -68,7 +68,7 @@ export default function DanoScreen() {
     if (keyboardHeight > 0) {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: -keyboardHeight * 0.25,
+          toValue: -keyboardHeight * 0.5,
           duration: 250,
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,

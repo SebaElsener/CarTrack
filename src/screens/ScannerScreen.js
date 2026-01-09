@@ -164,7 +164,7 @@ export default function ScannerScreen() {
     const show = Keyboard.addListener("keyboardDidShow", () => {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: -200, // sube el input
+          toValue: -270, // sube el input
           duration: 550,
           useNativeDriver: true, // ✅ ahora sí
         }),
