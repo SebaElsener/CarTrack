@@ -20,7 +20,7 @@ export default function GlassAnimatedCard({
   title,
   description,
   icon,
-  backgroundColor = "rgba(255,255,255,0.18)",
+  backgroundColor = "rgba(118, 100, 100, 0.18)",
   href,
   onPress,
   textColor = "#161616c1",
@@ -38,50 +38,57 @@ export default function GlassAnimatedCard({
     setLocked(true);
 
     Animated.parallel([
+      // 🔽 Scale hacia adentro
       Animated.sequence([
         Animated.timing(scaleAnim, {
-          toValue: 1.04,
-          duration: 160,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.sequence([
-        Animated.timing(liftAnim, {
-          toValue: -8,
-          duration: 160,
-          useNativeDriver: true,
-        }),
-        Animated.timing(liftAnim, {
-          toValue: 0,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1,
+          toValue: 0.96,
           duration: 120,
           useNativeDriver: true,
         }),
-        Animated.timing(glowAnim, {
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // ⬇️ Baja la card
+      Animated.sequence([
+        Animated.timing(liftAnim, {
+          toValue: 6,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(liftAnim, {
           toValue: 0,
           duration: 180,
           useNativeDriver: true,
         }),
       ]),
+
+      // ✨ Glow más sutil
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 0.6,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 160,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // 🌟 Shine inverso
       Animated.sequence([
         Animated.timing(shineAnim, {
-          toValue: 1,
-          duration: 220,
+          toValue: -1,
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(shineAnim, {
-          toValue: -1,
+          toValue: 1,
           duration: 0,
           useNativeDriver: true,
         }),
@@ -126,7 +133,7 @@ export default function GlassAnimatedCard({
                     inputRange: [0, 1],
                     outputRange: [0, 0.28],
                   }),
-                  borderRadius: 22,
+                  //borderRadius: 22,
                 },
               ]}
             />
@@ -164,14 +171,14 @@ const styles = StyleSheet.create({
   // 🟣 SOLO sombra acá
   shadowWrapper: {
     width: "100%",
-    borderRadius: 22,
+    //borderRadius: 22,
 
     // iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.18,
     shadowRadius: 20,
-    boxShadow: "1px 1px 5px 1px #4b4b4b39",
+    //boxShadow: "0px 0px 10px 1px #928f8fb7",
 
     // Android
     //elevation: 16,
@@ -179,7 +186,7 @@ const styles = StyleSheet.create({
 
   // 🟢 Blur sin sombra
   glass: {
-    borderRadius: 22,
+    //borderRadius: 22,
     overflow: "hidden",
   },
 
@@ -188,7 +195,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 22,
+    //borderRadius: 22,
     overflow: "hidden",
   },
 
