@@ -6,6 +6,10 @@ import ScanItem from "../components/ScanItem";
 import { useScans } from "../context/ScanContext";
 import { deleteScan, getScans } from "../database/Database";
 
+const areas = require("../utils/areas.json");
+const averias = require("../utils/averias.json");
+const gravedades = require("../utils/gravedades.json");
+
 export default function HistoryScreen() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
@@ -18,11 +22,27 @@ export default function HistoryScreen() {
   const pendingVinRef = useRef(null);
   const { vin } = useLocalSearchParams();
 
+  const indexById = (arr) =>
+    Object.fromEntries(arr.map((i) => [i.id, i.descripcion]));
+
+  const areasMap = indexById(areas);
+  const averiasMap = indexById(averias);
+  const gravedadesMap = indexById(gravedades);
+
   // Carga inicial
   const loadData = async () => {
     const scans = await getScans();
-    setData(scans);
-    setFiltered(scans);
+    const transformScans = scans.map((scan) => ({
+      ...scan,
+      damages: scan.damages.map((d) => ({
+        ...d,
+        area_desc: areasMap[d.area] ?? null,
+        averia_desc: averiasMap[d.averia] ?? null,
+        grav_desc: gravedadesMap[d.grav] ?? null,
+      })),
+    }));
+    setData(transformScans);
+    setFiltered(transformScans);
   };
 
   useEffect(() => {
@@ -76,8 +96,7 @@ export default function HistoryScreen() {
     return () => clearTimeout(debounceTimeout.current);
   }, [search, data]);
 
-  //////////////// fotos /////////////////
-  /////////////// fotos //////////////////////////////// fotos /////////////////
+  /// fotos /////////////////
   useEffect(() => {
     let mounted = true;
     const loadAllPicts = async () => {
@@ -111,10 +130,7 @@ export default function HistoryScreen() {
     };
   }, [data]);
 
-  /////////////// fotos /////////////////
-  /////////////// fotos /////////////////
-  /////////////// fotos /////////////////
-  /////////////// fotos /////////////////
+  /// fotos /////////////////
 
   // Delete scan
   const handleDeleteScan = async (vin) => {
@@ -127,7 +143,7 @@ export default function HistoryScreen() {
     decrementTransportScan();
   };
 
-  // Scroll seguro al item activo
+  // Scroll al item activo
   useEffect(() => {
     if (!activeVin) return;
     const index = filtered.findIndex((d) => d.vin === activeVin);

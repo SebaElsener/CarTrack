@@ -181,7 +181,6 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
               'averia', d.averia,
               'grav', d.grav,
               'obs', d.obs,
-              'codigo', d.codigo,
               'date', d.date
             )
           )
@@ -216,8 +215,7 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
         d.area !== null ||
         d.averia !== null ||
         d.grav !== null ||
-        d.obs !== null ||
-        d.codigo !== null
+        d.obs !== null
     );
 
     return {

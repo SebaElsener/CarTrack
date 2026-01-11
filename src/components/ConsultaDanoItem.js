@@ -189,20 +189,37 @@ function ConsultaDanoItem({ item, onDeleteDamage, onUndoDelete }) {
               },
             ]}
           >
-            <Text style={styles.items}>{`Fecha: ${new Intl.DateTimeFormat(
-              "es-AR",
-              {
-                dateStyle: "short",
-                timeStyle: "short",
-                timeZone: "America/Argentina/Buenos_Aires",
-              }
-            ).format(new Date(topDamage.date))}`}</Text>
-            <Text style={styles.items}>Area: {topDamage.area}</Text>
-            <Text style={styles.items}>Avería: {topDamage.averia}</Text>
-            <Text style={styles.items}>Gravedad: {topDamage.grav}</Text>
-            <Text style={styles.items}>Obs: {topDamage.obs}</Text>
-            <Text style={styles.items}>Código: {topDamage.codigo}</Text>
-
+            <Text style={styles.items}>
+              Fecha:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                {`${new Intl.DateTimeFormat("es-AR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
+                }).format(new Date(topDamage.date))}`}
+              </Text>
+            </Text>
+            <Text style={styles.items}>
+              Area:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({topDamage.area}) {topDamage.area_desc}
+              </Text>
+            </Text>
+            <Text style={styles.items}>
+              Avería:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({topDamage.averia}) {topDamage.averia_desc}
+              </Text>
+            </Text>
+            <Text style={styles.items}>
+              Gravedad:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({topDamage.grav}) {topDamage.grav_desc}
+              </Text>
+            </Text>
+            <Text style={styles.items}>
+              Obs: <Text style={{ fontWeight: 600 }}>{topDamage.obs}</Text>
+            </Text>
             <Button
               mode="contained-tonal"
               onPress={confirmDelete}

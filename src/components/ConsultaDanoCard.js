@@ -129,13 +129,36 @@ export default function ConsultaDanoItem({ item }) {
           ]}
         >
           <BlurView intensity={35} tint="light" style={styles.glass}>
-            <Text style={styles.text}>Area: {current.area || "-"}</Text>
-            <Text style={styles.text}>Avería: {current.averia}</Text>
-            <Text style={styles.text}>Gravedad: {current.grav}</Text>
-            <Text style={styles.text}>Código: {current.codigo}</Text>
-            <Text style={styles.text}>Obs: {current.obs}</Text>
-            <Text style={styles.date}>
-              {new Date(current.date).toLocaleString("es-AR")}
+            <Text style={styles.text}>
+              Area:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({current.area}) {current.area_desc}
+              </Text>
+            </Text>
+            <Text style={styles.text}>
+              Avería:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({current.averia}) {current.averia_desc}
+              </Text>
+            </Text>
+            <Text style={styles.text}>
+              Gravedad:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                ({current.grav}) {current.grav_desc}
+              </Text>
+            </Text>
+            <Text style={styles.text}>
+              Obs: <Text style={{ fontWeight: 600 }}> {current.obs}</Text>
+            </Text>
+            <Text style={styles.text}>
+              Fecha:{" "}
+              <Text style={{ fontWeight: 600 }}>
+                {`${new Intl.DateTimeFormat("es-AR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
+                }).format(new Date(current.date))}`}
+              </Text>
             </Text>
           </BlurView>
         </Animated.View>
@@ -205,13 +228,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 14,
-    backgroundColor: "#00000050",
+    backgroundColor: "#12121250",
     color: "#fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    fontWeight: "700",
+    fontWeight: "600",
     zIndex: 10,
+    fontSize: 13,
   },
   card: {
     width: "100%",
@@ -227,14 +251,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
     marginBottom: 6,
     color: "#222",
-  },
-  date: {
-    marginTop: 10,
-    fontSize: 13,
-    opacity: 0.6,
   },
   counter: {
     marginTop: 10,
