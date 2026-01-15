@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     top: 8,
     right: 14,
     backgroundColor: "#12121250",
-    color: "#fff",
+    color: "#5f5353",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   pictsContainer: {
-    marginTop: 20,
+    //marginTop: 10,
     height: 150,
   },
   image: {

@@ -1,16 +1,11 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Button,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Button } from "react-native-paper";
 import { useToast } from "../components/ToastProvider";
 import { useAuth } from "../context/AuthContext";
 import { savePendingImage, savePict } from "../database/Database";
@@ -93,56 +88,147 @@ export default function CameraScreen() {
   // Tomar foto y guardar con metadatos
   // -------------------------------------------------------
   const tomarYGuardar = async () => {
-    const foto = await cameraRef.takePictureAsync();
+    try {
+      const foto = await cameraRef.takePictureAsync();
 
-    const year = new Date().getFullYear();
-    const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
-    const carpeta = `${carpetaBase}${year}/${month}/${vin}/`;
-    await crearCarpetaSiNoExiste(carpeta);
+      const year = new Date().getFullYear();
+      const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
+      const carpeta = `${carpetaBase}${year}/${month}/${vin}/`;
+      await crearCarpetaSiNoExiste(carpeta);
 
-    // Hacer único a cada archivo de foto agregando hhmmss
-    const fechaActual = new Date();
-    const hh = fechaActual.getHours().toString();
-    const mm = fechaActual.getMinutes().toString();
-    const ss = fechaActual.getSeconds().toString();
-    let nombre = `${vin}_${hh}${mm}${ss}.jpg`;
-    let destino = carpeta + nombre;
+      // Hacer único a cada archivo de foto agregando hhmmss
+      const fechaActual = new Date();
+      const hh = fechaActual.getHours().toString();
+      const mm = fechaActual.getMinutes().toString();
+      const ss = fechaActual.getSeconds().toString();
+      let nombre = `${vin}_${hh}${mm}${ss}.jpg`;
+      let destino = carpeta + nombre;
 
-    // guardar la foto
-    await FileSystem.copyAsync({ from: foto.uri, to: destino });
+      // guardar la foto
+      await FileSystem.copyAsync({ from: foto.uri, to: destino });
 
-    // guardar metadatos
-    const metadatos = {
-      fecha: new Date().toISOString(),
-      codigo: null, // se puede actualizar luego
-      carpeta,
-    };
+      // guardar metadatos
+      const metadatos = {
+        fecha: new Date().toISOString(),
+        codigo: null, // se puede actualizar luego
+        carpeta,
+      };
 
-    await FileSystem.writeAsStringAsync(
-      destino.replace(".jpg", ".json"),
-      JSON.stringify(metadatos)
-    );
+      await FileSystem.writeAsStringAsync(
+        destino.replace(".jpg", ".json"),
+        JSON.stringify(metadatos)
+      );
 
-    ////////////////////////////////////
+      ////////////////////////////////////
 
-    const imageUri = await compressAndResize(foto.uri);
-    const base64 = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+      const imageUri = await compressAndResize(foto.uri);
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
-    // 2. Convertir Base64 → Uint8Array (lo que Supabase acepta)
-    const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      // 2. Convertir Base64 → Uint8Array (lo que Supabase acepta)
+      const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
-    // Guardar en DB local
-    const pictId = await savePict(vin, JSON.stringify(metadatos), user?.email);
+      // Guardar en DB local
+      const pictId = await savePict(
+        vin,
+        JSON.stringify(metadatos),
+        user?.email
+      );
 
-    //  Guardar name + binary en tabla local para subir luego a supabase bucket
-    await savePendingImage(pictId, nombre, binary); /// lastInsertRowId devuelve el id único AUTOINCREMENT que asigna sqlite
+      //  Guardar name + binary en tabla local para subir luego a supabase bucket
+      await savePendingImage(pictId, nombre, binary); /// lastInsertRowId devuelve el id único AUTOINCREMENT que asigna sqlite
 
-    requestSync();
+      requestSync();
 
-    showToast("Foto guardada ✔", "success");
-    await listarFotos();
+      showToast("Foto guardada ✔", "success");
+      await listarFotos();
+    } catch (error) {
+      console.log("Error al tomar/guardar foto:", error);
+      showToast("Error al tomar/guardar foto", error);
+    }
+  };
+
+  const loadLocalPict = async () => {
+    try {
+      // Permiso galería
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        showToast("Permiso de galería denegado", "error");
+        return;
+      }
+
+      // Abrir selector
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        allowsEditing: false,
+      });
+
+      if (result.canceled) return;
+
+      const foto = result.assets[0];
+
+      const year = new Date().getFullYear();
+      const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
+      const carpeta = `${carpetaBase}${year}/${month}/${vin}/`;
+      await crearCarpetaSiNoExiste(carpeta);
+
+      // nombre único
+      const fechaActual = new Date();
+      const hh = fechaActual.getHours().toString().padStart(2, "0");
+      const mm = fechaActual.getMinutes().toString().padStart(2, "0");
+      const ss = fechaActual.getSeconds().toString().padStart(2, "0");
+
+      const nombre = `${vin}_${hh}${mm}${ss}.jpg`;
+      const destino = carpeta + nombre;
+
+      // copiar imagen seleccionada
+      await FileSystem.copyAsync({
+        from: foto.uri,
+        to: destino,
+      });
+
+      // metadatos
+      const metadatos = {
+        fecha: new Date().toISOString(),
+        codigo: null,
+        carpeta,
+        origen: "galeria",
+      };
+
+      await FileSystem.writeAsStringAsync(
+        destino.replace(".jpg", ".json"),
+        JSON.stringify(metadatos)
+      );
+
+      // ---- compresión + base64 ----
+      const imageUri = await compressAndResize(destino);
+
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+      // DB local
+      const pictId = await savePict(
+        vin,
+        JSON.stringify(metadatos),
+        user?.email
+      );
+
+      await savePendingImage(pictId, nombre, binary);
+
+      requestSync();
+
+      showToast("Foto cargada desde galería ✔", "success");
+      await listarFotos();
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar la imagen", "error");
+    }
   };
 
   // -------------------------------------------------------
@@ -166,12 +252,31 @@ export default function CameraScreen() {
         <CameraView ref={setCameraRef} style={{ flex: 1 }} />
       </View>
 
-      <Button
-        title="📸 Tomar foto"
-        buttonStyle={{ backgroundColor: "rgba(74, 119, 202, 0.93)" }}
-        titleStyle={{ fontSize: 18 }}
-        onPress={() => tomarYGuardar()}
-      />
+      <View style={{ flexDirection: "row" }}>
+        <Button
+          icon="upload"
+          mode="contained"
+          style={{
+            width: "40%",
+          }}
+          titleStyle={{ fontSize: 18 }}
+          buttonColor="green"
+          onPress={() => loadLocalPict()}
+        >
+          Cargar foto...
+        </Button>
+        <Button
+          icon="camera"
+          mode="contained"
+          style={{
+            width: "60%",
+          }}
+          titleStyle={{ fontSize: 18 }}
+          onPress={() => tomarYGuardar()}
+        >
+          Tomar foto
+        </Button>
+      </View>
 
       <Text style={{ fontSize: 20, fontWeight: "bold", margin: 15 }}>
         {vin}
