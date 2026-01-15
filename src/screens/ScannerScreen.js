@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
-  Keyboard,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
@@ -18,6 +18,7 @@ import {
   Button as PaperButton,
   TextInput,
 } from "react-native-paper";
+import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import { useAuth } from "../context/AuthContext";
 import { useScans } from "../context/ScanContext";
@@ -63,6 +64,19 @@ const VIN_MAP = {
   9: 9,
 };
 const VIN_WEIGHTS = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+
+// --- VIN helpers ---
+const normalizeVinChar = (char, current) => {
+  const c = char.toUpperCase();
+
+  // ❌ Bloquear I O Q
+  if (c === "I" || c === "O" || c === "Q") return current;
+
+  // 🔢 Máximo 17
+  if (current.length >= 17) return current;
+
+  return current + c;
+};
 
 export function isValidVIN(vin) {
   if (!vin || vin.length !== 17) return false;
@@ -146,12 +160,13 @@ export default function ScannerScreen() {
   const { user } = useAuth();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const keyboardTranslateY = useRef(new Animated.Value(370)).current;
+  const inputTranslateY = useRef(new Animated.Value(0)).current;
 
   // ---------------------------
   // Animación imput manual VIN
   // ---------------------------
-  const translateY = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0.6)).current;
   const fakeCornerPoints = [
     /// Coordenada falsas para ingreso manual VIN
     { x: 220.13072204589844, y: 277.6470642089844 },
@@ -159,43 +174,6 @@ export default function ScannerScreen() {
     { x: 326.2745056152344, y: 372.2875671386719 },
     { x: 326.2745056152344, y: 276.601318359375 },
   ];
-
-  useEffect(() => {
-    const show = Keyboard.addListener("keyboardDidShow", () => {
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: -270, // sube el input
-          duration: 550,
-          useNativeDriver: true, // ✅ ahora sí
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-
-    const hide = Keyboard.addListener("keyboardDidHide", () => {
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 550,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 0.8,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   // ---------------------------
   // Detectar orientación
@@ -249,6 +227,40 @@ export default function ScannerScreen() {
     ).start();
   }, [SCAN_SIZE]);
 
+  useEffect(() => {
+    if (showKeyboard) {
+      Animated.parallel([
+        Animated.timing(keyboardTranslateY, {
+          toValue: -60,
+          duration: 280,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(inputTranslateY, {
+          toValue: -160, // ⬆️ sube el input
+          duration: 280,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(keyboardTranslateY, {
+          toValue: 300,
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(inputTranslateY, {
+          toValue: 0,
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showKeyboard]);
+
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.85,
@@ -263,6 +275,8 @@ export default function ScannerScreen() {
       friction: 3,
       useNativeDriver: true,
     }).start();
+
+    setShowKeyboard(false); // 👈 OCULTA TECLADO
 
     await handleScan({
       cornerPoints: fakeCornerPoints,
@@ -344,8 +358,6 @@ export default function ScannerScreen() {
 
     const alreadyScanned = await getScans({ vin });
     if (!alreadyScanned) {
-      Keyboard.dismiss();
-
       await playSound("success");
       await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
       requestSync();
@@ -360,76 +372,6 @@ export default function ScannerScreen() {
       router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
     }
   };
-
-  // const handleScan = async ({ cornerPoints, type, data }) => {
-  //   console.log("points desde handlescan", cornerPoints);
-  //   console.log("data y type desde handlescan", data, type);
-  //   if (scanLock.current || errorLock.current) return;
-  //   if (transportError) {
-  //     errorLock.current = true;
-  //     Vibration.vibrate(120);
-  //     await playSound("error");
-  //     setTimeout(() => {
-  //       errorLock.current = false;
-  //     }, 800);
-  //     return;
-  //   }
-  //   // 🚫 validar clima
-  //   if (!weatherCondition) {
-  //     errorLock.current = true;
-  //     setWeatherError("Debe seleccionar la condición climática");
-  //     Vibration.vibrate(120);
-  //     await playSound("error");
-  //     setTimeout(() => {
-  //       errorLock.current = false;
-  //     }, 800);
-  //     return;
-  //   }
-
-  //   if (!cornerPoints || scanLock.current) return;
-  //   if (!data || data.length < 6) return;
-
-  //   const centerX =
-  //     cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
-  //   const centerY =
-  //     cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
-
-  //   const inside =
-  //     centerX > LEFT &&
-  //     centerX < LEFT + SCAN_SIZE &&
-  //     centerY > TOP &&
-  //     centerY < TOP + SCAN_SIZE;
-  //   setAligned(inside);
-  //   if (!inside) return;
-
-  //   scanLock.current = true;
-  //   const vin = data.trim().toUpperCase();
-
-  //   if (!isValidVIN(vin)) {
-  //     await playSound("error");
-  //     scanLock.current = false;
-  //     return;
-  //   }
-
-  //   setScanned(true);
-  //   setLastResult(vin);
-  //   Vibration.vibrate(120);
-  //   const alreadyScanned = await getScans({ vin: vin });
-  //   if (!alreadyScanned) {
-  //     await playSound("success");
-  //     await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
-  //     requestSync();
-  //     setTimeout(() => {
-  //       scanLock.current = false;
-  //       setAligned(false);
-  //       refreshTotalScans();
-  //       incrementTransportScan();
-  //     }, 1200);
-  //   } else {
-  //     await playSound("error");
-  //     router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
-  //   }
-  // };
 
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
   if (hasPermission === false)
@@ -460,40 +402,50 @@ export default function ScannerScreen() {
         style={[
           styles.handInputVINContainer,
           {
-            transform: [{ translateY }],
-            opacity: opacityAnim,
+            transform: [{ translateY: inputTranslateY }],
           },
         ]}
       >
-        <View>
-          <TextInput
-            label="INGRESO MANUAL DE VIN"
-            mode="outlined"
-            textColor="#1f1f1fff"
-            theme={{
-              colors: {
-                onSurfaceVariant: "#000000ff", // Cambia el color del label inactivo/placeholder
-                primary: "#141414ff", // Cambia el color del label activo y el borde activo
-              },
-            }}
-            outlineStyle={{ borderWidth: 0 }}
-            value={handInput}
-            keyboardType="default"
-            autoCorrect={false}
-            contextMenuHidden={true}
-            maxLength={17}
-            autoCapitalize="characters"
-            style={styles.handInputVIN}
-            onChangeText={(t) =>
-              setHandInput(t.replace(/[^A-HJ-NPR-Z0-9]/gi, ""))
+        <Pressable
+          //hitSlop={30}
+          onPressIn={() => {
+            if (!showKeyboard) {
+              setShowKeyboard(true);
             }
-            right={
-              handInput.length === 17 && (
-                <TextInput.Icon icon="check-circle" color="#2ecc71" />
-              )
-            }
-          />
-        </View>
+          }}
+          style={styles.textInputVIN}
+        >
+          <View pointerEvents="none">
+            <TextInput
+              label="INGRESO MANUAL DE VIN"
+              mode="outlined"
+              textColor="#1f1f1fff"
+              showSoftInputOnFocus={false} // ⛔️ teclado sistema
+              theme={{
+                colors: {
+                  onSurfaceVariant: "#000000ff", // Cambia el color del label inactivo/placeholder
+                  primary: "#141414ff", // Cambia el color del label activo y el borde activo
+                },
+              }}
+              outlineStyle={{ borderWidth: 0 }}
+              value={handInput}
+              //keyboardType="default"
+              autoCorrect={false}
+              contextMenuHidden={true}
+              maxLength={17}
+              autoCapitalize="characters"
+              style={styles.handInputVIN}
+              onChangeText={(t) =>
+                setHandInput(t.replace(/[^A-HJ-NPR-Z0-9]/gi, ""))
+              }
+              right={
+                handInput.length === 17 && (
+                  <TextInput.Icon icon="check-circle" color="#2ecc71" />
+                )
+              }
+            />
+          </View>
+        </Pressable>
 
         <Pressable
           onPressIn={handlePressIn}
@@ -517,6 +469,25 @@ export default function ScannerScreen() {
       </Animated.View>
 
       {/* ////////////////////////////////////////////////////// */}
+
+      {showKeyboard && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            transform: [{ translateY: keyboardTranslateY }],
+            zIndex: 1000,
+          }}
+        >
+          <CustomKeyboard
+            onKeyPress={(char) =>
+              setHandInput((v) => normalizeVinChar(char, v))
+            }
+            onDelete={() => setHandInput((v) => v.slice(0, -1))}
+          />
+        </Animated.View>
+      )}
 
       {/* Overlay */}
       <View style={styles.overlay}>
@@ -598,6 +569,7 @@ export default function ScannerScreen() {
               scanLock.current = false;
               setAligned(false);
               setHandInput("");
+              setShowKeyboard(false);
             }}
             color="rgba(115, 175, 98, 1)"
             textColor="rgba(41, 30, 30, 0.89)"
@@ -642,7 +614,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     marginBottom: 16,
   },
-  overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    pointerEvents: "none",
+  },
   mask: { backgroundColor: "rgba(0,0,0,0.6)" },
   centerRow: { flexDirection: "row" },
   scanArea: { width: 0, height: 0 },
@@ -712,5 +688,11 @@ const styles = StyleSheet.create({
   handInputBtn: {
     justifyContent: "center",
     //color: "gray",
+  },
+  textInputVIN: {
+    // width: 270,
+    // height: 65,
+    // justifyContent: "center",
+    //backgroundColor: "yellow",
   },
 });
