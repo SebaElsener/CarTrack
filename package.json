@@ -1,7 +1,7 @@
 {
   "name": "cartrack",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "CarTrack v.09-150126.apk",
   "scripts": {
     "start": "expo start",
     "resetcache": "expo start --clear",

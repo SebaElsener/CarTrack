@@ -16,7 +16,7 @@ import playSound from "../components/plySound";
 ///  Area de escaneo
 const { width, height } = Dimensions.get("window");
 const SCAN_SIZE = width * 0.7;
-const TOP = (height - SCAN_SIZE) / 2;
+const TOP = (height - SCAN_SIZE) / 2 - 100;
 const LEFT = (width - SCAN_SIZE) / 2;
 
 const VIN_MAP = {
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   centerRow: { flexDirection: "row" },
   scanArea: { width: SCAN_SIZE, height: SCAN_SIZE, position: "relative" },
   scanLine: { height: 2, width: "100%", backgroundColor: "#00ff88" },
-  helperText: { marginTop: 24, color: "#fff", fontSize: 16, opacity: 0.9 },
+  helperText: { marginTop: -90, color: "#fff", fontSize: 16, opacity: 0.9 },
   flashButton: {
     position: "absolute",
     top: 50,

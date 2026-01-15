@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Animated,
   FlatList,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -39,6 +40,7 @@ export default function ConsultaDanoScreen() {
   const gravedadesMap = indexById(gravedades);
 
   const search = async (value) => {
+    Keyboard.dismiss();
     if (value.length !== 17) return;
 
     setLoading(true);
@@ -118,11 +120,16 @@ export default function ConsultaDanoScreen() {
         <TextInput
           label="VIN"
           mode="outlined"
+          autoCorrect={false}
+          contextMenuHidden={true}
+          keyboardType="default"
           value={vin}
           maxLength={17}
           autoCapitalize="characters"
           style={styles.input}
-          onChangeText={(t) => setVin(t.toUpperCase())}
+          onChangeText={(t) =>
+            setVin(t.replace(/[^A-HJ-NPR-Z0-9]/gi, "").toUpperCase())
+          }
           right={
             vin.length === 17 && (
               <TextInput.Icon icon="check-circle" color="#2ecc71" />

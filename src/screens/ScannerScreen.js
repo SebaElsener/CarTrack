@@ -344,6 +344,8 @@ export default function ScannerScreen() {
 
     const alreadyScanned = await getScans({ vin });
     if (!alreadyScanned) {
+      Keyboard.dismiss();
+
       await playSound("success");
       await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
       requestSync();
@@ -476,10 +478,15 @@ export default function ScannerScreen() {
             }}
             outlineStyle={{ borderWidth: 0 }}
             value={handInput}
+            keyboardType="default"
+            autoCorrect={false}
+            contextMenuHidden={true}
             maxLength={17}
             autoCapitalize="characters"
             style={styles.handInputVIN}
-            onChangeText={(t) => setHandInput(t.toUpperCase())}
+            onChangeText={(t) =>
+              setHandInput(t.replace(/[^A-HJ-NPR-Z0-9]/gi, ""))
+            }
             right={
               handInput.length === 17 && (
                 <TextInput.Icon icon="check-circle" color="#2ecc71" />
