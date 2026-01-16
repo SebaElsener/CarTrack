@@ -13,11 +13,7 @@ import {
   Vibration,
   View,
 } from "react-native";
-import {
-  IconButton,
-  Button as PaperButton,
-  TextInput,
-} from "react-native-paper";
+import { IconButton, Button as PaperButton } from "react-native-paper";
 import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import { useAuth } from "../context/AuthContext";
@@ -163,6 +159,48 @@ export default function ScannerScreen() {
   const [showKeyboard, setShowKeyboard] = useState(false);
   const keyboardTranslateY = useRef(new Animated.Value(370)).current;
   const inputTranslateY = useRef(new Animated.Value(0)).current;
+
+  const cursorOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(cursorOpacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const labelAnim = useRef(new Animated.Value(0)).current;
+  // 0 = label abajo
+  // 1 = label arriba
+
+  useEffect(() => {
+    const shouldFloat = showKeyboard || handInput.length > 0;
+
+    Animated.timing(labelAnim, {
+      toValue: shouldFloat ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [showKeyboard, handInput]);
+
+  const isVinComplete = handInput.length === 17;
+  const isVinInvalid = handInput.length > 0 && handInput.length < 17;
+
+  const borderColor = isVinComplete
+    ? "#2ecc71" // verde
+    : isVinInvalid
+    ? "#e74c3c" // rojo
+    : "#aaa"; // neutro
 
   // ---------------------------
   // Animación imput manual VIN
@@ -408,41 +446,44 @@ export default function ScannerScreen() {
       >
         <Pressable
           onPressIn={() => {
-            if (!showKeyboard) {
-              setShowKeyboard(true);
-            }
+            if (!showKeyboard) setShowKeyboard(true);
           }}
-          style={styles.textInputVIN}
+          style={styles.fakeInputWrapper}
         >
-          <View pointerEvents="none">
-            <TextInput
-              label="INGRESO MANUAL DE VIN"
-              mode="outlined"
-              textColor="#1f1f1fff"
-              showSoftInputOnFocus={false} // ⛔️ teclado sistema
-              theme={{
-                colors: {
-                  onSurfaceVariant: "#000000ff", // Cambia el color del label inactivo/placeholder
-                  primary: "#141414ff", // Cambia el color del label activo y el borde activo
-                },
-              }}
-              outlineStyle={{ borderWidth: 0 }}
-              value={handInput}
-              //keyboardType="default"
-              autoCorrect={false}
-              contextMenuHidden={true}
-              maxLength={17}
-              autoCapitalize="characters"
-              style={styles.handInputVIN}
-              onChangeText={(t) =>
-                setHandInput(t.replace(/[^A-HJ-NPR-Z0-9]/gi, ""))
-              }
-              right={
-                handInput.length === 17 && (
-                  <TextInput.Icon icon="check-circle" color="#2ecc71" />
-                )
-              }
-            />
+          {/* LABEL FLOTANTE */}
+          <Animated.Text
+            style={[
+              styles.fakeLabel,
+              {
+                transform: [
+                  {
+                    translateY: labelAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [18, -6],
+                    }),
+                  },
+                  {
+                    scale: labelAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 0.85],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            INGRESO MANUAL DE VIN
+          </Animated.Text>
+
+          {/* INPUT */}
+          <View style={[styles.fakeInput, { borderColor }]}>
+            <Text style={styles.vinText}>{handInput}</Text>
+
+            {showKeyboard && handInput.length < 17 && (
+              <Animated.View
+                style={[styles.cursor, { opacity: cursorOpacity }]}
+              />
+            )}
           </View>
         </Pressable>
 
@@ -468,7 +509,21 @@ export default function ScannerScreen() {
       </Animated.View>
 
       {/* ////////////////////////////////////////////////////// */}
-
+      {/* TAP FUERA PARA CERRAR TECLADO */}
+      {showKeyboard && (
+        <TouchableWithoutFeedback onPress={() => setShowKeyboard(false)}>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 900, // 👈 MENOR que el teclado
+            }}
+          />
+        </TouchableWithoutFeedback>
+      )}
       {showKeyboard && (
         <Animated.View
           style={{
@@ -690,8 +745,46 @@ const styles = StyleSheet.create({
   },
   textInputVIN: {
     // width: 270,
-    // height: 65,
+    //height: 55,
     // justifyContent: "center",
     //backgroundColor: "yellow",
+  },
+  fakeInputWrapper: {
+    flexDirection: "row",
+    width: 250,
+    alignContent: "center",
+    paddingTop: 13,
+  },
+  fakeLabel: {
+    position: "absolute",
+    left: 13,
+    top: 3,
+    color: "#555",
+    fontSize: 14,
+    backgroundColor: "transparent", // mismo fondo del container
+    paddingHorizontal: 4,
+    zIndex: 10,
+  },
+  fakeInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 40,
+    borderRadius: 8,
+    //backgroundColor: "#ffffff63",
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    marginLeft: 10,
+    width: "100%",
+  },
+  vinText: {
+    fontSize: 16,
+    letterSpacing: 1,
+    color: "#000",
+  },
+  cursor: {
+    width: 2,
+    height: 24,
+    backgroundColor: "#000",
+    marginLeft: 2,
   },
 });

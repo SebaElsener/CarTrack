@@ -200,37 +200,6 @@ export default function ConsultaDanoScreen() {
       <BlurView intensity={40} tint="light" style={styles.glass}>
         <Text style={styles.title}>Consulta de Daños</Text>
 
-        {/* <Pressable
-          //hitSlop={30}
-          onPressIn={() => {
-            if (!showKeyboard) {
-              setShowKeyboard(true);
-            }
-          }}
-          style={styles.textInputVIN}
-        >
-          <View pointerEvents="none">
-            <TextInput
-              label="VIN"
-              showSoftInputOnFocus={false} // ⛔️ teclado sistema
-              mode="outlined"
-              autoCorrect={false}
-              contextMenuHidden={true}
-              value={vin}
-              maxLength={17}
-              autoCapitalize="characters"
-              style={styles.input}
-              onChangeText={(t) =>
-                setVin(t.replace(/[^A-HJ-NPR-Z0-9]/gi, "").toUpperCase())
-              }
-              right={
-                vin.length === 17 && (
-                  <TextInput.Icon icon="check-circle" color="#2ecc71" />
-                )
-              }
-            />
-          </View>
-        </Pressable> */}
         <Pressable
           onPressIn={() => {
             if (!showKeyboard) setShowKeyboard(true);
@@ -359,7 +328,9 @@ export default function ConsultaDanoScreen() {
           style={{
             position: "absolute",
             bottom: 0,
-            width: "100%",
+            left: 12,
+            //width: "100%",
+            //alignItems: "center",
             transform: [{ translateY: keyboardTranslateY }],
             zIndex: 1000,
           }}
