@@ -407,7 +407,6 @@ export default function ScannerScreen() {
         ]}
       >
         <Pressable
-          //hitSlop={30}
           onPressIn={() => {
             if (!showKeyboard) {
               setShowKeyboard(true);

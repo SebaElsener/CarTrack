@@ -4,22 +4,57 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   FlatList,
   Keyboard,
   Pressable,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { Button, IconButton, TextInput } from "react-native-paper";
+import { Button, IconButton } from "react-native-paper";
 import ConsultaDanoCard from "../components/ConsultaDanoCard";
+import CustomKeyboard from "../components/CustomKeyboard";
 import { fetchDamageInfo } from "../services/CRUD";
 
 const areas = require("../utils/areas.json");
 const averias = require("../utils/averias.json");
 const gravedades = require("../utils/gravedades.json");
 
+// --- VIN helpers ---
+const normalizeVinChar = (char, current) => {
+  const c = char.toUpperCase();
+
+  // ❌ Bloquear I O Q
+  if (c === "I" || c === "O" || c === "Q") return current;
+
+  // 🔢 Máximo 17
+  if (current.length >= 17) return current;
+
+  return current + c;
+};
+
 export default function ConsultaDanoScreen() {
+  const cursorOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(cursorOpacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   const router = useRouter();
   const { vin: vinFromScanner } = useLocalSearchParams();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -28,6 +63,8 @@ export default function ConsultaDanoScreen() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const keyboardTranslateY = useRef(new Animated.Value(370)).current;
 
   const fade = useRef(new Animated.Value(0)).current;
   const translate = useRef(new Animated.Value(20)).current;
@@ -38,6 +75,29 @@ export default function ConsultaDanoScreen() {
   const areasMap = indexById(areas);
   const averiasMap = indexById(averias);
   const gravedadesMap = indexById(gravedades);
+
+  const labelAnim = useRef(new Animated.Value(0)).current;
+  // 0 = label abajo
+  // 1 = label arriba
+
+  useEffect(() => {
+    const shouldFloat = showKeyboard || vin.length > 0;
+
+    Animated.timing(labelAnim, {
+      toValue: shouldFloat ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [showKeyboard, vin]);
+
+  const isVinComplete = vin.length === 17;
+  const isVinInvalid = vin.length > 0 && vin.length < 17;
+
+  const borderColor = isVinComplete
+    ? "#2ecc71" // verde
+    : isVinInvalid
+    ? "#e74c3c" // rojo
+    : "#aaa"; // neutro
 
   const search = async (value) => {
     Keyboard.dismiss();
@@ -68,6 +128,28 @@ export default function ConsultaDanoScreen() {
   };
 
   useEffect(() => {
+    if (showKeyboard) {
+      Animated.parallel([
+        Animated.timing(keyboardTranslateY, {
+          toValue: -70,
+          duration: 280,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(keyboardTranslateY, {
+          toValue: 300,
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showKeyboard]);
+
+  useEffect(() => {
     if (vinFromScanner?.length === 17) {
       setVin(vinFromScanner);
       search(vinFromScanner);
@@ -94,6 +176,7 @@ export default function ConsultaDanoScreen() {
   }, [data]);
 
   const handlePressIn = () => {
+    setShowKeyboard(false);
     Animated.spring(scaleAnim, {
       toValue: 0.85,
       friction: 3,
@@ -117,31 +200,88 @@ export default function ConsultaDanoScreen() {
       <BlurView intensity={40} tint="light" style={styles.glass}>
         <Text style={styles.title}>Consulta de Daños</Text>
 
-        <TextInput
-          label="VIN"
-          mode="outlined"
-          autoCorrect={false}
-          contextMenuHidden={true}
-          keyboardType="default"
-          value={vin}
-          maxLength={17}
-          autoCapitalize="characters"
-          style={styles.input}
-          onChangeText={(t) =>
-            setVin(t.replace(/[^A-HJ-NPR-Z0-9]/gi, "").toUpperCase())
-          }
-          right={
-            vin.length === 17 && (
-              <TextInput.Icon icon="check-circle" color="#2ecc71" />
-            )
-          }
-        />
+        {/* <Pressable
+          //hitSlop={30}
+          onPressIn={() => {
+            if (!showKeyboard) {
+              setShowKeyboard(true);
+            }
+          }}
+          style={styles.textInputVIN}
+        >
+          <View pointerEvents="none">
+            <TextInput
+              label="VIN"
+              showSoftInputOnFocus={false} // ⛔️ teclado sistema
+              mode="outlined"
+              autoCorrect={false}
+              contextMenuHidden={true}
+              value={vin}
+              maxLength={17}
+              autoCapitalize="characters"
+              style={styles.input}
+              onChangeText={(t) =>
+                setVin(t.replace(/[^A-HJ-NPR-Z0-9]/gi, "").toUpperCase())
+              }
+              right={
+                vin.length === 17 && (
+                  <TextInput.Icon icon="check-circle" color="#2ecc71" />
+                )
+              }
+            />
+          </View>
+        </Pressable> */}
+        <Pressable
+          onPressIn={() => {
+            if (!showKeyboard) setShowKeyboard(true);
+          }}
+          style={styles.fakeInputWrapper}
+        >
+          {/* LABEL FLOTANTE */}
+          <Animated.Text
+            style={[
+              styles.fakeLabel,
+              {
+                transform: [
+                  {
+                    translateY: labelAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [18, -6],
+                    }),
+                  },
+                  {
+                    scale: labelAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 0.85],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            INGRESO MANUAL DE VIN
+          </Animated.Text>
+
+          {/* INPUT */}
+          <View style={[styles.fakeInput, { borderColor }]}>
+            <Text style={styles.vinText}>{vin}</Text>
+
+            {showKeyboard && vin.length < 17 && (
+              <Animated.View
+                style={[styles.cursor, { opacity: cursorOpacity }]}
+              />
+            )}
+          </View>
+        </Pressable>
 
         <View style={styles.actions}>
           <Button
             mode="contained"
             icon="magnify"
-            onPress={() => search(vin)}
+            onPress={() => {
+              search(vin);
+              setShowKeyboard(false);
+            }}
             disabled={vin.length !== 17 || loading}
             style={styles.searchBtn}
           >
@@ -199,6 +339,37 @@ export default function ConsultaDanoScreen() {
           </Animated.View>
         )}
       </View>
+      {/* TAP FUERA PARA CERRAR TECLADO */}
+      {showKeyboard && (
+        <TouchableWithoutFeedback onPress={() => setShowKeyboard(false)}>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 900, // 👈 MENOR que el teclado
+            }}
+          />
+        </TouchableWithoutFeedback>
+      )}
+      {showKeyboard && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            transform: [{ translateY: keyboardTranslateY }],
+            zIndex: 1000,
+          }}
+        >
+          <CustomKeyboard
+            onKeyPress={(char) => setVin((v) => normalizeVinChar(char, v))}
+            onDelete={() => setVin((v) => v.slice(0, -1))}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -257,9 +428,46 @@ const styles = StyleSheet.create({
   },
 
   empty: {
-    marginTop: 40,
+    marginTop: 10,
+    color: "#d12727",
+    fontWeight: "600",
     textAlign: "center",
     fontSize: 18,
     opacity: 0.6,
+  },
+  fakeInputWrapper: {
+    paddingTop: 18,
+  },
+  fakeLabel: {
+    position: "absolute",
+    left: 5,
+    top: 5,
+    color: "#555",
+    fontSize: 14,
+    backgroundColor: "transparent", // mismo fondo del container
+    paddingHorizontal: 4,
+    zIndex: 10,
+  },
+  fakeInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 50,
+    borderRadius: 8,
+    //backgroundColor: "#ffffff63",
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    //marginLeft: -12,
+    //width: "100%",
+  },
+  vinText: {
+    fontSize: 18,
+    letterSpacing: 1.5,
+    color: "#000",
+  },
+  cursor: {
+    width: 2,
+    height: 24,
+    backgroundColor: "#000",
+    marginLeft: 2,
   },
 });
