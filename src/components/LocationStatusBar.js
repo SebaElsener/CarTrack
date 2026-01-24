@@ -6,7 +6,7 @@ export default function LocationStatusBar() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>PLAYA</Text>
+      <Text style={styles.text}>LUGAR</Text>
       <Text style={styles.text}>{locacion}</Text>
     </View>
   );

@@ -3,20 +3,26 @@ import { Text, View } from "react-native-paper";
 const LOCACIONES = [
   {
     nombre: "TZ",
-    latitude: -34.100818,
-    longitude: -59.015518,
+    latitude: -34.074502,
+    longitude: -59.042167,
     radio: 100,
   },
   {
     nombre: "El Molino",
-    latitude: -34.100818,
-    longitude: -59.015518,
+    latitude: -34.106947,
+    longitude: -59.097724,
     radio: 100,
   },
   {
     nombre: "Mi casa",
     latitude: -34.100822,
     longitude: -59.015534,
+    radio: 100,
+  },
+  {
+    nombre: "Mercado Zárate",
+    latitude: -34.099386,
+    longitude: -59.012104,
     radio: 100,
   },
 ];
@@ -59,7 +65,7 @@ export const resolverLocacion = (coords) => {
         <Text
           style={{ fontSize: "1rem", fontWeight: "bold", color: "#f33838e9" }}
         >
-          ???
+          Desconocido
         </Text>
       </View>
       ;

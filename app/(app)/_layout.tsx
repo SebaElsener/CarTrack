@@ -10,7 +10,6 @@ import { ScansProvider } from "../../src/context/ScanContext";
 import InfoBar from "../../src/screens/InfoBar";
 import TransportBar from "../../src/screens/TransportBar";
 import WeatherCondition from "../../src/screens/WeatherCondition";
-import "../../src/services/gps/locationTask";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
@@ -80,12 +79,12 @@ export default function AppLayout() {
                   <InfoBar />
                 </View>
                 <View style={styles.appBarInfoAndLocation}>
-                  <View style={{ width: "70%" }}>
+                  <View style={{ width: "74%" }}>
                     <TransportBar />
                   </View>
                   <View
                     style={{
-                      width: "30%",
+                      width: "26%",
                       borderLeftWidth: 0.3,
                       borderLeftColor: "#edededc5",
                     }}

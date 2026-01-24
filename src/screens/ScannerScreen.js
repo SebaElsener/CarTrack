@@ -351,7 +351,7 @@ export default function ScannerScreen() {
 
     if (!weatherCondition) {
       errorLock.current = true;
-      setWeatherError("Debe seleccionar la condición climática");
+      setWeatherError("Seleccionar condición climática");
       await playSound("error");
       setTimeout(() => (errorLock.current = false), 800);
       return;

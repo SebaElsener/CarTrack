@@ -63,7 +63,7 @@ export default function WeatherCondition() {
     setWeatherCondition(value);
 
     if (!value) {
-      setWeatherError("Debe seleccionar la condición climática");
+      setWeatherError("Seleccionar condición climática");
     } else {
       setWeatherError("");
     }

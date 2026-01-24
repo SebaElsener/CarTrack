@@ -3,6 +3,7 @@ import { ImageBackground, StyleSheet, View } from "react-native";
 import { MD3LightTheme, Provider as PaperProvider } from "react-native-paper";
 import { ToastProvider } from "../src/components/ToastProvider";
 import { AuthProvider } from "../src/context/AuthContext";
+import "../src/services/gps/locationTask";
 
 const theme = {
   ...MD3LightTheme,

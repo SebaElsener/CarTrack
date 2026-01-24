@@ -80,7 +80,7 @@ export const ScansProvider = ({ children }) => {
 
   useEffect(() => {
     if (transportUnit?.trim() && !totalUnits?.toString().trim()) {
-      setTransportError("Debe ingresar la cantidad de unidades");
+      setTransportError("Ingresar cantidad unidades");
     } else {
       setTransportError("");
     }

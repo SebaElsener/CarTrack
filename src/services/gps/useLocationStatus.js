@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
+import { resolverLocacion } from "../gps/locationUtil";
 import { TASK_NAME } from "./locationTask";
 
 export const useLocationStatus = () => {
@@ -10,6 +11,15 @@ export const useLocationStatus = () => {
     const init = async () => {
       const { status: fg } = await Location.requestForegroundPermissionsAsync();
       if (fg !== "granted") return;
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const nombre = resolverLocacion(location.coords);
+
+      if (nombre) {
+        await AsyncStorage.setItem("locacion_actual", nombre);
+      }
 
       const { status: bg } = await Location.requestBackgroundPermissionsAsync();
       if (bg !== "granted") return;
