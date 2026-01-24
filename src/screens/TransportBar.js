@@ -85,7 +85,7 @@ export default function TransportBar() {
               editable={!!transportUnit?.trim()}
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ width: 50 }}>
             <Text style={styles.counter}>
               {transportScans} / {totalUnits || "-"}
             </Text>
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     //width: "100%",
-    paddingLeft: 4,
+    paddingHorizontal: 4,
     //paddingBottom: 33,
     alignItems: "center",
   },
@@ -164,11 +164,11 @@ const styles = StyleSheet.create({
     //marginRight: 15,
     backgroundColor: "transparent",
     //width: 120,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 700,
   },
   counter: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 700,
     color: "#eeeeeeff",
   },

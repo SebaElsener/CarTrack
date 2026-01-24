@@ -4,11 +4,13 @@ import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
+import LocationStatusbar from "../../src/components/LocationStatusBar";
 import { useAuth } from "../../src/context/AuthContext";
 import { ScansProvider } from "../../src/context/ScanContext";
 import InfoBar from "../../src/screens/InfoBar";
 import TransportBar from "../../src/screens/TransportBar";
 import WeatherCondition from "../../src/screens/WeatherCondition";
+import "../../src/services/gps/locationTask";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
@@ -77,8 +79,19 @@ export default function AppLayout() {
                 <View style={styles.appBarDate}>
                   <InfoBar />
                 </View>
-                <View style={styles.appBarDate}>
-                  <TransportBar />
+                <View style={styles.appBarInfoAndLocation}>
+                  <View style={{ width: "70%" }}>
+                    <TransportBar />
+                  </View>
+                  <View
+                    style={{
+                      width: "30%",
+                      borderLeftWidth: 0.3,
+                      borderLeftColor: "#edededc5",
+                    }}
+                  >
+                    <LocationStatusbar />
+                  </View>
                 </View>
                 <View style={styles.appBarWeather}>
                   <WeatherCondition />
@@ -129,5 +142,14 @@ const styles = StyleSheet.create({
     width: "100%",
     //paddingHorizontal: 10,
     justifyContent: "center",
+  },
+  appBarInfoAndLocation: {
+    width: "100%",
+    borderTopWidth: 0.3,
+    borderTopColor: "#edededc5",
+    display: "flex",
+    //backgroundColor: "#e8e3e377",
+    justifyContent: "space-between",
+    flexDirection: "row",
   },
 });
