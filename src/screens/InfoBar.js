@@ -1,12 +1,26 @@
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, View } from "react-native";
 import { Text } from "react-native-paper";
 import AnimatedBadge from "../components/AnimatedBadge";
 import { useScans } from "../context/ScanContext";
 
 export default function InfoBar() {
+  const router = useRouter();
+  const scale = useRef(new Animated.Value(1)).current;
+
   const [hora, setHora] = useState(new Date());
   const { totalScans } = useScans();
+
+  const releaseAndNavigate = () => {
+    Animated.timing(scale, {
+      toValue: 1,
+      duration: 50,
+      useNativeDriver: true,
+    }).start(() => {
+      router.push("/(app)/HistoryScreen");
+    });
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,18 +66,32 @@ export default function InfoBar() {
           {fechaHora}
         </Text>
       </View>
-      <View style={{ flexDirection: "row" }}>
-        <Text
-          style={{
-            color: "#eeeeeeff",
-            fontWeight: 700,
-            fontSize: 13.5,
-          }}
-        >
-          VIN escaneados:
-        </Text>
-        <AnimatedBadge value={totalScans} />
-      </View>
+      <Pressable
+        onPressIn={() =>
+          Animated.timing(scale, {
+            toValue: 0.94,
+            duration: 40,
+            useNativeDriver: true,
+          }).start()
+        }
+        onPressOut={releaseAndNavigate}
+      >
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <View style={{ flexDirection: "row" }}>
+            <Text
+              style={{
+                color: "#eeeeeeff",
+                fontWeight: 700,
+                fontSize: 13.5,
+              }}
+            >
+              VIN escaneados:
+            </Text>
+
+            <AnimatedBadge value={totalScans} />
+          </View>
+        </Animated.View>
+      </Pressable>
     </View>
   );
 }
