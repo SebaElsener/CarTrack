@@ -79,10 +79,20 @@ export function isValidVIN(vin) {
   if (/[IOQ]/.test(vin)) return false;
 
   let sum = 0;
-  for (let i = 0; i < 17; i++) sum += VIN_MAP[vin[i]] * VIN_WEIGHTS[i];
+  for (let i = 0; i < 17; i++) {
+    sum += VIN_MAP[vin[i]] * VIN_WEIGHTS[i];
+  }
+
   const check = sum % 11;
   const checkChar = check === 10 ? "X" : String(check);
-  return vin[8] === checkChar;
+
+  // ✅ válido si coincide el dígito
+  if (vin[8] === checkChar) return true;
+
+  // ⚠️ EXCEPCIÓN CONTROLADA: aceptar dígito verificador "0"
+  if (vin[8] === "0") return true;
+
+  return false;
 }
 
 function isValidVINSoft(vin) {
@@ -175,7 +185,7 @@ export default function ScannerScreen() {
           duration: 500,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -199,8 +209,8 @@ export default function ScannerScreen() {
   const borderColor = isVinComplete
     ? "#2ecc71" // verde
     : isVinInvalid
-    ? "#e74c3c" // rojo
-    : "#aaa"; // neutro
+      ? "#e74c3c" // rojo
+      : "#aaa"; // neutro
 
   // ---------------------------
   // Animación imput manual VIN
@@ -222,7 +232,7 @@ export default function ScannerScreen() {
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) =>
-      setDimensions(window)
+      setDimensions(window),
     );
     return () => sub?.remove();
   }, []);
@@ -261,7 +271,7 @@ export default function ScannerScreen() {
           duration: 1400,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [SCAN_SIZE]);
 

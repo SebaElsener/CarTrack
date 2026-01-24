@@ -69,7 +69,13 @@ export function isValidVIN(vin) {
   const check = sum % 11;
   const checkChar = check === 10 ? "X" : String(check);
 
-  return vin[8] === checkChar;
+  // ✅ válido si coincide el dígito
+  if (vin[8] === checkChar) return true;
+
+  // ⚠️ EXCEPCIÓN CONTROLADA: aceptar dígito verificador "0"
+  if (vin[8] === "0") return true;
+
+  return false;
 }
 
 export default function Scanner() {
@@ -105,7 +111,7 @@ export default function Scanner() {
           duration: 1400,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 

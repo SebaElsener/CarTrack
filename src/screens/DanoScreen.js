@@ -55,7 +55,7 @@ export default function DanoScreen() {
       setFilteredAreas(areasDropdown); // si no hay búsqueda, mostrar todos
     } else {
       const filtered = areasDropdown.filter((item) =>
-        item.label.toLowerCase().startsWith(areaSearch.toLowerCase())
+        item.label.toLowerCase().startsWith(areaSearch.toLowerCase()),
       );
       setFilteredAreas(filtered);
     }
@@ -139,7 +139,7 @@ export default function DanoScreen() {
       grav,
       obs,
       codigo,
-      user?.email
+      user?.email,
     );
     requestSync();
     if (result === "Información actualizada")
