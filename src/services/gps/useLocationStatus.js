@@ -19,6 +19,8 @@ export const useLocationStatus = () => {
 
       if (nombre) {
         await AsyncStorage.setItem("locacion_actual", nombre);
+      } else {
+        await AsyncStorage.setItem("locacion_actual", "Fuera de zona");
       }
 
       const { status: bg } = await Location.requestBackgroundPermissionsAsync();

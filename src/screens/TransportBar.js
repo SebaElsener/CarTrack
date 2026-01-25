@@ -65,49 +65,61 @@ export default function TransportBar() {
               theme={customTheme}
             />
           </View>
-          <View style={{}}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", width: 75 }}
+          >
             <TextInput
-              label="Cantidad"
-              keyboardType="number-pad"
-              value={totalUnits ? String(totalUnits) : ""}
+              hitSlop={{ top: 0, bottom: 0, left: 5, right: 5 }}
+              value={totalUnits !== null ? String(totalUnits) : ""}
               onChangeText={(v) => {
-                setTotalUnits(v ? Number(v) : "");
-                if (transportUnit?.trim() && !v) {
+                const numeric = v.replace(/[^0-9]/g, "");
+                const value = numeric.length ? Number(numeric) : null;
+
+                setTotalUnits(value);
+
+                if (transportUnit?.trim() && value === null) {
                   setTransportError("Ingresar cantidad unidades");
                 } else {
                   setTransportError("");
                 }
               }}
+              keyboardType="number-pad"
+              label="Cantidad"
+              placeholder="-"
               underlineColor="transparent"
-              contentStyle={{ fontWeight: 700, color: "#eeeeeeff" }}
-              theme={customTheme}
               mode="flat"
-              style={styles.input}
               editable={!!transportUnit?.trim()}
+              pointerEvents={transportUnit?.trim() ? "auto" : "none"}
+              theme={customTheme}
+              style={styles.counterInput}
+              contentStyle={{
+                fontSize: 14,
+                fontWeight: "700",
+                color: "#eeeeeeff",
+                paddingVertical: 0,
+              }}
+              left={
+                <TextInput.Affix
+                  text={`${transportScans} / `}
+                  textStyle={{ color: "#eeeeeeff", fontWeight: "700" }}
+                />
+              }
             />
           </View>
-          <View style={{ width: 33 }}>
-            <Text style={styles.counter}>
-              {transportScans}/{totalUnits || "-"}
-            </Text>
-          </View>
-          <View style={{ width: 90 }}>
-            {/* <Text style={styles.counter}>Despacho</Text> */}
+
+          <View style={{ width: 120 }}>
             <IngDespList />
           </View>
         </View>
         {transportError ? (
           <Text
             style={{
-              color: "#f14f4fff",
-              fontSize: 13,
-              fontWeight: "700",
+              color: "rgba(211, 56, 56, 0.96)",
+              fontSize: 18,
+              fontWeight: "600",
               position: "absolute",
-              marginTop: 117,
-              marginLeft: 50,
-              textShadowColor: "#020202ff",
-              textShadowOffset: 4,
-              textShadowRadius: 4,
+              top: 120,
+              left: 18,
             }}
           >
             {transportError}
@@ -150,7 +162,7 @@ export default function TransportBar() {
 const styles = StyleSheet.create({
   scanBar: {
     flexDirection: "row",
-    //justifyContent: "center",
+    justifyContent: "flex-end",
     //width: "100%",
     //paddingHorizontal: 4,
     //paddingBottom: 33,
@@ -162,14 +174,15 @@ const styles = StyleSheet.create({
     //marginRight: 15,
     backgroundColor: "transparent",
     //width: 120,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
-    width: 65,
+    width: 80,
   },
   counter: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
     color: "#eeeeeeff",
+    backgroundColor: "transparent",
   },
   modal: {
     backgroundColor: "white",
@@ -188,5 +201,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     marginTop: -5,
     //marginVertical: 8,
+  },
+  counterInput: {
+    backgroundColor: "transparent",
+    paddingHorizontal: 0,
+    margin: 0,
+    fontSize: 14,
+    fontWeight: 700,
   },
 });

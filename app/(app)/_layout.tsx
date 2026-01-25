@@ -79,12 +79,12 @@ export default function AppLayout() {
                   <InfoBar />
                 </View>
                 <View style={styles.appBarInfoAndLocation}>
-                  <View style={{ width: "74%" }}>
+                  <View style={{ width: "75%" }}>
                     <TransportBar />
                   </View>
                   <View
                     style={{
-                      width: "26%",
+                      width: "25%",
                       borderLeftWidth: 0.3,
                       borderLeftColor: "#edededc5",
                     }}
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#edededc5",
     display: "flex",
     //backgroundColor: "#e8e3e377",
-    justifyContent: "space-between",
+    //justifyContent: "space-between",
     flexDirection: "row",
   },
 });

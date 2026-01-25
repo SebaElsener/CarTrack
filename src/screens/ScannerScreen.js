@@ -159,9 +159,12 @@ export default function ScannerScreen() {
     refreshTotalScans,
     incrementTransportScan,
     weatherCondition,
+    movimiento,
+    movimientoError,
     transportUnit,
     transportError,
     setWeatherError,
+    setMovimientoError,
   } = useScans();
   const { user } = useAuth();
   const [handInput, setHandInput] = useState("");
@@ -171,6 +174,12 @@ export default function ScannerScreen() {
   const inputTranslateY = useRef(new Animated.Value(0)).current;
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (movimiento) {
+      errorLock.current = false;
+    }
+  }, [movimiento]);
 
   useEffect(() => {
     Animated.loop(
@@ -339,6 +348,10 @@ export default function ScannerScreen() {
   const handleScan = async ({ cornerPoints, type, data }) => {
     if (scanLock.current || errorLock.current) return;
 
+    if (movimientoError) {
+      return;
+    }
+
     if (transportError) {
       errorLock.current = true;
       Vibration.vibrate(120);
@@ -352,6 +365,14 @@ export default function ScannerScreen() {
     if (!weatherCondition) {
       errorLock.current = true;
       setWeatherError("Seleccionar condición climática");
+      await playSound("error");
+      setTimeout(() => (errorLock.current = false), 800);
+      return;
+    }
+
+    if (!movimiento) {
+      errorLock.current = true;
+      setMovimientoError("Seleccionar ingreso o despacho");
       await playSound("error");
       setTimeout(() => (errorLock.current = false), 800);
       return;
@@ -441,6 +462,12 @@ export default function ScannerScreen() {
           <Text style={styles.flashText}>{torch ? "🔦 OFF" : "🔦 ON"}</Text>
         </View>
       </TouchableWithoutFeedback>
+
+      {movimientoError ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{movimientoError}</Text>
+        </View>
+      ) : null}
 
       <Text style={styles.helperText}>Alinee el código dentro del marco</Text>
 
@@ -796,5 +823,17 @@ const styles = StyleSheet.create({
     height: 24,
     backgroundColor: "#000",
     marginLeft: 2,
+  },
+  errorBanner: {
+    position: "absolute",
+    top: 10,
+    left: 18,
+    zIndex: 50,
+  },
+
+  errorText: {
+    color: "rgba(211, 56, 56, 0.96)",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

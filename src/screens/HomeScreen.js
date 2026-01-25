@@ -10,7 +10,7 @@ export default function HomeScreen() {
     Array.from({ length: 4 }).map(() => ({
       opacity: new Animated.Value(0),
       translateY: new Animated.Value(20),
-    }))
+    })),
   ).current;
 
   useFocusEffect(
@@ -34,8 +34,8 @@ export default function HomeScreen() {
                 duration: 350,
                 useNativeDriver: true,
               }),
-            ])
-          )
+            ]),
+          ),
         );
 
       Animated.sequence([
@@ -43,7 +43,7 @@ export default function HomeScreen() {
         Animated.delay(120),
         animateRow([2, 3]), // 🟦 fila inferior
       ]).start();
-    }, [animations])
+    }, [animations]),
   );
 
   const cards = [
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 38, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 40,
   },
   titleSpan: {
     fontStyle: "italic",

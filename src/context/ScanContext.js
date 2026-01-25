@@ -14,9 +14,10 @@ export const ScansProvider = ({ children }) => {
   const [completed, setCompleted] = useState(false);
   const [transportActive, setTransportActive] = useState(false);
 
-  //Validar cant unidades si se ingresa nro batea y clima
+  //Validar cant unidades si se ingresa nro batea y clima.  Validar seleccionar ingreso o despacho
   const [transportError, setTransportError] = useState("");
   const [weatherError, setWeatherError] = useState("");
+  const [movimientoError, setMovimientoError] = useState("");
 
   /** ---------------- TOTAL HISTÓRICO ---------------- */
   const refreshTotalScans = async () => {
@@ -26,6 +27,9 @@ export const ScansProvider = ({ children }) => {
 
   //Clima
   const [weatherCondition, setWeatherCondition] = useState(null);
+
+  //Movimiento ingreso o despacho
+  const [movimiento, setMovimiento] = useState(null);
 
   /** ---------------- DESCARGA ACTUAL ---------------- */
   const incrementTransportScan = () => {
@@ -72,6 +76,12 @@ export const ScansProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    if (movimiento) {
+      setMovimientoError("");
+    }
+  }, [movimiento]);
+
+  useEffect(() => {
     if (!transportUnit) {
       setTransportUnit("");
       setTransportError("");
@@ -112,11 +122,17 @@ export const ScansProvider = ({ children }) => {
         weatherCondition,
         setWeatherCondition,
 
+        movimiento,
+        setMovimiento,
+
         transportError,
         setTransportError,
 
         weatherError,
         setWeatherError,
+
+        movimientoError,
+        setMovimientoError,
       }}
     >
       {children}

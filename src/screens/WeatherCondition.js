@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
     //marginTop: 8,
   },
   errorText: {
-    color: "#ff6b6b",
-    fontSize: 13,
-    fontWeight: "700",
-    marginTop: 63,
-    marginLeft: 45,
+    color: "rgba(211, 56, 56, 0.96)",
+    fontSize: 18,
+    fontWeight: "600",
     position: "absolute",
+    top: 65,
+    left: 18,
   },
 });

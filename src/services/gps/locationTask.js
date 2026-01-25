@@ -25,20 +25,23 @@ TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
   const nueva = resolverLocacion(coords);
   const actual = await getActual();
 
-  console.log("Coords:", coords);
   console.log("Accuracy:", coords.accuracy);
-  console.log("Nueva locación:", nueva);
+  console.log("Coords:", coords.latitude, coords.longitude);
+  console.log("Nueva:", nueva);
+  console.log("Actual:", actual);
 
-  if (!nueva || nueva === actual) return;
+  const valorFinal = nueva ?? "Fuera de zona";
+
+  if (valorFinal === actual) return;
 
   // Confirmación simple (anti rebote)
   const pendiente = await AsyncStorage.getItem("locacion_pendiente");
 
-  if (pendiente === nueva) {
-    await setActual(nueva);
-    await AsyncStorage.setItem("locacion_actual", nueva);
+  if (pendiente === valorFinal) {
+    await setActual(valorFinal);
+    await AsyncStorage.setItem("locacion_actual", valorFinal);
     await AsyncStorage.removeItem("locacion_pendiente");
   } else {
-    await AsyncStorage.setItem("locacion_pendiente", nueva);
+    await AsyncStorage.setItem("locacion_pendiente", valorFinal);
   }
 });

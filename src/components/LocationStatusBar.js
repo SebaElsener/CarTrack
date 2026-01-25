@@ -3,9 +3,14 @@ import { useLocationStatus } from "../services/gps/useLocationStatus";
 
 export default function LocationStatusBar() {
   const locacion = useLocationStatus();
-
+  const backgroundColor =
+    locacion === "Detectando..."
+      ? "#444444a0"
+      : locacion === "Fuera de zona"
+        ? "#b30e2c9e" // rojo
+        : "#24882b61"; // verde
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor }]}>
       <Text style={styles.text}>LUGAR</Text>
       <Text style={styles.text}>{locacion}</Text>
     </View>
