@@ -12,27 +12,37 @@ export const syncPendingScans = async () => {
   await waitForDb();
   const db = await getDb();
   const unsyncedScans = await db.getAllAsync(
-    `SELECT * FROM scans WHERE synced = 0`
+    `SELECT * FROM scans WHERE synced = 0`,
   );
   if (!unsyncedScans || unsyncedScans.length === 0) {
     return 0;
   }
   let syncedCount = 0;
   for (const item of unsyncedScans) {
-    const { error } = await supabase.from("scans").insert({
-      localSQL_id: item.id,
-      vin: item.vin,
-      type: item.type,
-      date: item.date,
-      clima: item.clima,
-      batea: item.batea,
-      user: item.user,
-    });
+    const { data: scan, error } = await supabase
+      .from("scans")
+      .insert({
+        localSQL_id: item.id,
+        vin: item.vin,
+        type: item.type,
+        date: item.date,
+        clima: item.clima,
+        movimiento: item.movimiento,
+        lugar: item.lugar,
+        batea: item.batea,
+        user: item.user,
+      })
+      .select()
+      .single();
+
     if (error) {
       console.log("❌ scan sync error", item.id, error);
       continue; // 🔑 CLAVE
     }
-
+    await db.runAsync(
+      `UPDATE scans SET remote_id = ${scan.supabase_id} WHERE id = ?`,
+      item.id,
+    );
     await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
     syncedCount++;
   }
@@ -44,7 +54,7 @@ export const danoCloudUpdate = async () => {
   await waitForDb();
   const db = await getDb();
   const unsyncedDamages = await db.getAllAsync(
-    `SELECT * FROM damages WHERE synced = 0`
+    `SELECT * FROM damages WHERE synced = 0`,
   );
   if (!unsyncedDamages || unsyncedDamages.length === 0) {
     return 0; // nada pendiente
@@ -58,21 +68,21 @@ export const danoCloudUpdate = async () => {
         averia: item.averia,
         grav: item.grav,
         obs: item.obs,
-        codigo: item.codigo,
         vin: item.vin,
         date: item.date,
         user: item.user,
+        scan_id: item.scan_id,
       })
       .select("id")
       .single();
     if (error) {
-      console.log("❌ damage sync error", item.id, error);
+      console.log("❌ damage sync error", item.local_id, error);
       continue;
     }
     await db.runAsync(
       `UPDATE damages SET synced = 1, supabase_id = ? WHERE local_id = ?`,
       data.id,
-      item.local_id
+      item.local_id,
     );
     syncedCount++;
   }
@@ -85,11 +95,11 @@ export const syncPendingImages = async () => {
   await waitForDb();
   const db = await getDb();
   const unsyncedImages = await db.getAllAsync(
-    `SELECT * FROM tableForPendingImages WHERE synced = 0`
+    `SELECT * FROM tableForPendingImages WHERE synced = 0`,
   );
   for (const img of unsyncedImages) {
     // Subir a Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("pics")
       .upload(img.name, img.binary, {
         contentType: "image/jpg",
@@ -105,7 +115,7 @@ export const syncPendingImages = async () => {
     await db.runAsync(
       `UPDATE pictures SET pictureurl = ? WHERE id = ?`,
       publicUrl,
-      img.id_heredado
+      img.id_heredado,
     );
     if (error) {
       console.log("ERROR SUBIENDO FOTO:", img.name, error);
@@ -113,7 +123,7 @@ export const syncPendingImages = async () => {
     } else {
       await db.runAsync(
         `UPDATE tableForPendingImages SET synced = 1 WHERE id = ?`,
-        img.id
+        img.id,
       );
     }
   }
@@ -129,7 +139,7 @@ export const syncPendingPicts = async () => {
     console.log("Error syncing images", e);
   }
   const unsyncedPicts = await db.getAllAsync(
-    `SELECT * FROM pictures WHERE synced = 0`
+    `SELECT * FROM pictures WHERE synced = 0`,
   );
   if (!unsyncedPicts || unsyncedPicts.length === 0) {
     return 0; // nada pendiente
@@ -138,6 +148,7 @@ export const syncPendingPicts = async () => {
   for (const picts of unsyncedPicts) {
     const { error } = await supabase.from("pictures").insert({
       vin: picts.vin,
+      scan_id: picts.scan_id,
       pictureurl: picts.pictureurl,
       metadata: picts.metadata,
       user: picts.user,
@@ -158,7 +169,7 @@ export const deleteDamagePerVINandID = async () => {
   await waitForDb();
   const db = await getDb();
   const damagesToDelete = await db.getAllAsync(
-    `SELECT * from damages WHERE deleted = 1`
+    `SELECT * from damages WHERE deleted = 1`,
   );
 
   if (!damagesToDelete || damagesToDelete.length === 0) {
@@ -176,11 +187,11 @@ export const deleteDamagePerVINandID = async () => {
     }
     await db.runAsync(
       `UPDATE damages SET deleted = 0 WHERE local_id = ?`,
-      damage.local_id
+      damage.local_id,
     );
     await db.runAsync(
       `DELETE FROM damages WHERE local_id = ?`,
-      damage.local_id
+      damage.local_id,
     );
     syncedCount++;
   }

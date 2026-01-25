@@ -5,12 +5,10 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AppStatusContext = createContext({
   lugar: "Detectando...",
-  batea: null,
 });
 
 export const AppStatusProvider = ({ children }) => {
   const [lugar, setLugar] = useState("Detectando...");
-  const [batea, setBatea] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -28,7 +26,7 @@ export const AppStatusProvider = ({ children }) => {
   }, [lugar]);
 
   return (
-    <AppStatusContext.Provider value={{ lugar, batea, setLugar, setBatea }}>
+    <AppStatusContext.Provider value={{ lugar, setLugar }}>
       {children}
     </AppStatusContext.Provider>
   );

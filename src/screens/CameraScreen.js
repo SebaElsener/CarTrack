@@ -20,7 +20,7 @@ export async function compressAndResize(uri) {
     {
       compress: 0.25, // 25% calidad
       format: ImageManipulator.SaveFormat.jpg,
-    }
+    },
   );
 
   return manipResult.uri;
@@ -33,8 +33,9 @@ export default function CameraScreen() {
   const [fotos, setFotos] = useState([]);
   const { user } = useAuth();
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
-  const { vinFromRouter } = useLocalSearchParams();
+  const { vinFromRouter, remote_id } = useLocalSearchParams();
   const vin = vinFromRouter;
+  const remoteId = remote_id;
 
   useEffect(() => {
     listarFotos();
@@ -116,7 +117,7 @@ export default function CameraScreen() {
 
       await FileSystem.writeAsStringAsync(
         destino.replace(".jpg", ".json"),
-        JSON.stringify(metadatos)
+        JSON.stringify(metadatos),
       );
 
       ////////////////////////////////////
@@ -132,8 +133,9 @@ export default function CameraScreen() {
       // Guardar en DB local
       const pictId = await savePict(
         vin,
+        remoteId,
         JSON.stringify(metadatos),
-        user?.email
+        user?.email,
       );
 
       //  Guardar name + binary en tabla local para subir luego a supabase bucket
@@ -200,7 +202,7 @@ export default function CameraScreen() {
 
       await FileSystem.writeAsStringAsync(
         destino.replace(".jpg", ".json"),
-        JSON.stringify(metadatos)
+        JSON.stringify(metadatos),
       );
 
       // ---- compresión + base64 ----
@@ -216,7 +218,7 @@ export default function CameraScreen() {
       const pictId = await savePict(
         vin,
         JSON.stringify(metadatos),
-        user?.email
+        user?.email,
       );
 
       await savePendingImage(pictId, nombre, binary);

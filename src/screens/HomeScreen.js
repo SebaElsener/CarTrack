@@ -3,6 +3,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
+import { useScans } from "../context/ScanContext";
 import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
@@ -12,6 +13,7 @@ export default function HomeScreen() {
       translateY: new Animated.Value(20),
     })),
   ).current;
+  const { resetAllScansState, refreshTotalScans } = useScans();
 
   useFocusEffect(
     useCallback(() => {
@@ -45,6 +47,12 @@ export default function HomeScreen() {
       ]).start();
     }, [animations]),
   );
+
+  const handleDeleteDatabase = async () => {
+    await deleteTable(); // SQLite (DROP + CREATE)
+    resetAllScansState(); // UI inmediata
+    await refreshTotalScans();
+  };
 
   const cards = [
     {
@@ -89,7 +97,7 @@ export default function HomeScreen() {
       icon: (
         <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
       ),
-      onPress: deleteTable,
+      onPress: handleDeleteDatabase,
     },
   ];
 

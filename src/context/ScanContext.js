@@ -21,8 +21,12 @@ export const ScansProvider = ({ children }) => {
 
   /** ---------------- TOTAL HISTÓRICO ---------------- */
   const refreshTotalScans = async () => {
-    const count = await getScansCount();
-    setTotalScans(count ?? 0);
+    try {
+      const count = await getScansCount();
+      setTotalScans(count ?? 0);
+    } catch {
+      setTotalScans(0);
+    }
   };
 
   //Clima
@@ -75,6 +79,11 @@ export const ScansProvider = ({ children }) => {
     setTransportActive(false);
   };
 
+  const resetAllScansState = () => {
+    setTotalScans(0);
+    resetTransport();
+  };
+
   useEffect(() => {
     if (movimiento) {
       setMovimientoError("");
@@ -106,6 +115,7 @@ export const ScansProvider = ({ children }) => {
       value={{
         totalScans,
         refreshTotalScans,
+        resetAllScansState,
 
         transportUnit,
         setTransportUnit,

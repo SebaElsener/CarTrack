@@ -28,14 +28,15 @@ export default function DanoScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const { vinFromRouter } = useLocalSearchParams();
+  const { vinFromRouter, remote_id } = useLocalSearchParams();
   const vin = vinFromRouter;
+  const remoteId = remote_id;
 
   const [area, setArea] = useState("");
   const [averia, setAveria] = useState("");
   const [grav, setGrav] = useState("");
   const [obs, setObs] = useState("");
-  const [codigo, setCodigo] = useState("");
+  //const [codigo, setCodigo] = useState("");
   const translateY = useRef(new Animated.Value(0)).current;
 
   // 🔹 errores por campo (solo dropdowns)
@@ -43,7 +44,7 @@ export default function DanoScreen() {
     area: false,
     averia: false,
     grav: false,
-    codigo: false,
+    // codigo: false,
   });
 
   const [areaSearch, setAreaSearch] = useState("");
@@ -131,14 +132,15 @@ export default function DanoScreen() {
       showToast("Complete todos los campos obligatorios", "error");
       return;
     }
-
+    console.log("SCAN_ID remoto: ", remoteId);
     const result = await addInfo(
       vin,
+      remoteId,
       area,
       averia,
       grav,
       obs,
-      codigo,
+      // codigo,
       user?.email,
     );
     requestSync();
@@ -263,7 +265,7 @@ export default function DanoScreen() {
           onPress={() =>
             router.replace({
               pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: vin },
+              params: { vinFromRouter: vin, remote_id: remoteId },
             })
           }
         >

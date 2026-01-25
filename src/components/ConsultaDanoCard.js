@@ -19,6 +19,13 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
 export default function ConsultaDanoItem({ item }) {
+  const getImageUri = (foto) => {
+    if (!foto) return null;
+    if (typeof foto === "string") return foto; // legacy
+    if (typeof foto === "object") return foto.pictureurl ?? null;
+    return null;
+  };
+
   const position = useRef(new Animated.ValueXY()).current;
   const [index, setIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,12 +33,12 @@ export default function ConsultaDanoItem({ item }) {
 
   const damages = useMemo(
     () => (Array.isArray(item?.damages) ? item.damages : []),
-    [item?.damages]
+    [item?.damages],
   );
 
   const fotos = useMemo(
     () => (Array.isArray(item?.fotos) ? item.fotos : []),
-    [item?.fotos]
+    [item?.fotos],
   );
 
   const current = useMemo(() => {
@@ -72,7 +79,7 @@ export default function ConsultaDanoItem({ item }) {
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: Animated.event(
         [null, { dx: position.x, dy: position.y }],
-        { useNativeDriver: false }
+        { useNativeDriver: false },
       ),
       onPanResponderRelease: (_, gesture) => {
         if (Math.abs(gesture.dx) > SWIPE_THRESHOLD) {
@@ -97,7 +104,7 @@ export default function ConsultaDanoItem({ item }) {
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   if (!current) return null;
@@ -169,17 +176,22 @@ export default function ConsultaDanoItem({ item }) {
         <View style={styles.pictsContainer}>
           <BlurView intensity={35} tint="light" style={styles.glass}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {fotos.map((uri, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => {
-                    setPictsCurrentIndex(idx);
-                    setModalVisible(true);
-                  }}
-                >
-                  <Image source={{ uri }} style={styles.image} />
-                </TouchableOpacity>
-              ))}
+              {fotos.map((foto, idx) => {
+                const uri = getImageUri(foto);
+                if (!uri) return null;
+
+                return (
+                  <TouchableOpacity
+                    key={foto.id ?? idx}
+                    onPress={() => {
+                      setPictsCurrentIndex(idx);
+                      setModalVisible(true);
+                    }}
+                  >
+                    <Image source={{ uri }} style={styles.image} />
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
             <Animated.Text
               style={[
@@ -200,7 +212,10 @@ export default function ConsultaDanoItem({ item }) {
         style={styles.modal}
       >
         <ImageViewer
-          imageUrls={fotos.map((uri) => ({ url: uri }))}
+          imageUrls={fotos
+            .map(getImageUri)
+            .filter(Boolean)
+            .map((url) => ({ url }))}
           index={pictsCurrentIndex}
           enableSwipeDown
           onSwipeDown={() => setModalVisible(false)}

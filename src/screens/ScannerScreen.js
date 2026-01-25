@@ -19,7 +19,7 @@ import playSound from "../components/plySound";
 import { useAuth } from "../context/AuthContext";
 import { useScans } from "../context/ScanContext";
 import { useAppStatus } from "../context/TransportAndLocationContext";
-import { getScans, saveScan } from "../database/Database";
+import { saveScan, scanExists } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
 // ---------------------------
@@ -168,7 +168,7 @@ export default function ScannerScreen() {
     setMovimientoError,
   } = useScans();
   const { user } = useAuth();
-  const { lugar, batea } = useAppStatus();
+  const { lugar } = useAppStatus();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -427,12 +427,10 @@ export default function ScannerScreen() {
     setLastResult(vin);
     Vibration.vibrate(120);
 
-    const alreadyScanned = await getScans({ vin });
+    const alreadyScanned = await scanExists(vin, movimiento);
+
     if (!alreadyScanned) {
       await playSound("success");
-      console.log("Movimien: ", movimiento);
-      console.log("Lugar: ", lugar);
-      console.log("batea: ", batea);
 
       await saveScan(
         vin,
@@ -440,7 +438,6 @@ export default function ScannerScreen() {
         weatherCondition,
         movimiento,
         lugar,
-        batea,
         transportUnit,
         user?.email,
       );

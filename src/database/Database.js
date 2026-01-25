@@ -8,6 +8,7 @@ export async function getDb() {
   if (!initializing) {
     initializing = (async () => {
       db = await SQLite.openDatabaseAsync("scanner.db");
+      await initDB();
       return db;
     })();
   }
@@ -23,26 +24,30 @@ export const initDB = async () => {
     ` PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        vin TEXT UNIQUE NOT NULL,
+        remote_id INTEGER,
+        vin TEXT NOT NULL,
         type TEXT NOT NULL,
         date TEXT NOT NULL,
         clima TEXT NOT NULL,
         batea TEXT,
+        movimiento TEXT NOT NULL,
+        lugar TEXT NOT NULL DEFAULT 'Desconocido',
         user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
-      `
+      `,
   );
 
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS pictures (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        scan_id INTEGER NOT NULL,
         vin TEXT NOT NULL,
         metadata TEXT NOT NULL,
         pictureurl TEXT,
         user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
-      `
+      `,
   );
 
   await db.execAsync(
@@ -53,13 +58,14 @@ export const initDB = async () => {
         name TEXT NOT NULL,
         binary BLOB NOT NULL,
         synced INTEGER DEFAULT 0)
-      `
+      `,
   );
 
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS damages (
         local_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        scan_id INTEGER NOT NULL,
         supabase_id UUID NULL,
         vin TEXT NOT NULL,
         date TEXT NOT NULL,
@@ -67,22 +73,11 @@ export const initDB = async () => {
         averia TEXT NOT NULL,
         grav TEXT NOT NULL,
         obs TEXT,
-        codigo TEXT NOT NULL,
         deleted INTEGER DEFAULT 0,
         user TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
-      `
+      `,
   );
-
-  // await db.execAsync(
-  //   `
-  //   CREATE INDEX IF NOT EXISTS idx_damages_vin
-  //   ON damages(vin);
-
-  //   CREATE INDEX IF NOT EXISTS idx_damaged_vin
-  //   ON damages(vin);
-  //   `
-  // );
 
   dbReady = true;
 };
@@ -104,6 +99,8 @@ export const deleteTable = async () => {
   } catch (error) {
     console.log("Error al eliminar tablas, ", error);
   }
+
+  await initDB();
 };
 
 // Guardar un escaneo
@@ -111,18 +108,22 @@ export const saveScan = async (
   vin,
   type,
   weatherCondition,
+  movimiento,
+  lugar,
   transportUnit,
-  user
+  user,
 ) => {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO scans (vin, type, clima, batea, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, 0);`,
+    `INSERT INTO scans (vin, type, clima, movimiento, lugar, batea, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
     vin,
     type,
     weatherCondition,
+    movimiento,
+    lugar,
     transportUnit,
     user,
-    new Date().toISOString()
+    new Date().toISOString(),
   );
 };
 
@@ -134,18 +135,19 @@ export const savePendingImage = async (pictId, nombre, binary) => {
     `INSERT INTO tableForPendingImages (id_heredado, name, binary, synced) VALUES (?, ?, ?, 0);`,
     pictId,
     nombre,
-    binary
+    binary,
   );
 };
 
 // Guardar fotos + metadata para subir a supabase
-export const savePict = async (vin, metadata, user) => {
+export const savePict = async (vin, remoteId, metadata, user) => {
   const db = await getDb();
   const id = await db.runAsync(
-    `INSERT INTO pictures (vin, metadata, user, synced) VALUES (?, ?, ?, 0);`,
+    `INSERT INTO pictures (vin, scan_id, metadata, user, synced) VALUES (?, ?, ?, ?, 0);`,
     vin,
+    remoteId,
     metadata,
-    user
+    user,
   );
   return id.lastInsertRowId;
 };
@@ -158,25 +160,48 @@ export const savePict = async (vin, metadata, user) => {
  * @param {number} [options.limit] - Cantidad de resultados
  * @param {number} [options.offset] - Offset para paginación
  */
-export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
+export const getScans = async ({
+  vin = null,
+  movimiento = null,
+  limit = 50,
+  offset = 0,
+} = {}) => {
   const db = await getDb();
-  const whereClause = vin ? `WHERE s.vin = ?` : "";
 
-  const params = vin ? [vin, limit, offset] : [limit, offset];
+  const whereConditions = [];
+  const params = [];
+
+  if (vin) {
+    whereConditions.push("s.vin = ?");
+    params.push(vin);
+  }
+
+  if (movimiento) {
+    whereConditions.push("s.movimiento = ?");
+    params.push(movimiento);
+  }
+
+  const whereClause = whereConditions.length
+    ? `WHERE ${whereConditions.join(" AND ")}`
+    : "";
+
+  params.push(limit, offset);
 
   const rows = await db.getAllAsync(
     `
     SELECT
-      s.id AS scan_id,
+      s.id AS scan_id_local,
+      s.remote_id,
       s.vin,
       s.date AS scan_date,
 
-      -- 🛠 Daños
+      -- 🛠 Daños (por remote_id)
       IFNULL(
         (
           SELECT json_group_array(
             json_object(
               'id', d.local_id,
+              'scan_id', d.scan_id,
               'area', d.area,
               'averia', d.averia,
               'grav', d.grav,
@@ -185,17 +210,17 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
             )
           )
           FROM damages d
-          WHERE d.vin = s.vin
+          WHERE d.scan_id = s.remote_id
         ),
         '[]'
       ) AS damages,
 
-      -- 📸 Fotos
+      -- 📸 Fotos (por remote_id)
       IFNULL(
         (
           SELECT json_group_array(JSON_EXTRACT(p.metadata, '$.carpeta'))
           FROM pictures p
-          WHERE p.vin = s.vin
+          WHERE p.scan_id = s.remote_id
         ),
         '[]'
       ) AS fotos
@@ -205,9 +230,10 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
     ORDER BY s.id DESC
     LIMIT ? OFFSET ?;
     `,
-    params
+    params,
   );
-  const result = rows.map((row) => {
+
+  return rows.map((row) => {
     let damages = JSON.parse(row.damages);
 
     damages = damages.filter(
@@ -215,34 +241,56 @@ export const getScans = async ({ vin = null, limit = 50, offset = 0 } = {}) => {
         d.area !== null ||
         d.averia !== null ||
         d.grav !== null ||
-        d.obs !== null
+        d.obs !== null,
     );
 
     return {
-      ...row,
+      scan_id_local: row.scan_id_local,
+      remote_id: row.remote_id,
+      vin: row.vin,
+      scan_date: row.scan_date,
       damages,
       fotos: JSON.parse(row.fotos),
     };
   });
+};
 
-  return result.length ? result : false;
+// Verificar si el vin / movimiento existen
+export const scanExists = async (vin, movimiento) => {
+  console.log(vin, movimiento);
+  if (!vin || !movimiento) return false;
+
+  const db = await getDb();
+
+  const rows = await db.getAllAsync(
+    `
+    SELECT 1
+    FROM scans
+    WHERE vin = ?
+      AND movimiento = ?
+    LIMIT 1;
+    `,
+    [vin, movimiento],
+  );
+
+  return rows.length > 0;
 };
 
 // Añadir información al vin colectado
-export const addInfo = async (vin, area, averia, grav, obs, codigo, user) => {
+export const addInfo = async (vin, scanid, area, averia, grav, obs, user) => {
   const db = await getDb();
   try {
     const fecha = new Date().toISOString();
     const result = await db.runAsync(
-      `INSERT INTO damages (area, averia, grav, obs, codigo, synced, vin, date, user) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?);`,
+      `INSERT INTO damages (vin, scan_id, area, averia, grav, obs, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      vin,
+      scanid,
       area,
       averia,
       grav,
       obs,
-      codigo,
-      vin,
+      user,
       fecha,
-      user
     );
     console.log("Registros actualizados: ", result.changes);
     return "Información actualizada";
@@ -253,11 +301,11 @@ export const addInfo = async (vin, area, averia, grav, obs, codigo, user) => {
 };
 
 // Borrar un registro y sus daños
-export const deleteScan = async (vin) => {
+export const deleteScan = async (scan_id) => {
   const db = await getDb();
   try {
-    await db.runAsync(`DELETE FROM scans WHERE vin = ?`, vin);
-    await db.runAsync(`DELETE FROM damages WHERE vin = ?`, vin);
+    await db.runAsync(`DELETE FROM scans WHERE id = ?`, scan_id);
+    await db.runAsync(`DELETE FROM damages WHERE scan_id = ?`, scan_id);
   } catch (error) {
     console.log("Error al eliminar registros", error);
     return error;
@@ -280,7 +328,7 @@ export const markToDelete = async (damageId) => {
   try {
     await db.runAsync(
       `UPDATE damages SET deleted = 1 WHERE local_id = ?`,
-      damageId
+      damageId,
     );
   } catch (error) {
     console.log("Error al marcar daño a eliminar: ", damageId);
@@ -301,6 +349,12 @@ export const deleteDamageById = async () => {
 //Contar scans guardados para actualizar barra contador scans
 export async function getScansCount() {
   const db = await getDb();
-  const result = await db.getFirstAsync(`SELECT COUNT(*) as count FROM scans`);
-  return result?.count ?? 0;
+  try {
+    const result = await db.getFirstAsync(
+      "SELECT COUNT(*) as count FROM scans",
+    );
+    return result?.count ?? 0;
+  } catch {
+    return 0;
+  }
 }

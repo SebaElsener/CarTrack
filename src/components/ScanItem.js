@@ -3,7 +3,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text } from "react-native-paper";
 import { markToDelete } from "../database/Database";
-import { deleteDamagePerVINandID } from "../services/sync";
+import { requestSync } from "../services/syncTrigger";
 import ConsultaDanoItem from "./ConsultaDanoItem";
 
 function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
@@ -103,7 +103,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         duration: 250,
         useNativeDriver: false,
       }),
-    ]).start(() => onDelete(item.vin));
+    ]).start(() => onDelete(item.scan_id_local, item.vin));
   };
 
   /** ------------------ Delete damage ------------------ */
@@ -112,7 +112,8 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
 
     try {
       await markToDelete(damageToDelete.id);
-      await deleteDamagePerVINandID();
+      requestSync();
+      //await deleteDamagePerVINandID();
     } catch (e) {
       console.warn("Error eliminando daño", e);
     }
@@ -211,7 +212,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
-              params: { vinFromRouter: item.vin },
+              params: { vinFromRouter: item.vin, remote_id: item.remote_id },
             })
           }
         />
@@ -222,7 +223,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: item.vin },
+              params: { vinFromRouter: item.vin, remote_id: item.remote_id },
             })
           }
         />

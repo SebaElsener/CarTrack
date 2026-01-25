@@ -43,6 +43,7 @@ export default function SyncManager({ onSyncChange }: Props) {
     try {
       const pendingScans = await syncPendingScans();
       console.log("Scans pendientes: ", pendingScans);
+
       const pendingPicts = await syncPendingPicts();
       console.log("Fotos pendientes: ", pendingPicts);
 

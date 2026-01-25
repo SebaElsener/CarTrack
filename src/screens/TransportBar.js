@@ -10,7 +10,6 @@ import {
 } from "react-native-paper";
 import IngDespList from "../components/IngDespList";
 import { useScans } from "../context/ScanContext";
-import { useAppStatus } from "../context/TransportAndLocationContext";
 
 export default function TransportBar() {
   const {
@@ -25,7 +24,6 @@ export default function TransportBar() {
     transportError,
     setTotalUnits,
   } = useScans();
-  const { setBatea } = useAppStatus();
 
   const progress =
     totalUnits > 0 ? Math.min(transportScans / totalUnits, 1) : 0;
@@ -54,7 +52,6 @@ export default function TransportBar() {
               value={transportUnit}
               onChangeText={(v) => {
                 setTransportUnit(v);
-                setBatea(v);
                 if (v?.trim() && !(totalUnits + "").trim()) {
                   setTransportError("Ingresar cantidad unidades");
                 } else {

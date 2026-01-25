@@ -53,7 +53,7 @@ export default function HistoryScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, []),
   );
 
   // ------------------- Mantener activeVin desde ScannerScreen -------------------
@@ -62,7 +62,7 @@ export default function HistoryScreen() {
       if (vin) {
         pendingVinRef.current = vin;
       }
-    }, [vin])
+    }, [vin]),
   );
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function HistoryScreen() {
         // ❌ No tocar activeVin aquí, se mantiene el que vino de ScannerScreen
       } else {
         const result = data.filter((d) =>
-          d.vin.toLowerCase().includes(search.toLowerCase())
+          d.vin.toLowerCase().includes(search.toLowerCase()),
         );
         setFiltered(result);
         setActiveVin(result.length > 0 ? result[0].vin : null); // solo si hay búsqueda
@@ -133,9 +133,9 @@ export default function HistoryScreen() {
   /// fotos /////////////////
 
   // Delete scan
-  const handleDeleteScan = async (vin) => {
-    await deleteScan(vin);
-    const newData = data.filter((d) => d.vin !== vin);
+  const handleDeleteScan = async (scan_id_local, vin) => {
+    await deleteScan(scan_id_local);
+    const newData = data.filter((d) => d.scan_id_local !== scan_id_local);
     setData(newData);
     setFiltered(newData);
     if (activeVin === vin) setActiveVin(null);
@@ -189,12 +189,12 @@ export default function HistoryScreen() {
         ref={listRef}
         data={filtered}
         extraData={filtered} // 🔹 fuerza re-render al cambiar daños
-        keyExtractor={(item) => item.vin}
+        keyExtractor={(item) => item.scan_id_local}
         renderItem={({ item }) => {
           if (!item) return null; // 🔹 evita crash si item es undefined
           return (
             <ScanItem
-              key={item.vin + (item.damages?.length || 0)} // forzar remount si cambia cantidad de daños
+              key={item.scan_id_local + (item.damages?.length || 0)} // forzar remount si cambia cantidad de daños
               item={item}
               localPicts={localPictsMap[item.vin] || []}
               isActive={item.vin === activeVin}
