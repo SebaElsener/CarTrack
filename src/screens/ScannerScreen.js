@@ -18,6 +18,7 @@ import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import { useAuth } from "../context/AuthContext";
 import { useScans } from "../context/ScanContext";
+import { useAppStatus } from "../context/TransportAndLocationContext";
 import { getScans, saveScan } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 
@@ -167,6 +168,7 @@ export default function ScannerScreen() {
     setMovimientoError,
   } = useScans();
   const { user } = useAuth();
+  const { lugar, batea } = useAppStatus();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -428,7 +430,20 @@ export default function ScannerScreen() {
     const alreadyScanned = await getScans({ vin });
     if (!alreadyScanned) {
       await playSound("success");
-      await saveScan(vin, type, weatherCondition, transportUnit, user?.email);
+      console.log("Movimien: ", movimiento);
+      console.log("Lugar: ", lugar);
+      console.log("batea: ", batea);
+
+      await saveScan(
+        vin,
+        type,
+        weatherCondition,
+        movimiento,
+        lugar,
+        batea,
+        transportUnit,
+        user?.email,
+      );
       requestSync();
       setTimeout(() => {
         scanLock.current = false;
