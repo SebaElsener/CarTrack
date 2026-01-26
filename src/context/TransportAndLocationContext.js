@@ -13,7 +13,7 @@ export const AppStatusProvider = ({ children }) => {
   useEffect(() => {
     const interval = setInterval(async () => {
       const raw = await AsyncStorage.getItem("lugar_actual");
-      console.log("ZONA LEIDA EN CONTEXT: ", raw);
+      //console.log("ZONA LEIDA EN CONTEXT: ", raw);
       if (!raw) return;
 
       try {

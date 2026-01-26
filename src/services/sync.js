@@ -1,4 +1,4 @@
-import { getDb, isDbReady } from "../database/Database";
+import { getDb, isDbReady, markToSyncHelper } from "../database/Database";
 import { supabase } from "./supabase";
 
 async function waitForDb() {
@@ -43,6 +43,7 @@ export const syncPendingScans = async () => {
       `UPDATE scans SET remote_id = ${scan.supabase_id} WHERE id = ?`,
       item.id,
     );
+    await markToSyncHelper("damages", scan.supabase_id, item.id);
     await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
     syncedCount++;
   }
@@ -61,6 +62,7 @@ export const danoCloudUpdate = async () => {
   }
   let syncedCount = 0;
   for (const item of unsyncedDamages) {
+    console.log(item.id, item.local_scan_id);
     const { data, error } = await supabase
       .from("damages")
       .insert({
@@ -76,13 +78,13 @@ export const danoCloudUpdate = async () => {
       .select("id")
       .single();
     if (error) {
-      console.log("❌ damage sync error", item.local_id, error);
+      console.log("❌ damage sync error", item.id, error);
       continue;
     }
     await db.runAsync(
-      `UPDATE damages SET synced = 1, supabase_id = ? WHERE local_id = ?`,
+      `UPDATE damages SET synced = 1, supabase_id = ? WHERE id = ?`,
       data.id,
-      item.local_id,
+      item.id,
     );
     syncedCount++;
   }
@@ -185,14 +187,8 @@ export const deleteDamagePerVINandID = async () => {
       console.log("❌ delete damage error", damage.supabase_id, error);
       continue;
     }
-    await db.runAsync(
-      `UPDATE damages SET deleted = 0 WHERE local_id = ?`,
-      damage.local_id,
-    );
-    await db.runAsync(
-      `DELETE FROM damages WHERE local_id = ?`,
-      damage.local_id,
-    );
+    await db.runAsync(`UPDATE damages SET deleted = 0 WHERE id = ?`, damage.id);
+    await db.runAsync(`DELETE FROM damages WHERE id = ?`, damage.id);
     syncedCount++;
   }
   // devolvemos cuántos daños quedan pendientes

@@ -41,12 +41,13 @@ export const initDB = async () => {
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS pictures (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        scan_id INTEGER NOT NULL,
+        local_scan_id INTEGER,
+        scan_id INTEGER,
         vin TEXT NOT NULL,
         metadata TEXT NOT NULL,
         pictureurl TEXT,
         user TEXT NOT NULL,
-        synced INTEGER DEFAULT 0)
+        synced INTEGER DEFAULT NULL)
       `,
   );
 
@@ -64,8 +65,9 @@ export const initDB = async () => {
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS damages (
-        local_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        scan_id INTEGER NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        local_scan_id INTEGER,
+        scan_id INTEGER,
         supabase_id UUID NULL,
         vin TEXT NOT NULL,
         date TEXT NOT NULL,
@@ -75,7 +77,7 @@ export const initDB = async () => {
         obs TEXT,
         deleted INTEGER DEFAULT 0,
         user TEXT NOT NULL,
-        synced INTEGER DEFAULT 0)
+        synced INTEGER DEFAULT NULL)
       `,
   );
 
@@ -114,7 +116,7 @@ export const saveScan = async (
   user,
 ) => {
   const db = await getDb();
-  await db.runAsync(
+  const result = await db.runAsync(
     `INSERT INTO scans (vin, type, clima, movimiento, lugar, batea, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
     vin,
     type,
@@ -125,6 +127,8 @@ export const saveScan = async (
     user,
     new Date().toISOString(),
   );
+
+  return result.lastInsertRowId;
 };
 
 // Guardar name y binary foto para subir a supabase bucket
@@ -200,8 +204,9 @@ export const getScans = async ({
         (
           SELECT json_group_array(
             json_object(
-              'id', d.local_id,
+              'id', d.id,
               'scan_id', d.scan_id,
+              'localScanId', d.local_scan_id,
               'area', d.area,
               'averia', d.averia,
               'grav', d.grav,
@@ -210,17 +215,17 @@ export const getScans = async ({
             )
           )
           FROM damages d
-          WHERE d.scan_id = s.remote_id
+          WHERE d.local_scan_id = s.id
         ),
         '[]'
       ) AS damages,
 
-      -- 📸 Fotos (por remote_id)
+      -- 📸 Fotos (por id local offline first)
       IFNULL(
         (
           SELECT json_group_array(JSON_EXTRACT(p.metadata, '$.carpeta'))
           FROM pictures p
-          WHERE p.scan_id = s.remote_id
+          WHERE p.local_scan_id = s.id
         ),
         '[]'
       ) AS fotos
@@ -276,20 +281,85 @@ export const scanExists = async (vin, movimiento) => {
 };
 
 // Añadir información al vin colectado
-export const addInfo = async (vin, scanid, area, averia, grav, obs, user) => {
+// export const addInfo = async (
+//   vin,
+//   local_ScanId,
+//   area,
+//   averia,
+//   grav,
+//   obs,
+//   user,
+// ) => {
+//   console.log(vin, local_ScanId, area, averia, grav, obs, user);
+//   const db = await getDb();
+
+//   // buscamos el scan
+//   const scan = await db.getFirstAsync(
+//     `SELECT remote_id, synced FROM scans WHERE id = ?`,
+//     local_ScanId,
+//   );
+//   const hasRemoteScan = scan?.synced === 1 && scan?.remote_id != null;
+//   const fecha = new Date().toISOString();
+
+//   await db.runAsync(
+//     `
+//     INSERT INTO damages (
+//       vin,
+//       scan_id,
+//       area,
+//       averia,
+//       grav,
+//       obs,
+//       user,
+//       date,
+//       synced
+//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+//     `,
+//     vin,
+//     hasRemoteScan ? scan.remote_id : null,
+//     area,
+//     averia,
+//     grav,
+//     obs,
+//     user,
+//     fecha,
+//     hasRemoteScan ? 0 : null,
+//   );
+// };
+
+export const addInfo = async (
+  vin,
+  local_scanId,
+  area,
+  averia,
+  grav,
+  obs,
+  user,
+) => {
   const db = await getDb();
+
+  // buscar el scan
+  const scan = await db.getFirstAsync(
+    `SELECT remote_id, synced FROM scans WHERE id = ?`,
+    local_scanId,
+  );
+  const hasRemoteScan = scan?.synced === 1 && scan?.remote_id != null;
+
   try {
     const fecha = new Date().toISOString();
     const result = await db.runAsync(
-      `INSERT INTO damages (vin, scan_id, area, averia, grav, obs, user, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      `INSERT INTO damages (vin, local_scan_id, scan_id, area, averia, grav, obs, user, date, synced)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       vin,
-      scanid,
+      local_scanId,
+      hasRemoteScan ? scan.remote_id : null,
       area,
       averia,
       grav,
       obs,
       user,
       fecha,
+      hasRemoteScan ? 0 : null,
     );
     console.log("Registros actualizados: ", result.changes);
     return "Información actualizada";
@@ -325,10 +395,7 @@ export const clearDb = async () => {
 export const markToDelete = async (damageId) => {
   const db = await getDb();
   try {
-    await db.runAsync(
-      `UPDATE damages SET deleted = 1 WHERE local_id = ?`,
-      damageId,
-    );
+    await db.runAsync(`UPDATE damages SET deleted = 1 WHERE id = ?`, damageId);
   } catch (error) {
     console.log("Error al marcar daño a eliminar: ", damageId);
     return error;
@@ -344,6 +411,26 @@ export const deleteDamageById = async () => {
     return error;
   }
 };
+
+export async function markToSyncHelper(table, remoteScanId, localScanId) {
+  console.log("PARAMS markToSyncHelper: ", table, remoteScanId, localScanId);
+  const db = await getDb();
+
+  try {
+    const result = await db.runAsync(
+      `
+      UPDATE ${table}
+      SET scan_id = ?, synced = 0
+      WHERE id = ? AND (synced IS NULL OR synced != 0)
+      `,
+      parseInt(remoteScanId),
+      parseInt(localScanId),
+    );
+    console.log("Registros listos para sync: ", result.changes);
+  } catch (error) {
+    console.log("Error al marcar registros para sync, ", error);
+  }
+}
 
 //Contar scans guardados para actualizar barra contador scans
 export async function getScansCount() {

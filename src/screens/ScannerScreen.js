@@ -154,6 +154,7 @@ export default function ScannerScreen() {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
+  const [localScanId, setLocalScanId] = useState("");
   const scanLock = useRef(false);
   const errorLock = useRef(false);
   const {
@@ -432,7 +433,7 @@ export default function ScannerScreen() {
     if (!alreadyScanned) {
       await playSound("success");
 
-      await saveScan(
+      const savedScanId = await saveScan(
         vin,
         type,
         weatherCondition,
@@ -441,7 +442,8 @@ export default function ScannerScreen() {
         transportUnit,
         user?.email,
       );
-      console.log("LUGAR: ", lugar);
+
+      setLocalScanId(savedScanId);
 
       requestSync();
       setTimeout(() => {
@@ -646,7 +648,7 @@ export default function ScannerScreen() {
             onPress={() =>
               router.replace({
                 pathname: "/(app)/DanoScreen",
-                params: { vinFromRouter: lastResult },
+                params: { vinFromRouter: lastResult, localScanId: localScanId },
               })
             }
             color="rgba(222, 101, 101, 0.95)"
@@ -659,7 +661,7 @@ export default function ScannerScreen() {
             onPress={() =>
               router.replace({
                 pathname: "/(app)/CameraScreen",
-                params: { vinFromRouter: lastResult },
+                params: { vinFromRouter: lastResult, localScanId: localScanId },
               })
             }
             color="rgba(104, 137, 198, 0.93)"

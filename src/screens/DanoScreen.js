@@ -28,9 +28,9 @@ export default function DanoScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const { vinFromRouter, remote_id } = useLocalSearchParams();
+  const { vinFromRouter, localScanId } = useLocalSearchParams();
   const vin = vinFromRouter;
-  const remoteId = remote_id;
+  const local_scanId = localScanId;
 
   const [area, setArea] = useState("");
   const [averia, setAveria] = useState("");
@@ -129,13 +129,12 @@ export default function DanoScreen() {
 
   const handleSave = async () => {
     if (!validateFields()) {
-      showToast("Complete todos los campos obligatorios", "error");
+      showToast("Complete todos los campos", "error");
       return;
     }
-    console.log("SCAN_ID remoto: ", remoteId);
     const result = await addInfo(
       vin,
-      remoteId,
+      local_scanId,
       area,
       averia,
       grav,
@@ -265,7 +264,7 @@ export default function DanoScreen() {
           onPress={() =>
             router.replace({
               pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: vin, remote_id: remoteId },
+              params: { vinFromRouter: vin, localScanId: local_scanId },
             })
           }
         >

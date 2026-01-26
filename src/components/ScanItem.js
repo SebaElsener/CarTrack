@@ -212,7 +212,10 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
-              params: { vinFromRouter: item.vin, remote_id: item.remote_id },
+              params: {
+                vinFromRouter: item.vin,
+                localScanId: item.scan_id_local,
+              },
             })
           }
         />
@@ -223,7 +226,10 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
           onPress={() =>
             router.push({
               pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: item.vin, remote_id: item.remote_id },
+              params: {
+                vinFromRouter: item.vin,
+                localScanId: item.scan_id_local,
+              },
             })
           }
         />
