@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GPS-Test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Test Locaciones Zárate</name>
+    <trkseg>
+
+      <!-- TZ -->
+      <trkpt lat="-34.074502" lon="-59.042167"></trkpt>
+
+      <!-- Camino hacia El Molino -->
+      <trkpt lat="-34.090000" lon="-59.060000"></trkpt>
+
+      <!-- El Molino -->
+      <trkpt lat="-34.106947" lon="-59.097724"></trkpt>
+
+      <!-- Camino hacia Mi Casa -->
+      <trkpt lat="-34.103500" lon="-59.050000"></trkpt>
+
+      <!-- Mi Casa -->
+      <trkpt lat="-34.100822" lon="-59.015534"></trkpt>
+
+      <!-- Camino hacia Mercado Zárate -->
+      <trkpt lat="-34.099900" lon="-59.014000"></trkpt>
+
+      <!-- Mercado Zárate -->
+      <trkpt lat="-34.099386" lon="-59.012104"></trkpt>
+
+      <!-- Punto FUERA de zona ( >300m ) -->
+      <trkpt lat="-34.112000" lon="-59.030000"></trkpt>
+
+    </trkseg>
+  </trk>
+</gpx>

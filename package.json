@@ -9,7 +9,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "appdeploy": "npx expo prebuild && cd android && ./gradlew assembleRelease",
+    "appemulador": "npx expo prebuild && npx expo run:android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

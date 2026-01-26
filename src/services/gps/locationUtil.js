@@ -1,5 +1,3 @@
-import { Text, View } from "react-native-paper";
-
 const LOCACIONES = [
   {
     nombre: "TZ",
@@ -55,20 +53,9 @@ export const resolverLocacion = (coords) => {
     );
 
     if (d <= loc.radio - BUFFER_METROS) {
-      return loc.nombre;
+      return loc.nombre; // ✅ STRING
     }
   }
 
-  return (
-    <>
-      <View>
-        <Text
-          style={{ fontSize: "1rem", fontWeight: "bold", color: "#f33838e9" }}
-        >
-          Desconocido
-        </Text>
-      </View>
-      ;
-    </>
-  );
+  return null; // ✅ NO JSX
 };
