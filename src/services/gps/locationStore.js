@@ -1,16 +1,19 @@
-let currentLocation = "Detectando...";
-const listeners = new Set();
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export function setLocation(lugar) {
-  currentLocation = lugar;
-  listeners.forEach((l) => l(lugar));
-}
+const KEY = "lugar_actual";
 
-export function subscribe(listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
+export const saveLugar = async (lugar) => {
+  try {
+    await AsyncStorage.setItem(KEY, lugar);
+  } catch (e) {
+    console.log("❌ Error guardando lugar", e);
+  }
+};
 
-export function getLocation() {
-  return currentLocation;
-}
+export const getLugar = async () => {
+  try {
+    return await AsyncStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
+};

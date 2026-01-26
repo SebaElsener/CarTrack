@@ -257,7 +257,6 @@ export const getScans = async ({
 
 // Verificar si el vin / movimiento existen
 export const scanExists = async (vin, movimiento) => {
-  console.log(vin, movimiento);
   if (!vin || !movimiento) return false;
 
   const db = await getDb();

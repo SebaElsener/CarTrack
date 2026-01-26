@@ -1,3 +1,5 @@
+import { saveLugar } from "../gps/locationStore";
+
 const LOCACIONES = [
   {
     nombre: "TZ",
@@ -39,10 +41,17 @@ export const distanciaMetros = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const BUFFER_METROS = 30;
+let zonaActual = null;
+
+const MARGEN_SALIDA = 40; // metros extra
 
 export const resolverLocacion = (coords) => {
-  if (!coords || coords.accuracy > 150) return null;
+  if (!coords) return null;
+
+  if (coords.accuracy > 120) {
+    // ignoramos lecturas malas (ruido GPS) - poner 80 en produccion
+    return zonaActual;
+  }
 
   for (const loc of LOCACIONES) {
     const d = distanciaMetros(
@@ -52,8 +61,23 @@ export const resolverLocacion = (coords) => {
       loc.longitude,
     );
 
-    if (d <= loc.radio - BUFFER_METROS) {
-      return loc.nombre; // ✅ STRING
+    // 🟢 Si no estoy en ninguna zona → entrar normal
+    if (!zonaActual && d <= loc.radio) {
+      zonaActual = loc.nombre;
+      saveLugar(zonaActual);
+      return zonaActual;
+    }
+
+    // 🟢 Si ya estoy en esta zona → permitir ruido
+    if (zonaActual === loc.nombre) {
+      if (d <= loc.radio + MARGEN_SALIDA) {
+        return zonaActual;
+      } else {
+        // 🚪 salí realmente
+        zonaActual = null;
+        saveLugar("Fuera de zona");
+        return null;
+      }
     }
   }
 

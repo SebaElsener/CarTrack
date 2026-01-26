@@ -441,6 +441,8 @@ export default function ScannerScreen() {
         transportUnit,
         user?.email,
       );
+      console.log("LUGAR: ", lugar);
+
       requestSync();
       setTimeout(() => {
         scanLock.current = false;
