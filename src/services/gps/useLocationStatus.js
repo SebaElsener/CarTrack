@@ -1,58 +1,98 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { resolverLocacion } from "../gps/locationUtil";
-import { TASK_NAME } from "./locationTask";
 
 export const useLocationStatus = () => {
   const [locacion, setLocacion] = useState("Detectando...");
 
   useEffect(() => {
-    const init = async () => {
-      const { status: fg } = await Location.requestForegroundPermissionsAsync();
-      if (fg !== "granted") return;
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+    let sub;
 
-      const nombre = resolverLocacion(location.coords);
+    const start = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
 
-      if (nombre) {
-        await AsyncStorage.setItem("locacion_actual", nombre);
-      } else {
-        await AsyncStorage.setItem("locacion_actual", "Fuera de zona");
-      }
+      // 🔥 posición inicial (YA comprobamos que funciona)
+      const pos = await Location.getCurrentPositionAsync({});
+      setLocacion(resolverLocacion(pos.coords) ?? "Fuera de zona");
 
-      const { status: bg } = await Location.requestBackgroundPermissionsAsync();
-      if (bg !== "granted") return;
-
-      const running = await Location.hasStartedLocationUpdatesAsync(TASK_NAME);
-
-      if (!running) {
-        await Location.startLocationUpdatesAsync(TASK_NAME, {
+      // 🔥 tracking en vivo
+      sub = await Location.watchPositionAsync(
+        {
           accuracy: Location.Accuracy.Balanced,
-          distanceInterval: 50,
-          timeInterval: 10 * 60 * 1000,
-          pausesUpdatesAutomatically: true,
-          foregroundService: {
-            notificationTitle: "Ubicación activa",
-            notificationBody: "Detección automática de locación",
-          },
-        });
-      }
+          distanceInterval: 10,
+        },
+        (location) => {
+          const nombre = resolverLocacion(location.coords) ?? "Fuera de zona";
+          setLocacion(nombre);
+        },
+      );
     };
 
-    init();
-  }, []);
+    start();
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const valor = await AsyncStorage.getItem("locacion_actual");
-      if (valor) setLocacion(valor);
-    }, 4000);
-
-    return () => clearInterval(interval);
+    return () => {
+      sub?.remove();
+    };
   }, []);
 
   return locacion;
 };
+
+// import * as Location from "expo-location";
+// import { useEffect, useState } from "react";
+// import { resolverLocacion } from "../gps/locationUtil";
+
+// export const useLocationStatus = () => {
+//   const [locacion, setLocacion] = useState("Detectando...");
+
+//   useEffect(() => {
+//     let sub = null;
+
+//     const start = async () => {
+//       const { status } = await Location.requestForegroundPermissionsAsync();
+//       if (status !== "granted") {
+//         setLocacion("Permiso denegado");
+//         return;
+//       }
+
+//       const enabled = await Location.hasServicesEnabledAsync();
+//       if (!enabled) {
+//         setLocacion("GPS apagado");
+//         return;
+//       }
+
+//       try {
+//         // 1️⃣ ubicación inicial
+//         const first = await Location.getCurrentPositionAsync({
+//           accuracy: Location.Accuracy.Balanced,
+//         });
+
+//         setLocacion(resolverLocacion(first.coords) ?? "Fuera de zona");
+
+//         // 2️⃣ seguimiento en vivo
+//         sub = await Location.watchPositionAsync(
+//           {
+//             accuracy: Location.Accuracy.Balanced,
+//             distanceInterval: 10,
+//           },
+//           (location) => {
+//             const nombre = resolverLocacion(location.coords) ?? "Fuera de zona";
+//             setLocacion(nombre);
+//           },
+//         );
+//       } catch (e) {
+//         console.log("📍 Location error:", e);
+//         setLocacion("Ubicación no disponible");
+//       }
+//     };
+
+//     start();
+
+//     return () => {
+//       sub?.remove();
+//     };
+//   }, []);
+
+//   return locacion;
+// };

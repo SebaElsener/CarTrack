@@ -11,6 +11,7 @@ import { AppStatusProvider } from "../../src/context/TransportAndLocationContext
 import InfoBar from "../../src/screens/InfoBar";
 import TransportBar from "../../src/screens/TransportBar";
 import WeatherCondition from "../../src/screens/WeatherCondition";
+import "../../src/services/gps/locationTask";
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {

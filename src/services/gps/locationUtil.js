@@ -39,10 +39,11 @@ export const distanciaMetros = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const BUFFER_METROS = 30;
+const BUFFER_METROS = 0;
+// const BUFFER_METROS = 30;
 
 export const resolverLocacion = (coords) => {
-  if (!coords || coords.accuracy > 100) return null;
+  if (!coords || coords.accuracy > 150) return null;
 
   for (const loc of LOCACIONES) {
     const d = distanciaMetros(
