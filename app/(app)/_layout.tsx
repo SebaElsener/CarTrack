@@ -83,6 +83,7 @@ export default function AppLayout() {
                   <View style={styles.appBarDate}>
                     <InfoBar />
                   </View>
+
                   <View style={styles.appBarInfoAndLocation}>
                     <View style={{ width: "75%" }}>
                       <TransportBar />

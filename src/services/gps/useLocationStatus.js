@@ -14,6 +14,7 @@ export const useLocationStatus = () => {
 
       // 🔥 posición inicial (YA comprobamos que funciona)
       const pos = await Location.getCurrentPositionAsync({});
+      console.log(pos);
       setLocacion(resolverLocacion(pos.coords) ?? "Fuera de zona");
 
       // 🔥 tracking en vivo
