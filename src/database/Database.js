@@ -389,7 +389,7 @@ export async function markToSyncHelper(table, remoteScanId, localScanId) {
       `
       UPDATE ${table}
       SET scan_id = ?, synced = 0
-      WHERE id = ? AND (synced IS NULL OR synced != 0)
+      WHERE local_scan_id = ? AND (synced IS NULL OR synced != 0)
       `,
       parseInt(remoteScanId),
       parseInt(localScanId),

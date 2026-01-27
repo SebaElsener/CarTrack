@@ -184,6 +184,8 @@ export default function ScannerScreen() {
     }
   }, [movimiento]);
 
+  useEffect(() => {}, [lastResult]);
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -645,12 +647,12 @@ export default function ScannerScreen() {
 
           <AnimatedButton
             label="Daños"
-            onPress={() =>
+            onPress={() => {
               router.replace({
                 pathname: "/(app)/DanoScreen",
                 params: { vinFromRouter: lastResult, localScanId: localScanId },
-              })
-            }
+              });
+            }}
             color="rgba(222, 101, 101, 0.95)"
             textColor="rgba(41, 30, 30, 0.89)"
             style={styles.button}
@@ -658,12 +660,12 @@ export default function ScannerScreen() {
 
           <AnimatedButton
             label="Tomar fotos"
-            onPress={() =>
+            onPress={() => {
               router.replace({
                 pathname: "/(app)/CameraScreen",
                 params: { vinFromRouter: lastResult, localScanId: localScanId },
-              })
-            }
+              });
+            }}
             color="rgba(104, 137, 198, 0.93)"
             textColor="rgba(41, 30, 30, 0.89)"
             style={styles.button}
@@ -677,6 +679,7 @@ export default function ScannerScreen() {
               setAligned(false);
               setHandInput("");
               setShowKeyboard(false);
+              setLocalScanId("");
             }}
             color="rgba(115, 175, 98, 1)"
             textColor="rgba(41, 30, 30, 0.89)"

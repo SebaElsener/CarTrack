@@ -30,12 +30,13 @@ export default function DanoScreen() {
 
   const { vinFromRouter, localScanId } = useLocalSearchParams();
   const vin = vinFromRouter;
-  const local_scanId = localScanId;
+  const local_scanId = parseInt(localScanId);
 
   const [area, setArea] = useState("");
   const [averia, setAveria] = useState("");
   const [grav, setGrav] = useState("");
   const [obs, setObs] = useState("");
+  const [formKey, setFormKey] = useState(0);
   //const [codigo, setCodigo] = useState("");
   const translateY = useRef(new Animated.Value(0)).current;
 
@@ -46,6 +47,20 @@ export default function DanoScreen() {
     grav: false,
     // codigo: false,
   });
+
+  const resetForm = () => {
+    setArea("");
+    setAveria("");
+    setGrav("");
+    setObs("");
+    setErrors({
+      area: false,
+      averia: false,
+      grav: false,
+    });
+
+    setFormKey((k) => k + 1);
+  };
 
   const [areaSearch, setAreaSearch] = useState("");
   const [filteredAreas, setFilteredAreas] = useState(areasDropdown);
@@ -146,6 +161,7 @@ export default function DanoScreen() {
     if (result === "Información actualizada")
       showToast("ACTUALIZADO OK!", "success");
     else showToast("Error al actualizar", "error");
+    resetForm();
   };
 
   return (
@@ -169,6 +185,7 @@ export default function DanoScreen() {
 
       <View>
         <Areas
+          key={`areas-${formKey}`}
           style={{ height: 300 }}
           areas={filteredAreas || []}
           selectedValue={area}
@@ -185,6 +202,7 @@ export default function DanoScreen() {
 
       <View>
         <Averias
+          key={`averias-${formKey}`}
           averias={averiasDropdown}
           selectedValue={averia}
           onSelect={(item) => {
@@ -197,6 +215,7 @@ export default function DanoScreen() {
 
       <View>
         <Gravedades
+          key={`grav-${formKey}`}
           gravedades={gravedadesDropdown}
           selectedValue={grav}
           onSelect={(item) => {
@@ -261,12 +280,7 @@ export default function DanoScreen() {
           labelStyle={{ fontSize: 14, color: "#343333d2" }}
           mode="contained"
           buttonColor="rgba(140, 197, 183, 0.88)"
-          onPress={() =>
-            router.replace({
-              pathname: "/(app)/DanoScreen",
-              params: { vinFromRouter: vin, localScanId: local_scanId },
-            })
-          }
+          onPress={resetForm}
         >
           AGREGAR OTRO DAÑO
         </Button>
