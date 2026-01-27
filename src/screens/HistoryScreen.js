@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
   },
   vin: {
     fontSize: 19,
-    fontWeight: "bold",
-    color: "#4d4d4d",
+    fontWeight: "600",
+    color: "#2c2b2bef",
     textAlign: "center",
   },
   highlight: {

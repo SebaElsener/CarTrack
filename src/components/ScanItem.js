@@ -138,12 +138,13 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         },
       ]}
     >
-      {item.synced === 1 && (
+      {/* {console.log(item.synced)} */}
+      {item.synced === 0 && (
         <IconButton
           size={30}
           style={{ position: "absolute", top: -5 }}
           icon="sync-alert"
-          iconColor="rgba(187, 70, 70, 0.94)"
+          iconColor="rgba(189, 63, 63, 0.85)"
         />
       )}
 
@@ -155,7 +156,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
 
       <View style={styles.actionBtnsContainer}>
         <IconButton
-          size={35}
+          size={30}
           icon="camera-plus"
           iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
@@ -169,7 +170,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
           }
         />
         <IconButton
-          size={35}
+          size={30}
           icon="car-2-plus"
           iconColor="rgba(34, 144, 117, 0.84)"
           onPress={() =>
@@ -184,7 +185,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         />
         {damagesState.length > 0 && (
           <IconButton
-            size={35}
+            size={30}
             icon="car-search-outline"
             style={{}}
             iconColor="rgba(34, 144, 117, 0.84)"
@@ -220,10 +221,10 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
               style={{
                 height: danosHeight,
                 //position: "absolute",
-                width: 300,
-                left: -175,
-                top: 60,
-                marginBottom: 60,
+                width: 320,
+                left: -170,
+                top: 40,
+                marginBottom: 40,
                 opacity: danosOpacity,
                 //overflow: "hidden",
               }}
@@ -239,11 +240,21 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             </Animated.View>
           </View>
         )}
+        <View style={styles.infoContainer}>
+          <View>
+            <Text style={styles.infoTitle}>BATEA</Text>
+            <Text style={styles.infoText}>1277</Text>
+          </View>
+          <View>
+            <Text style={styles.infoTitle}>MOVIMIENTO</Text>
+            <Text style={styles.infoText}>Despacho</Text>
+          </View>
+        </View>
         <IconButton
-          size={35}
-          style={{ position: "absolute", left: 280, top: -45 }}
+          size={30}
+          style={{ position: "absolute", left: 280, top: -53 }}
           icon="delete"
-          iconColor="rgba(187, 70, 70, 0.94)"
+          iconColor="rgba(222, 71, 71, 0.83)"
           onPress={handleDelete}
         />
       </View>
@@ -263,15 +274,39 @@ const styles = StyleSheet.create({
     //boxShadow: "1px 1px 6px 1px rgba(145, 145, 145, 0.79)",
   },
   danosContainer: {},
-  button: { marginTop: 12, width: "90%", alignSelf: "center" },
+  button: { marginTop: 12, width: "100%", alignSelf: "center" },
   actionBtnsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
+    //backgroundColor: "#d6cccc8d",
+    borderTopWidth: 0.3,
+    marginTop: 8,
+    borderTopColor: "#e1dcdc8a",
   },
   code: {
     fontSize: 19,
     fontWeight: "bold",
     color: "#4d4d4d",
+    textAlign: "center",
+  },
+  infoContainer: {
+    position: "absolute",
+    right: 10,
+    top: 8,
+    flexDirection: "row",
+    display: "flex",
+    justifyContent: "center",
+    gap: "10",
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#2f2d2deb",
+    textAlign: "center",
+  },
+  infoTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#302f2feb",
     textAlign: "center",
   },
 });
