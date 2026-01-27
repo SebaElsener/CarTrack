@@ -44,6 +44,7 @@ export const syncPendingScans = async () => {
       item.id,
     );
     await markToSyncHelper("damages", scan.supabase_id, item.id);
+    await markToSyncHelper("pictures", scan.supabase_id, item.id);
     await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
     syncedCount++;
   }
@@ -62,7 +63,6 @@ export const danoCloudUpdate = async () => {
   }
   let syncedCount = 0;
   for (const item of unsyncedDamages) {
-    console.log(item.id, item.local_scan_id);
     const { data, error } = await supabase
       .from("damages")
       .insert({
@@ -156,7 +156,7 @@ export const syncPendingPicts = async () => {
       user: picts.user,
     });
     if (error) {
-      console.log("❌ picture sync error", picts.id, error);
+      console.log("❌ picture sync error", picts.scan_id, error);
       continue;
     }
     await db.runAsync(`UPDATE pictures SET synced = 1 WHERE id = ?`, picts.id);

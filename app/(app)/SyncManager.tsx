@@ -64,7 +64,6 @@ export default function SyncManager({ onSyncChange }: Props) {
       } else {
         scheduleRetry();
       }
-      console.log("Sync completado ✅");
     } catch (e) {
       console.error("SYNC ERROR:", e);
       scheduleRetry();

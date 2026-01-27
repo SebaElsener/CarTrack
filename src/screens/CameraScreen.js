@@ -33,9 +33,9 @@ export default function CameraScreen() {
   const [fotos, setFotos] = useState([]);
   const { user } = useAuth();
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
-  const { vinFromRouter, remote_id } = useLocalSearchParams();
+  const { vinFromRouter, localScanId } = useLocalSearchParams();
   const vin = vinFromRouter;
-  const remoteId = remote_id;
+  const local_ScanId = localScanId;
 
   useEffect(() => {
     listarFotos();
@@ -133,7 +133,7 @@ export default function CameraScreen() {
       // Guardar en DB local
       const pictId = await savePict(
         vin,
-        remoteId,
+        local_ScanId,
         JSON.stringify(metadatos),
         user?.email,
       );

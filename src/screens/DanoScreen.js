@@ -159,7 +159,7 @@ export default function DanoScreen() {
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
-              params: { vinFromRouter: vin },
+              params: { vinFromRouter: vin, localScanId: local_scanId },
             })
           }
         />

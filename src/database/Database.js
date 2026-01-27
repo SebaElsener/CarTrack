@@ -144,16 +144,30 @@ export const savePendingImage = async (pictId, nombre, binary) => {
 };
 
 // Guardar fotos + metadata para subir a supabase
-export const savePict = async (vin, remoteId, metadata, user) => {
+export const savePict = async (vin, local_ScanId, metadata, user) => {
   const db = await getDb();
-  const id = await db.runAsync(
-    `INSERT INTO pictures (vin, scan_id, metadata, user, synced) VALUES (?, ?, ?, ?, 0);`,
-    vin,
-    remoteId,
-    metadata,
-    user,
+  // buscar el scan
+  const scan = await db.getFirstAsync(
+    `SELECT remote_id, synced FROM scans WHERE id = ?`,
+    local_ScanId,
   );
-  return id.lastInsertRowId;
+
+  const hasRemoteScan = scan?.synced === 1 && scan?.remote_id != null;
+
+  try {
+    const id = await db.runAsync(
+      `INSERT INTO pictures (vin, local_scan_id, scan_id, metadata, user, synced) VALUES (?, ?, ?, ?, ?, ?);`,
+      vin,
+      local_ScanId,
+      hasRemoteScan ? scan.remote_id : null,
+      metadata,
+      user,
+      hasRemoteScan ? 0 : null,
+    );
+    return id.lastInsertRowId;
+  } catch (error) {
+    console.log("Error al esribir en tabla pictures", error);
+  }
 };
 
 // Obtener todos los escaneos, opcional filtros para querys
@@ -280,53 +294,7 @@ export const scanExists = async (vin, movimiento) => {
   return rows.length > 0;
 };
 
-// Añadir información al vin colectado
-// export const addInfo = async (
-//   vin,
-//   local_ScanId,
-//   area,
-//   averia,
-//   grav,
-//   obs,
-//   user,
-// ) => {
-//   console.log(vin, local_ScanId, area, averia, grav, obs, user);
-//   const db = await getDb();
-
-//   // buscamos el scan
-//   const scan = await db.getFirstAsync(
-//     `SELECT remote_id, synced FROM scans WHERE id = ?`,
-//     local_ScanId,
-//   );
-//   const hasRemoteScan = scan?.synced === 1 && scan?.remote_id != null;
-//   const fecha = new Date().toISOString();
-
-//   await db.runAsync(
-//     `
-//     INSERT INTO damages (
-//       vin,
-//       scan_id,
-//       area,
-//       averia,
-//       grav,
-//       obs,
-//       user,
-//       date,
-//       synced
-//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-//     `,
-//     vin,
-//     hasRemoteScan ? scan.remote_id : null,
-//     area,
-//     averia,
-//     grav,
-//     obs,
-//     user,
-//     fecha,
-//     hasRemoteScan ? 0 : null,
-//   );
-// };
-
+// Añadir daños al vin colectado
 export const addInfo = async (
   vin,
   local_scanId,
