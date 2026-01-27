@@ -102,7 +102,7 @@ function ConsultaDanoItem({ item, onDeleteDamage, onUndoDelete }) {
           ]).start();
         }
       },
-    })
+    }),
   ).current;
 
   /** Confirm delete */
@@ -163,7 +163,7 @@ function ConsultaDanoItem({ item, onDeleteDamage, onUndoDelete }) {
                 dateStyle: "short",
                 timeStyle: "short",
                 timeZone: "America/Argentina/Buenos_Aires",
-              }
+              },
             ).format(new Date(nextDamage.date))}`}</Text>
             <Text style={styles.items}>Area: {nextDamage.area}</Text>
             <Text style={styles.items}>Avería: {nextDamage.averia}</Text>
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   items: { padding: 3, fontSize: 15, color: "#2a2a2ae6" },
   counter: {
-    marginTop: 5,
+    marginTop: 15,
     textAlign: "center",
     fontWeight: "bold",
     color: "#262626b1",

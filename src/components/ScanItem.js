@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { memo, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
-import { Button, IconButton, Text } from "react-native-paper";
+import { IconButton, Text } from "react-native-paper";
 import { markToDelete } from "../database/Database";
 import { requestSync } from "../services/syncTrigger";
 import ConsultaDanoItem from "./ConsultaDanoItem";
@@ -138,11 +138,12 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         },
       ]}
     >
-      {item.synced === 0 && (
+      {item.synced === 1 && (
         <IconButton
           size={30}
+          style={{ position: "absolute", top: -5 }}
           icon="sync-alert"
-          iconColor="rgba(244, 157, 157, 0.91)"
+          iconColor="rgba(187, 70, 70, 0.94)"
         />
       )}
 
@@ -150,58 +151,6 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         renderVin(item.vin)
       ) : (
         <Text style={styles.code}>{item.vin}</Text>
-      )}
-
-      {damagesState.length > 0 && (
-        <View style={styles.danosContainer}>
-          <Button
-            buttonColor="rgba(108, 178, 160, 0.78)"
-            mode="contained"
-            labelStyle={{ fontSize: 13 }}
-            onPress={toggleDanos}
-            style={styles.button}
-          >
-            {damaged ? "OCULTAR" : "VER DAÑOS"}
-          </Button>
-
-          {/* MEDICIÓN INVISIBLE */}
-          <View
-            pointerEvents="none"
-            style={{
-              position: "absolute",
-              opacity: 0,
-              zIndex: -1,
-              width: "100%",
-            }}
-            onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
-          >
-            <ConsultaDanoItem
-              item={{
-                damages: damagesState,
-                fotos: localPicts,
-              }}
-            />
-          </View>
-
-          {/* CONTENIDO ANIMADO REAL */}
-          <Animated.View
-            key={damagesState.length + "-" + item.vin} // 🔹 Fuerza remount al cambiar nro de daños
-            style={{
-              height: danosHeight,
-              opacity: danosOpacity,
-              overflow: "hidden",
-            }}
-            pointerEvents={damaged ? "auto" : "none"}
-          >
-            <ConsultaDanoItem
-              item={{
-                damages: damagesState,
-                fotos: localPicts,
-              }}
-              onDeleteDamage={handleDeleteDamage}
-            />
-          </Animated.View>
-        </View>
       )}
 
       <View style={styles.actionBtnsContainer}>
@@ -233,10 +182,68 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             })
           }
         />
+        {damagesState.length > 0 && (
+          <IconButton
+            size={35}
+            icon="car-search-outline"
+            style={{}}
+            iconColor="rgba(34, 144, 117, 0.84)"
+            onPress={toggleDanos}
+          />
+        )}
+
+        {/* {damaged ? "OCULTAR" : "VER DAÑOS"} */}
+        {damagesState.length > 0 && (
+          <View style={styles.danosContainer}>
+            {/* MEDICIÓN INVISIBLE */}
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                opacity: 0,
+                zIndex: -1,
+                width: "100%",
+              }}
+              onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
+            >
+              <ConsultaDanoItem
+                item={{
+                  damages: damagesState,
+                  fotos: localPicts,
+                }}
+              />
+            </View>
+
+            {/* CONTENIDO ANIMADO REAL */}
+            <Animated.View
+              key={damagesState.length + "-" + item.vin} // 🔹 Fuerza remount al cambiar nro de daños
+              style={{
+                height: danosHeight,
+                //position: "absolute",
+                width: 300,
+                left: -175,
+                top: 60,
+                marginBottom: 60,
+                opacity: danosOpacity,
+                //overflow: "hidden",
+              }}
+              pointerEvents={damaged ? "auto" : "none"}
+            >
+              <ConsultaDanoItem
+                item={{
+                  damages: damagesState,
+                  fotos: localPicts,
+                }}
+                onDeleteDamage={handleDeleteDamage}
+              />
+            </Animated.View>
+          </View>
+        )}
         <IconButton
           size={35}
+          style={{ position: "absolute", left: 280, top: -45 }}
           icon="delete"
-          iconColor="rgba(241, 125, 125, 0.81)"
+          iconColor="rgba(187, 70, 70, 0.94)"
           onPress={handleDelete}
         />
       </View>
@@ -259,7 +266,7 @@ const styles = StyleSheet.create({
   button: { marginTop: 12, width: "90%", alignSelf: "center" },
   actionBtnsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
   },
   code: {
     fontSize: 19,
