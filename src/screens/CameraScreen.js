@@ -217,6 +217,7 @@ export default function CameraScreen() {
       // DB local
       const pictId = await savePict(
         vin,
+        local_ScanId,
         JSON.stringify(metadatos),
         user?.email,
       );

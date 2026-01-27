@@ -1,7 +1,7 @@
 {
   "name": "cartrack",
   "main": "expo-router/entry",
-  "version": "CarTrack v.09-150126.apk",
+  "version": "CarTrack v.10-260126.apk",
   "scripts": {
     "start": "expo start",
     "resetcache": "expo start --clear",
@@ -11,7 +11,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "appdeploy": "npx expo prebuild && cd android && ./gradlew assembleRelease",
-    "appemulador": "npx expo prebuild && npx expo run:android"
+    "appemulador": "npx expo prebuild && npx expo run:android",
+    "adblogs": "adb logcat | grep ReactNativeJS"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
