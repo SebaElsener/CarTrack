@@ -212,6 +212,8 @@ export const getScans = async ({
       s.remote_id,
       s.vin,
       s.date AS scan_date,
+      s.batea,
+      s.movimiento,
 
       -- 🛠 Daños (por remote_id)
       IFNULL(
@@ -268,6 +270,8 @@ export const getScans = async ({
       remote_id: row.remote_id,
       vin: row.vin,
       scan_date: row.scan_date,
+      batea: row.batea,
+      movimiento: row.movimiento,
       damages,
       fotos: JSON.parse(row.fotos),
     };

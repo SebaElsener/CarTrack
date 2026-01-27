@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
-import { Icon, SegmentedButtons } from "react-native-paper";
+import { Icon, Portal, SegmentedButtons } from "react-native-paper";
 import { useScans } from "../context/ScanContext";
 
 export default function WeatherCondition() {
@@ -104,10 +104,11 @@ export default function WeatherCondition() {
           },
         ]}
       />
-
-      {weatherError ? (
-        <Text style={styles.errorText}>{weatherError}</Text>
-      ) : null}
+      <Portal>
+        {weatherError ? (
+          <Text style={styles.errorText}>{weatherError}</Text>
+        ) : null}
+      </Portal>
     </View>
   );
 }
@@ -121,11 +122,14 @@ const styles = StyleSheet.create({
     //marginTop: 8,
   },
   errorText: {
-    color: "rgba(211, 56, 56, 0.96)",
+    color: "rgba(216, 16, 16, 0.97)",
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "500",
     position: "absolute",
-    top: 65,
+    top: 240,
     left: 18,
+    textShadowColor: "#f6f6f6",
+    textShadowOffset: 1,
+    textShadowRadius: 1,
   },
 });

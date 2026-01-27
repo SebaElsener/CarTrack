@@ -224,6 +224,7 @@ function ConsultaDanoItem({ item, onDeleteDamage, onUndoDelete }) {
               mode="contained-tonal"
               onPress={confirmDelete}
               style={{ marginTop: 8 }}
+              labelStyle={{ color: "#403d3de7" }}
             >
               Eliminar daño
             </Button>
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   },
   items: { padding: 3, fontSize: 15, color: "#2a2a2ae6" },
   counter: {
-    marginTop: 15,
+    //marginTop: 3,
     textAlign: "center",
     fontWeight: "bold",
     color: "#262626b1",

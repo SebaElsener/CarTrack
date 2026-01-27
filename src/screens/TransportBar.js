@@ -111,20 +111,25 @@ export default function TransportBar() {
             <IngDespList />
           </View>
         </View>
-        {transportError ? (
-          <Text
-            style={{
-              color: "rgba(211, 56, 56, 0.96)",
-              fontSize: 18,
-              fontWeight: "600",
-              position: "absolute",
-              top: 120,
-              left: 18,
-            }}
-          >
-            {transportError}
-          </Text>
-        ) : null}
+        <Portal>
+          {transportError ? (
+            <Text
+              style={{
+                color: "rgba(216, 16, 16, 0.97)",
+                fontSize: 18,
+                fontWeight: "500",
+                position: "absolute",
+                top: 240,
+                left: 18,
+                textShadowColor: "#f6f6f6",
+                textShadowOffset: 1,
+                textShadowRadius: 1,
+              }}
+            >
+              {transportError}
+            </Text>
+          ) : null}
+        </Portal>
         {transportActive && (
           <View>
             <ProgressBar

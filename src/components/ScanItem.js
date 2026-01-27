@@ -18,6 +18,15 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
   const heightAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
   const [isDeleting, setIsDeleting] = useState(false);
+  const damageBtnOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(damageBtnOpacity, {
+      toValue: damagesState.length > 0 ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true, // 👈 opacity sí soporta native driver
+    }).start();
+  }, [damagesState.length]);
 
   /** ------------------ Inicializar damagesState ------------------ */
   useEffect(() => {
@@ -183,15 +192,29 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             })
           }
         />
-        {damagesState.length > 0 && (
-          <IconButton
-            size={30}
-            icon="car-search-outline"
-            style={{}}
-            iconColor="rgba(34, 144, 117, 0.84)"
-            onPress={toggleDanos}
-          />
-        )}
+        <View style={{ width: 48, alignItems: "center" }}>
+          <Animated.View
+            style={{
+              opacity: damageBtnOpacity,
+              transform: [
+                {
+                  scale: damageBtnOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ],
+            }}
+            pointerEvents={damagesState.length > 0 ? "auto" : "none"}
+          >
+            <IconButton
+              size={30}
+              icon="car-search-outline"
+              iconColor="rgba(34, 144, 117, 0.84)"
+              onPress={toggleDanos}
+            />
+          </Animated.View>
+        </View>
 
         {/* {damaged ? "OCULTAR" : "VER DAÑOS"} */}
         {damagesState.length > 0 && (
@@ -222,7 +245,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
                 height: danosHeight,
                 //position: "absolute",
                 width: 320,
-                left: -170,
+                left: -160,
                 top: 40,
                 marginBottom: 40,
                 opacity: danosOpacity,
@@ -243,11 +266,13 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         <View style={styles.infoContainer}>
           <View>
             <Text style={styles.infoTitle}>BATEA</Text>
-            <Text style={styles.infoText}>1277</Text>
+            <Text style={styles.infoText}>
+              {item.batea === "" ? "----" : item.batea}
+            </Text>
           </View>
           <View>
             <Text style={styles.infoTitle}>MOVIMIENTO</Text>
-            <Text style={styles.infoText}>Despacho</Text>
+            <Text style={styles.infoText}>{item.movimiento}</Text>
           </View>
         </View>
         <IconButton
@@ -264,7 +289,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#86b2aa7f",
+    backgroundColor: "#8fb0aa7f",
     borderColor: "#ededed71",
     borderWidth: 1,
     borderRadius: 10,
@@ -277,9 +302,9 @@ const styles = StyleSheet.create({
   button: { marginTop: 12, width: "100%", alignSelf: "center" },
   actionBtnsContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "flex-start",
     //backgroundColor: "#d6cccc8d",
-    borderTopWidth: 0.3,
+    borderTopWidth: 1,
     marginTop: 8,
     borderTopColor: "#e1dcdc8a",
   },
