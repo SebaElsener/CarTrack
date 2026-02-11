@@ -22,7 +22,7 @@
   { "id": "22", "descripcion": "Vidrio saltado" },
   { "id": "23", "descripcion": "Vidrio rayado" },
   { "id": "24", "descripcion": "Luz de señalización dañada" },
-  { "id": "29", "descripcion": "Contaminación exterior" },
+  { "id": "29", "descripcion": "Exterior manchado o sucio" },
   { "id": "30", "descripcion": "Derrame de fluido exterior" },
   { "id": "34", "descripcion": "Pint. saltada filo" },
   { "id": "35", "descripcion": "No funciona" },

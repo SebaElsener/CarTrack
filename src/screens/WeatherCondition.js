@@ -45,11 +45,11 @@ export default function WeatherCondition() {
   };
 
   const buttonColors = {
-    sunny: "#FFC10755",
-    night: "#673AB755",
-    rain: "#2196F355",
-    dew: "#00BCD455",
-    frost: "#b0ecf474",
+    sol: "#FFC10755",
+    noche: "#673AB755",
+    lluvia: "#2196F355",
+    rocío: "#00BCD455",
+    hielo: "#b0ecf474",
   };
 
   const theme = {
@@ -78,29 +78,29 @@ export default function WeatherCondition() {
         theme={theme}
         buttons={[
           {
-            value: "sunny",
+            value: "sol",
             style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
-            label: renderLabel("sunny", "weather-sunny", "Sol"),
+            label: renderLabel("sol", "weather-sunny", "Sol"),
           },
           {
-            value: "night",
+            value: "noche",
             style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
-            label: renderLabel("night", "weather-night", "Noche"),
+            label: renderLabel("noche", "weather-night", "Noche"),
           },
           {
-            value: "rain",
+            value: "lluvia",
             style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
-            label: renderLabel("rain", "weather-rainy", "Lluvia"),
+            label: renderLabel("lluvia", "weather-rainy", "Lluvia"),
           },
           {
-            value: "dew",
+            value: "rocío",
             style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
-            label: renderLabel("dew", "water", "Rocío"),
+            label: renderLabel("rocío", "water", "Rocío"),
           },
           {
-            value: "frost",
+            value: "hielo",
             style: { borderColor: "#eeeeeeff", borderWidth: 0.4 },
-            label: renderLabel("frost", "snowflake", "Hielo"),
+            label: renderLabel("hielo", "snowflake", "Hielo"),
           },
         ]}
       />
