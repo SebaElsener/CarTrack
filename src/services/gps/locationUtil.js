@@ -33,8 +33,8 @@ const LOCACIONES = [
   },
   {
     nombre: "El Pinar",
-    latitude: -34.099094,
-    longitude: -59.083869,
+    latitude: -34.101784,
+    longitude: -59.081459,
     radio: 100,
   },
 ];
