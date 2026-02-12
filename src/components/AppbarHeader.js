@@ -1,9 +1,7 @@
-// src/components/AppHeader.js
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
-//import { useAppStatus } from "../context/TransportAndLocationContext";
 import InfoBar from "../screens/InfoBar";
 import TransportBar from "../screens/TransportBar";
 import WeatherCondition from "../screens/WeatherCondition";
@@ -11,9 +9,6 @@ import LocationStatusbar from "./LocationStatusBar";
 
 export default function AppHeader({ syncing, logout }) {
   const router = useRouter();
-
-  // // 🔑 ESTO es lo que destraba todo
-  // const { lugar } = useAppStatus();
 
   return (
     <Appbar.Header style={styles.appBarContainer}>
@@ -62,8 +57,6 @@ export default function AppHeader({ syncing, logout }) {
           <TransportBar />
         </View>
         <View style={styles.location}>
-          {/* 👇 key fuerza re-render fino solo cuando cambia lugar */}
-          {/* <LocationStatusbar key={lugar} /> */}
           <LocationStatusbar />
         </View>
       </View>

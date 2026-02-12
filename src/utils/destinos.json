@@ -1,0 +1,37 @@
+[
+  {
+    "nombre": "Sin destino",
+    "id": "0",
+    "direccion": "NA"
+  },
+  {
+    "nombre": "Sauma",
+    "id": "1",
+    "direccion": "Avenida del Libertador 3382 - San Fernando"
+  },
+  {
+    "nombre": "Autotag S.A.",
+    "id": "2",
+    "direccion": "Av. Ricardo Balbin 1939/59 - Gral. San Martín"
+  },
+  {
+    "nombre": "Maynar S.A.",
+    "id": "3",
+    "direccion": "Av. del Libertador 6946 - Capital Federal"
+  },
+  {
+    "nombre": "Dietrich S.A.",
+    "id": "4",
+    "direccion": "Honduras 4210 - CABA "
+  },
+  {
+    "nombre": "Espasa S.A.",
+    "id": "5",
+    "direccion": "Av. Córdoba 3000 - Capital Federal"
+  },
+  {
+    "nombre": "Playa W",
+    "id": "6",
+    "direccion": "NA"
+  }
+]

@@ -31,6 +31,7 @@ export const syncPendingScans = async () => {
         lugar: item.lugar,
         batea: item.batea,
         user: item.user,
+        destino: item.destino,
       })
       .select()
       .single();

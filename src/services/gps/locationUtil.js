@@ -25,6 +25,18 @@ const LOCACIONES = [
     longitude: -59.012104,
     radio: 100,
   },
+  {
+    nombre: "Elta Transporte S.R.L.",
+    latitude: -34.098037,
+    longitude: -59.086374,
+    radio: 100,
+  },
+  {
+    nombre: "El Pinar",
+    latitude: -34.099094,
+    longitude: -59.083869,
+    radio: 100,
+  },
 ];
 
 const toRad = (v) => (v * Math.PI) / 180;

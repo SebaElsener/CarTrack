@@ -5,10 +5,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AppStatusContext = createContext({
   lugar: "Detectando...",
+  destino: null,
 });
 
 export const AppStatusProvider = ({ children }) => {
   const [lugar, setLugar] = useState("Detectando...");
+  const [destino, setDestino] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -24,10 +26,10 @@ export const AppStatusProvider = ({ children }) => {
     }, 3000); // polling liviano
 
     return () => clearInterval(interval);
-  }, [lugar]);
+  }, []);
 
   return (
-    <AppStatusContext.Provider value={{ lugar, setLugar }}>
+    <AppStatusContext.Provider value={{ lugar, setLugar, destino, setDestino }}>
       {children}
     </AppStatusContext.Provider>
   );

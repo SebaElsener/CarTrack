@@ -169,7 +169,7 @@ export default function ScannerScreen() {
     setMovimientoError,
   } = useScans();
   const { user } = useAuth();
-  const { lugar } = useAppStatus();
+  const { lugar, destino } = useAppStatus();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -443,6 +443,7 @@ export default function ScannerScreen() {
         lugar,
         transportUnit,
         user?.email,
+        destino === "Sin destino" ? null : destino,
       );
 
       setLocalScanId(savedScanId);
