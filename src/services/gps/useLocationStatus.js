@@ -1,7 +1,6 @@
 import { useAppStatus } from "@/src/context/TransportAndLocationContext";
 import * as Location from "expo-location";
 import { useEffect, useRef } from "react";
-import { saveLugar } from "../gps/locationStore";
 import { resolverLocacion } from "../gps/locationUtil";
 
 export const useLocationStatus = () => {
@@ -16,34 +15,30 @@ export const useLocationStatus = () => {
     const procesar = (coords) => {
       const nuevaZona = resolverLocacion(coords, zonaActualRef.current);
 
-      // 🟢 Si entra en nueva zona válida → aceptar inmediato
+      // 🟢 Entrada inmediata
       if (nuevaZona && nuevaZona !== zonaActualRef.current) {
         zonaActualRef.current = nuevaZona;
         salidaConfirmRef.current = 0;
 
         setLugarManual(null);
         setLugarGPS(nuevaZona);
-        saveLugar(nuevaZona);
         return;
       }
 
-      // 🔴 Si posible salida
+      // 🔴 Posible salida
       if (!nuevaZona && zonaActualRef.current) {
         salidaConfirmRef.current += 1;
 
-        // Confirmar salida 2 veces
         if (salidaConfirmRef.current >= 2) {
           zonaActualRef.current = null;
           salidaConfirmRef.current = 0;
 
           setLugarGPS(null);
-          saveLugar(null);
         }
 
         return;
       }
 
-      // Si sigue igual
       salidaConfirmRef.current = 0;
     };
 

@@ -52,7 +52,7 @@ export const distanciaMetros = (lat1, lon1, lat2, lon2) => {
 };
 
 export const resolverLocacion = (coords, zonaActual) => {
-  if (!coords || coords.accuracy > 120) return zonaActual;
+  if (!coords) return zonaActual;
 
   const MARGEN_SALIDA = 40;
 
@@ -64,20 +64,23 @@ export const resolverLocacion = (coords, zonaActual) => {
       loc.longitude,
     );
 
-    // 🟢 Si ya estoy en esta zona → aplicar histéresis
+    console.log("Zona:", loc.nombre, "Distancia:", d);
+
+    // 🟢 Mantener zona actual con histéresis
     if (zonaActual === loc.nombre) {
       if (d <= loc.radio + MARGEN_SALIDA) {
-        return zonaActual; // mantenerse
-      } else {
-        return null; // candidato a salida
+        return zonaActual;
       }
+      // si supera el margen, no retornamos todavía
+      // dejamos que evalúe posible entrada a otra zona
     }
 
-    // 🟢 Si no estoy en ninguna zona → entrada normal
+    // 🟢 Entrada normal
     if (!zonaActual && d <= loc.radio) {
       return loc.nombre;
     }
   }
 
+  // 🔴 Si no encaja en ninguna
   return null;
 };

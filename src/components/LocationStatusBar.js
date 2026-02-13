@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { Portal, TouchableRipple } from "react-native-paper";
 import { useAppStatus } from "../context/TransportAndLocationContext";
+import { saveLugar } from "../services/gps/locationStore";
 import { LOCACIONES } from "../services/gps/locationUtil";
 
 export default function LocationStatusBar() {
@@ -73,6 +74,7 @@ export default function LocationStatusBar() {
 
   const seleccionarLugar = (nombre) => {
     setLugarManual(nombre);
+    saveLugar(nombre);
     setVisible(false);
   };
 
@@ -93,7 +95,7 @@ export default function LocationStatusBar() {
             },
           ]}
         >
-          <Text style={styles.triggerText}>{lugar ?? "Detectando..."}</Text>
+          <Text style={styles.triggerText}>{lugar ?? "Fuera de zona"}</Text>
         </Animated.View>
       </TouchableRipple>
 

@@ -15,14 +15,20 @@ TaskManager.defineTask(TASK_NAME, async ({ data, error }) => {
   const coords = location.coords;
   if (coords.accuracy > 100) return;
 
-  const zona = resolverLocacion(coords);
-  const valorFinal = zona ?? "Fuera de zona";
+  const zonaActual = await AsyncStorage.getItem("lugar_actual");
 
-  const actual = await AsyncStorage.getItem("lugar_actual");
+  console.log("Desde taskmanager ", zonaActual);
 
-  if (actual === valorFinal) return;
+  const zona = resolverLocacion(coords, zonaActual);
+  const valorFinal = zona ?? null;
 
-  await AsyncStorage.setItem("lugar_actual", valorFinal);
+  if (zonaActual === valorFinal) return;
+
+  if (valorFinal === null) {
+    await AsyncStorage.removeItem("lugar_actual");
+  } else {
+    await AsyncStorage.setItem("lugar_actual", valorFinal);
+  }
 
   console.log("📍 BG actualizado:", valorFinal);
 });
