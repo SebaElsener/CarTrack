@@ -1,6 +1,4 @@
-import { saveLugar } from "../gps/locationStore";
-
-const LOCACIONES = [
+export const LOCACIONES = [
   {
     nombre: "TZ",
     latitude: -34.074502,
@@ -53,17 +51,10 @@ export const distanciaMetros = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-let zonaActual = null;
+export const resolverLocacion = (coords, zonaActual) => {
+  if (!coords || coords.accuracy > 120) return zonaActual;
 
-const MARGEN_SALIDA = 40; // metros extra
-
-export const resolverLocacion = (coords) => {
-  if (!coords) return null;
-
-  if (coords.accuracy > 120) {
-    // ignoramos lecturas malas (ruido GPS) - poner 80 en produccion
-    return zonaActual;
-  }
+  const MARGEN_SALIDA = 40;
 
   for (const loc of LOCACIONES) {
     const d = distanciaMetros(
@@ -73,25 +64,20 @@ export const resolverLocacion = (coords) => {
       loc.longitude,
     );
 
-    // 🟢 Si no estoy en ninguna zona → entrar normal
-    if (!zonaActual && d <= loc.radio) {
-      zonaActual = loc.nombre;
-      saveLugar(zonaActual);
-      return zonaActual;
-    }
-
-    // 🟢 Si ya estoy en esta zona → permitir ruido
+    // 🟢 Si ya estoy en esta zona → aplicar histéresis
     if (zonaActual === loc.nombre) {
       if (d <= loc.radio + MARGEN_SALIDA) {
-        return zonaActual;
+        return zonaActual; // mantenerse
       } else {
-        // 🚪 salí realmente
-        zonaActual = null;
-        saveLugar("Fuera de zona");
-        return null;
+        return null; // candidato a salida
       }
+    }
+
+    // 🟢 Si no estoy en ninguna zona → entrada normal
+    if (!zonaActual && d <= loc.radio) {
+      return loc.nombre;
     }
   }
 
-  return null; // ✅ NO JSX
+  return null;
 };

@@ -1,35 +1,33 @@
-// src/context/AppStatusContext.js
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AppStatusContext = createContext({
-  lugar: "Detectando...",
+  //lugar: "Detectando...",
   destino: null,
 });
 
 export const AppStatusProvider = ({ children }) => {
-  const [lugar, setLugar] = useState("Detectando...");
+  const [lugarGPS, setLugarGPS] = useState(null);
+  const [lugarManual, setLugarManual] = useState(null);
   const [destino, setDestino] = useState(null);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const raw = await AsyncStorage.getItem("lugar_actual");
-      //console.log("ZONA LEIDA EN CONTEXT: ", raw);
-      if (!raw) return;
-
-      try {
-        if (raw) setLugar(raw);
-      } catch (e) {
-        console.warn("Estado inválido en storage", e);
-      }
-    }, 3000); // polling liviano
-
-    return () => clearInterval(interval);
-  }, []);
+  // prioridad:
+  // manual > gps > fuera de zona
+  const lugar = lugarManual ?? lugarGPS ?? "Fuera de zona";
 
   return (
-    <AppStatusContext.Provider value={{ lugar, setLugar, destino, setDestino }}>
+    <AppStatusContext.Provider
+      value={{
+        lugar,
+        destino,
+        setDestino,
+
+        // internos
+        lugarGPS,
+        setLugarGPS,
+        lugarManual,
+        setLugarManual,
+      }}
+    >
       {children}
     </AppStatusContext.Provider>
   );

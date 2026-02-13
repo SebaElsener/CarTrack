@@ -1,46 +1,66 @@
 import { useAppStatus } from "@/src/context/TransportAndLocationContext";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
-import { getLugar } from "../gps/locationStore";
+import { useEffect, useRef } from "react";
+import { saveLugar } from "../gps/locationStore";
 import { resolverLocacion } from "../gps/locationUtil";
 
 export const useLocationStatus = () => {
-  const [locacion, setLocacion] = useState("Detectando...");
-  const { setLugar } = useAppStatus();
+  const { setLugarGPS, setLugarManual } = useAppStatus();
 
-  useEffect(() => {
-    const cargar = async () => {
-      const guardado = await getLugar();
-      if (guardado) {
-        setLocacion(guardado);
-      }
-    };
-    cargar();
-  }, []);
+  const zonaActualRef = useRef(null);
+  const salidaConfirmRef = useRef(0);
 
   useEffect(() => {
     let sub;
+
+    const procesar = (coords) => {
+      const nuevaZona = resolverLocacion(coords, zonaActualRef.current);
+
+      // 🟢 Si entra en nueva zona válida → aceptar inmediato
+      if (nuevaZona && nuevaZona !== zonaActualRef.current) {
+        zonaActualRef.current = nuevaZona;
+        salidaConfirmRef.current = 0;
+
+        setLugarManual(null);
+        setLugarGPS(nuevaZona);
+        saveLugar(nuevaZona);
+        return;
+      }
+
+      // 🔴 Si posible salida
+      if (!nuevaZona && zonaActualRef.current) {
+        salidaConfirmRef.current += 1;
+
+        // Confirmar salida 2 veces
+        if (salidaConfirmRef.current >= 2) {
+          zonaActualRef.current = null;
+          salidaConfirmRef.current = 0;
+
+          setLugarGPS(null);
+          saveLugar(null);
+        }
+
+        return;
+      }
+
+      // Si sigue igual
+      salidaConfirmRef.current = 0;
+    };
 
     const start = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
 
-      // 🔥 posición inicial (YA comprobamos que funciona)
       const pos = await Location.getCurrentPositionAsync({});
-      console.log("POSICION INICIAL: ", pos);
-      setLocacion(resolverLocacion(pos.coords) ?? "Fuera de zona");
+      procesar(pos.coords);
 
-      // 🔥 tracking en vivo
       sub = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.Balanced,
           distanceInterval: 15,
         },
         (location) => {
-          const nombre = resolverLocacion(location.coords) ?? "Fuera de zona";
-          console.log("NOMBRE NUEVA LOCACION: ", nombre);
-          setLocacion(nombre);
-          setLugar(nombre);
+          procesar(location.coords);
         },
       );
     };
@@ -51,6 +71,4 @@ export const useLocationStatus = () => {
       sub?.remove();
     };
   }, []);
-
-  return locacion;
 };

@@ -4,7 +4,7 @@ const KEY = "lugar_actual";
 
 export const saveLugar = async (lugar) => {
   try {
-    await AsyncStorage.setItem(KEY, lugar);
+    await AsyncStorage.setItem(KEY, lugar ?? "");
   } catch (e) {
     console.log("❌ Error guardando lugar", e);
   }
@@ -12,7 +12,8 @@ export const saveLugar = async (lugar) => {
 
 export const getLugar = async () => {
   try {
-    return await AsyncStorage.getItem(KEY);
+    const val = await AsyncStorage.getItem(KEY);
+    return val || null;
   } catch {
     return null;
   }
