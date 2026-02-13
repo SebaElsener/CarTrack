@@ -169,7 +169,7 @@ export default function ScannerScreen() {
     setMovimientoError,
   } = useScans();
   const { user } = useAuth();
-  const { lugar, destino } = useAppStatus();
+  const { lugar, destino, lugarGPS, lugarManual } = useAppStatus();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -378,6 +378,15 @@ export default function ScannerScreen() {
     if (!movimiento) {
       errorLock.current = true;
       setMovimientoError("Seleccionar ingreso o despacho");
+      await playSound("error");
+      setTimeout(() => (errorLock.current = false), 800);
+      return;
+    }
+
+    const sinZona = !lugarGPS && !lugarManual;
+
+    if (sinZona) {
+      errorLock.current = true;
       await playSound("error");
       setTimeout(() => (errorLock.current = false), 800);
       return;

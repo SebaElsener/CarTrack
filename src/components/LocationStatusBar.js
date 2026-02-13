@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { Portal, TouchableRipple } from "react-native-paper";
 import { useAppStatus } from "../context/TransportAndLocationContext";
 import { LOCACIONES } from "../services/gps/locationUtil";
@@ -10,10 +10,10 @@ export default function LocationStatusBar() {
 
   console.log("Lugar actual:", lugar);
 
-  const rotate = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-8)).current;
   const scale = useRef(new Animated.Value(0.98)).current;
+  const blinkAnim = useRef(new Animated.Value(0)).current;
 
   const esEditable = lugarGPS === null;
 
@@ -24,23 +24,31 @@ export default function LocationStatusBar() {
   } else if (lugarGPS) {
     backgroundColor = "#24882b61"; // 🟢 gps
   } else {
-    backgroundColor = "#b30e2c9e"; // 🔴 fuera de zona
+    backgroundColor = "#b81a3788"; // 🔴 fuera de zona
   }
 
-  // 🔄 animación flecha
+  // Animación parpadeo si quiero colectar fuera de zona
   useEffect(() => {
-    Animated.timing(rotate, {
-      toValue: visible ? 1 : 0,
-      duration: 160,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible]);
-
-  const rotateInterpolate = rotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
+    if (!lugarGPS && !lugarManual) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: false,
+          }),
+          Animated.timing(blinkAnim, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: false,
+          }),
+        ]),
+      ).start();
+    } else {
+      blinkAnim.stopAnimation();
+      blinkAnim.setValue(0);
+    }
+  }, [lugarGPS, lugarManual]);
 
   // 🔄 animación dropdown
   useEffect(() => {
@@ -76,20 +84,17 @@ export default function LocationStatusBar() {
         borderless
         onPress={() => esEditable && setVisible((v) => !v)}
       >
-        <View style={[styles.trigger, { backgroundColor }]}>
+        <Animated.View
+          style={[
+            styles.trigger,
+            {
+              backgroundColor,
+              opacity: !lugarGPS && !lugarManual ? blinkAnim : 1,
+            },
+          ]}
+        >
           <Text style={styles.triggerText}>{lugar ?? "Detectando..."}</Text>
-          {/* 
-          {esEditable && (
-            <Animated.View
-              style={{
-                //marginLeft: 4,
-                transform: [{ rotate: rotateInterpolate }],
-              }}
-            >
-              <Icon source="chevron-down" size={16} color="#fff" />
-            </Animated.View>
-          )} */}
-        </View>
+        </Animated.View>
       </TouchableRipple>
 
       {/* DROPDOWN */}
