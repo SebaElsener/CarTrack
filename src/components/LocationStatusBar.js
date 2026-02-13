@@ -11,7 +11,7 @@ export default function LocationStatusBar() {
         : "#24882b61"; // verde
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <Text style={styles.text}>LUGAR</Text>
+      {/* <Text style={styles.text}>LUGAR</Text> */}
       <Text style={styles.text}>{locacion}</Text>
     </View>
   );
