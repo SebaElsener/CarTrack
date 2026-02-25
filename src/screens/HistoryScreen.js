@@ -1,7 +1,14 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  InteractionManager,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import ScanItem from "../components/ScanItem";
 import { useScans } from "../context/ScanContext";
 import { deleteScan, getScans } from "../database/Database";
@@ -146,18 +153,17 @@ export default function HistoryScreen() {
   // Scroll al item activo
   useEffect(() => {
     if (!activeVin) return;
+
     const index = filtered.findIndex((d) => d.vin === activeVin);
     if (index === -1) return;
 
-    setTimeout(() => {
-      if (listRef.current && filtered.length > 0 && index < filtered.length) {
-        listRef.current.scrollToIndex({
-          index,
-          animated: true,
-          viewPosition: 0.5,
-        });
-      }
-    }, 50);
+    InteractionManager.runAfterInteractions(() => {
+      listRef.current?.scrollToIndex({
+        index,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
   }, [activeVin, filtered]);
 
   // Resaltado de caracteres
@@ -202,6 +208,22 @@ export default function HistoryScreen() {
               renderVin={renderVin}
             />
           );
+        }}
+        onScrollToIndexFailed={(info) => {
+          console.log("Scroll failed:", info);
+          // Scroll aproximado primero
+          listRef.current?.scrollToOffset({
+            offset: info.averageItemLength * info.index,
+            animated: true,
+          });
+          // Luego reintenta cuando termine
+          setTimeout(() => {
+            listRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+              viewPosition: 0.5,
+            });
+          }, 250);
         }}
       />
     </View>

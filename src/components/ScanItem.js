@@ -167,7 +167,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         <IconButton
           size={30}
           icon="camera-plus"
-          iconColor="rgba(34, 144, 117, 0.84)"
+          iconColor="rgb(34, 144, 117)"
           onPress={() =>
             router.push({
               pathname: "/(app)/CameraScreen",
@@ -181,7 +181,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         <IconButton
           size={30}
           icon="car-2-plus"
-          iconColor="rgba(34, 144, 117, 0.84)"
+          iconColor="rgb(34, 144, 117)"
           onPress={() =>
             router.push({
               pathname: "/(app)/DanoScreen",
@@ -210,7 +210,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
             <IconButton
               size={30}
               icon="car-search-outline"
-              iconColor="rgba(34, 144, 117, 0.84)"
+              iconColor="rgb(34, 144, 117)"
               onPress={toggleDanos}
             />
           </Animated.View>
@@ -277,7 +277,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
         </View>
         <IconButton
           size={30}
-          style={{ position: "absolute", left: 280, top: -53 }}
+          style={{ position: "absolute", left: 280, top: -45 }}
           icon="delete"
           iconColor="rgba(222, 71, 71, 0.83)"
           onPress={handleDelete}
@@ -289,7 +289,7 @@ function ScanItem({ item, localPicts, isActive, onDelete, renderVin }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#8fb0aa7f",
+    backgroundColor: "#c9e5e0b7",
     borderColor: "#ededed71",
     borderWidth: 1,
     borderRadius: 10,
@@ -304,9 +304,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     //backgroundColor: "#d6cccc8d",
-    borderTopWidth: 1,
-    marginTop: 8,
-    borderTopColor: "#e1dcdc8a",
+    //borderTopWidth: 1,
+    //marginTop: 8,
+    //borderTopColor: "#f6f2f2b0",
   },
   code: {
     fontSize: 19,

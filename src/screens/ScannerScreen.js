@@ -62,6 +62,27 @@ const VIN_MAP = {
 };
 const VIN_WEIGHTS = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
 
+const COMMON_CONFUSIONS = {
+  O: ["0"],
+  0: ["O"],
+  I: ["1"],
+  1: ["I"],
+  S: ["5"],
+  5: ["S"],
+  B: ["8"],
+  8: ["B"],
+  Z: ["2"],
+  2: ["Z"],
+  G: ["6"],
+  6: ["G"],
+};
+
+const CHECK_DIGIT_EXCEPTIONS = {
+  // WMI : array de dígitos permitidos aunque no coincidan con ISO
+  "9BD": ["2", "N", "4", "K"], // Fiat Brasil
+  "93H": ["0"], // Honda Brasil
+};
+
 // --- VIN helpers ---
 const normalizeVinChar = (char, current) => {
   const c = char.toUpperCase();
@@ -78,6 +99,9 @@ const normalizeVinChar = (char, current) => {
 export function isValidVIN(vin) {
   if (!vin || vin.length !== 17) return false;
   if (/[IOQ]/.test(vin)) return false;
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return false;
+
+  const wmi = vin.slice(0, 3);
 
   let sum = 0;
   for (let i = 0; i < 17; i++) {
@@ -87,17 +111,53 @@ export function isValidVIN(vin) {
   const check = sum % 11;
   const checkChar = check === 10 ? "X" : String(check);
 
-  // ✅ válido si coincide el dígito
+  // ✅ Caso normal ISO
   if (vin[8] === checkChar) return true;
 
-  // ⚠️ EXCEPCIÓN CONTROLADA: aceptar dígito verificador "0"
-  if (vin[8] === "0") return true;
+  // ⚠️ Excepción controlada por fabricante
+  if (
+    CHECK_DIGIT_EXCEPTIONS[wmi] &&
+    CHECK_DIGIT_EXCEPTIONS[wmi].includes(vin[8])
+  ) {
+    console.log(`Check digit excepción aplicada para ${wmi}: ${vin}`);
+    return true;
+  }
 
   return false;
 }
 
 function isValidVINSoft(vin) {
   return vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
+}
+
+function attemptVinAutoFixOEM(vin) {
+  if (!vin || vin.length !== 17) return null;
+
+  // No intentar si ya es válido
+  if (isValidVIN(vin)) return vin;
+
+  for (let i = 0; i < 17; i++) {
+    // 🚫 Nunca tocar dígito verificador
+    if (i === 8) continue;
+
+    const originalChar = vin[i];
+    const possibleReplacements = COMMON_CONFUSIONS[originalChar];
+
+    if (!possibleReplacements) continue;
+
+    for (let replacement of possibleReplacements) {
+      const candidate = vin.slice(0, i) + replacement + vin.slice(i + 1);
+
+      // Validar formato VIN antes de calcular
+      if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(candidate)) continue;
+
+      if (isValidVIN(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------
@@ -351,6 +411,7 @@ export default function ScannerScreen() {
   // Manejo de scans
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
+    console.log(data);
     if (scanLock.current || errorLock.current) return;
 
     if (movimientoError) {
@@ -392,25 +453,39 @@ export default function ScannerScreen() {
       return;
     }
 
-    // 🔹 Validación VIN primero
-    const vin = data?.trim().toUpperCase();
-    if (!vin || vin.length !== 17) {
+    // 🔹 Normalización inicial
+    let vinOriginal = data?.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+    // 🔹 Tomar solo los primeros 17 caracteres (ignorar extras)
+    vinOriginal = vinOriginal.slice(0, 17);
+
+    if (!vinOriginal || vinOriginal.length !== 17) {
       await playSound("error");
       return;
     }
 
+    let vinFinal = vinOriginal;
+
     // Validar ingreso manual sin dígito verificador
     if (type === "handInput") {
-      if (!isValidVINSoft(vin)) {
+      if (!isValidVINSoft(vinOriginal)) {
         await playSound("error");
         return;
       }
     }
+
     // Validar ingreso por scanner con dígito verificador
     if (type !== "handInput") {
-      if (!isValidVIN(vin)) {
-        await playSound("error");
-        return;
+      if (!isValidVIN(vinOriginal)) {
+        const fixedVin = attemptVinAutoFixOEM(vinOriginal);
+
+        if (fixedVin && fixedVin !== vinOriginal) {
+          console.log("VIN autocorregido:", vinOriginal, "→", fixedVin);
+          vinFinal = fixedVin;
+        } else {
+          await playSound("error");
+          return;
+        }
       }
     }
 
@@ -436,16 +511,16 @@ export default function ScannerScreen() {
     scanLock.current = true;
 
     setScanned(true);
-    setLastResult(vin);
+    setLastResult(vinFinal);
     Vibration.vibrate(120);
 
-    const alreadyScanned = await scanExists(vin, movimiento);
+    const alreadyScanned = await scanExists(vinFinal, movimiento);
 
     if (!alreadyScanned) {
       await playSound("success");
 
       const savedScanId = await saveScan(
-        vin,
+        vinFinal,
         type,
         weatherCondition,
         movimiento,
@@ -466,7 +541,11 @@ export default function ScannerScreen() {
       }, 1200);
     } else {
       await playSound("error");
-      router.push({ pathname: "/(app)/HistoryScreen", params: { vin } });
+      const vin = vinFinal;
+      router.push({
+        pathname: "/(app)/HistoryScreen",
+        params: { vin },
+      });
     }
   };
 
