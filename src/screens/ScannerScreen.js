@@ -79,7 +79,7 @@ const COMMON_CONFUSIONS = {
 
 const CHECK_DIGIT_EXCEPTIONS = {
   // WMI : array de dígitos permitidos aunque no coincidan con ISO
-  "9BD": ["2", "N", "4", "K"], // Fiat Brasil
+  "9BD": ["2", "N", "4", "K", "S", "U", "B", "F", "1", "3"], // Fiat Brasil
   "93H": ["0"], // Honda Brasil
 };
 
