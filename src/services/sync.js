@@ -29,6 +29,7 @@ export const syncPendingScans = async () => {
         clima: item.clima,
         movimiento: item.movimiento,
         lugar: item.lugar,
+        unidad_transito: item.unidad_transito,
         batea: item.batea,
         user: item.user,
         destino: item.destino,

@@ -8,6 +8,7 @@ import {
   Easing,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TouchableWithoutFeedback,
   Vibration,
@@ -212,9 +213,9 @@ export default function ScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [lastResult, setLastResult] = useState("");
   const scanLineAnim = useRef(new Animated.Value(0)).current;
-  const [torch, setTorch] = useState(false);
   const [aligned, setAligned] = useState(false);
   const [localScanId, setLocalScanId] = useState("");
+  const [unidadTransito, setUnidadTransito] = useState(false);
   const scanLock = useRef(false);
   const errorLock = useRef(false);
   const {
@@ -525,6 +526,7 @@ export default function ScannerScreen() {
         weatherCondition,
         movimiento,
         lugar,
+        unidadTransito,
         transportUnit,
         user?.email,
         destino === "Sin destino" ? null : destino,
@@ -538,6 +540,7 @@ export default function ScannerScreen() {
         setAligned(false);
         refreshTotalScans();
         incrementTransportScan();
+        setUnidadTransito(false);
       }, 1200);
     } else {
       await playSound("error");
@@ -564,11 +567,15 @@ export default function ScannerScreen() {
         autoFocus={false}
       />
 
-      <TouchableWithoutFeedback onPress={() => setTorch(!torch)}>
-        <View style={styles.flashButton}>
-          <Text style={styles.flashText}>{torch ? "🔦 OFF" : "🔦 ON"}</Text>
-        </View>
-      </TouchableWithoutFeedback>
+      <View style={styles.toggleContainer}>
+        <Text style={styles.toggleLabel}>UNIDAD EN TRANSITO</Text>
+        <Switch
+          value={unidadTransito}
+          onValueChange={setUnidadTransito}
+          trackColor={{ false: "#767577", true: "#34C759" }}
+          thumbColor={unidadTransito ? "#ffffff" : "#f4f3f4"}
+        />
+      </View>
 
       {movimientoError ? (
         <View style={styles.errorBanner}>
@@ -859,16 +866,16 @@ const styles = StyleSheet.create({
     //display: "flex",
     //alignItems: "center",
   },
-  flashButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 10,
-    borderRadius: 20,
-    zIndex: 10,
-  },
-  flashText: { color: "#fff", fontSize: 14 },
+  // flashButton: {
+  //   position: "absolute",
+  //   top: 20,
+  //   right: 20,
+  //   backgroundColor: "rgba(0,0,0,0.6)",
+  //   padding: 10,
+  //   borderRadius: 20,
+  //   zIndex: 10,
+  // },
+  // flashText: { color: "#fff", fontSize: 14 },
   corner: {
     position: "absolute",
     width: CORNER,
@@ -934,14 +941,36 @@ const styles = StyleSheet.create({
   },
   errorBanner: {
     position: "absolute",
-    top: 10,
-    left: 18,
+    //top: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    alignSelf: "center",
+    //left: 18,
     zIndex: 50,
   },
 
   errorText: {
     color: "rgba(211, 56, 56, 0.96)",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
+  },
+  toggleContainer: {
+    position: "absolute",
+    top: 15,
+    //right: 20,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+
+  toggleLabel: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 10,
   },
 });

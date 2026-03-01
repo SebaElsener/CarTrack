@@ -34,6 +34,7 @@ export const initDB = async () => {
         lugar TEXT NOT NULL DEFAULT 'Desconocido',
         user TEXT NOT NULL,
         destino TEXT DEFAULT NULL,
+        unidad_transito BOOLEAN DEFAULT FALSE,
         synced INTEGER DEFAULT 0)
       `,
   );
@@ -113,18 +114,20 @@ export const saveScan = async (
   weatherCondition,
   movimiento,
   lugar,
+  unidadTransito,
   transportUnit,
   user,
   destino,
 ) => {
   const db = await getDb();
   const result = await db.runAsync(
-    `INSERT INTO scans (vin, type, clima, movimiento, lugar, batea, user, destino, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+    `INSERT INTO scans (vin, type, clima, movimiento, lugar, unidad_transito, batea, user, destino, date, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
     vin,
     type,
     weatherCondition,
     movimiento,
     lugar,
+    unidadTransito,
     transportUnit,
     user,
     destino,

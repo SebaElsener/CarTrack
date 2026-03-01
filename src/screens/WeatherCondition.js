@@ -104,7 +104,7 @@ export default function WeatherCondition() {
           },
         ]}
       />
-      <Portal>
+      <Portal style={styles.errorTextWrap}>
         {weatherError ? (
           <Text style={styles.errorText}>{weatherError}</Text>
         ) : null}
@@ -123,13 +123,18 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "rgba(216, 16, 16, 0.97)",
-    fontSize: 18,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
     fontWeight: "500",
     position: "absolute",
-    top: 240,
-    left: 18,
-    textShadowColor: "#f6f6f6",
-    textShadowOffset: 1,
-    textShadowRadius: 1,
+    top: 230,
+    //left: 18,
+    alignSelf: "center",
+    // textShadowColor: "#f6f6f6",
+    // textShadowOffset: 1,
+    // textShadowRadius: 1,
   },
+  errorTextWrap: {},
 });
