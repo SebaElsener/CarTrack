@@ -3,8 +3,6 @@ import LottieView from "lottie-react-native";
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import InfoBar from "../screens/InfoBar";
-import TransportBar from "../screens/TransportBar";
-import WeatherCondition from "../screens/WeatherCondition";
 import LocationStatusbar from "./LocationStatusBar";
 
 export default function AppHeader({ syncing, logout }) {
@@ -19,7 +17,7 @@ export default function AppHeader({ syncing, logout }) {
           size={30}
           onPress={() => router.replace("/(app)/HomeScreen")}
         />
-        <Appbar.Action
+        {/* <Appbar.Action
           icon="barcode-scan"
           color="white"
           size={30}
@@ -30,7 +28,7 @@ export default function AppHeader({ syncing, logout }) {
           color="white"
           size={30}
           onPress={() => router.replace("/(app)/HistoryScreen")}
-        />
+        /> */}
 
         {syncing && (
           <View style={styles.lottieContainer}>
@@ -53,17 +51,17 @@ export default function AppHeader({ syncing, logout }) {
       </View>
 
       <View style={styles.appBarInfoAndLocation}>
-        <View style={{ width: "75%" }}>
+        {/* <View style={{ width: "75%" }}>
           <TransportBar />
-        </View>
+        </View> */}
         <View style={styles.location}>
           <LocationStatusbar />
         </View>
       </View>
 
-      <View style={styles.appBarWeather}>
+      {/* <View style={styles.appBarWeather}>
         <WeatherCondition />
-      </View>
+      </View> */}
     </Appbar.Header>
   );
 }

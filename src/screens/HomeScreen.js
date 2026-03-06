@@ -8,7 +8,7 @@ import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
   const animations = useRef(
-    Array.from({ length: 4 }).map(() => ({
+    Array.from({ length: 6 }).map(() => ({
       opacity: new Animated.Value(0),
       translateY: new Animated.Value(20),
     })),
@@ -41,9 +41,11 @@ export default function HomeScreen() {
         );
 
       Animated.sequence([
-        animateRow([0, 1]), // 🟩 fila superior
+        animateRow([0, 1]),
         Animated.delay(120),
-        animateRow([2, 3]), // 🟦 fila inferior
+        animateRow([2, 3]),
+        Animated.delay(120),
+        animateRow([4, 5]),
       ]).start();
     }, [animations]),
   );
@@ -55,37 +57,55 @@ export default function HomeScreen() {
   };
 
   const cards = [
+    // {
+    //   title: "Escanear VIN",
+    //   description: "Escaneo del código VIN",
+    //   href: "/(app)/ScannerScreen",
+    //   backgroundColor: "rgba(126, 249, 128, 0.28)",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="barcode-scan"
+    //       size={55}
+    //       color="#2a2a2aba"
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Historial",
+    //   description: "Vehículos escaneados",
+    //   href: "/(app)/HistoryScreen",
+    //   backgroundColor: "rgba(143, 156, 143, 0.38)",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="clipboard-list-outline"
+    //       size={55}
+    //       color="#2a2a2acb"
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Daños",
+    //   description: "Consulta de daños previos",
+    //   href: "/(app)/ConsultaDanoScreen",
+    //   backgroundColor: "rgba(91, 116, 179, 0.38)",
+    //   icon: (
+    //     <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
+    //   ),
+    // },
     {
-      title: "Escanear VIN",
-      description: "Escaneo del código VIN",
-      href: "/(app)/ScannerScreen",
-      backgroundColor: "rgba(126, 249, 128, 0.28)",
+      title: "Posiciones",
+      description: "Posicionamiento de unidades",
+      href: "/(app)/PosicionesScreen",
+      backgroundColor: "rgba(179, 178, 91, 0.38)",
       icon: (
-        <MaterialCommunityIcons
-          name="barcode-scan"
-          size={55}
-          color="#2a2a2aba"
-        />
+        <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
       ),
     },
     {
-      title: "Historial",
-      description: "Vehículos escaneados",
-      href: "/(app)/HistoryScreen",
-      backgroundColor: "rgba(143, 156, 143, 0.38)",
-      icon: (
-        <MaterialCommunityIcons
-          name="clipboard-list-outline"
-          size={55}
-          color="#2a2a2acb"
-        />
-      ),
-    },
-    {
-      title: "Daños",
-      description: "Consulta de daños previos",
-      href: "/(app)/ConsultaDanoScreen",
-      backgroundColor: "rgba(91, 116, 179, 0.38)",
+      title: "Inventario",
+      description: "Inventariar unidades",
+      href: "/(app)/InventarioScreen",
+      backgroundColor: "rgba(35, 21, 219, 0.38)",
       icon: (
         <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
       ),
@@ -133,15 +153,15 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    //justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
     //paddingTop: 20,
   },
-  title: { fontSize: 38, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
+  title: { fontSize: 28, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    marginTop: 40,
+    //marginTop: 10,
   },
   titleSpan: {
     fontStyle: "italic",
@@ -164,13 +184,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    rowGap: 16,
+    //rowGap: 16,
     width: "100%",
     flex: 1,
-    marginTop: 30,
+    //marginTop: 30,
   },
   cardWrapper: {
-    width: "48%", // dos por fila
-    aspectRatio: 1, // cuadrada
+    flexBasis: "48%", // dos por fila
+    height: 175,
+    //aspectRatio: 1, // cuadrada
   },
 });

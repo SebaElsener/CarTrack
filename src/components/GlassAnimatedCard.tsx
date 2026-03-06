@@ -187,11 +187,13 @@ const styles = StyleSheet.create({
   // 🟢 Blur sin sombra
   glass: {
     //borderRadius: 22,
+    //flex: 1,
     overflow: "hidden",
   },
 
   glassFill: {
-    height: 195,
+    height: 160,
+    //flex: 1,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",

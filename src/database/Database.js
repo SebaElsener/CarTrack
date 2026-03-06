@@ -36,7 +36,7 @@ export const initDB = async () => {
         destino TEXT DEFAULT NULL,
         unidad_transito BOOLEAN DEFAULT FALSE,
         synced INTEGER DEFAULT 0)
-      `,
+    `,
   );
 
   await db.execAsync(
@@ -50,7 +50,7 @@ export const initDB = async () => {
         pictureurl TEXT,
         user TEXT NOT NULL,
         synced INTEGER DEFAULT NULL)
-      `,
+    `,
   );
 
   await db.execAsync(
@@ -61,7 +61,7 @@ export const initDB = async () => {
         name TEXT NOT NULL,
         binary BLOB NOT NULL,
         synced INTEGER DEFAULT 0)
-      `,
+    `,
   );
 
   await db.execAsync(
@@ -80,7 +80,19 @@ export const initDB = async () => {
         deleted INTEGER DEFAULT 0,
         user TEXT NOT NULL,
         synced INTEGER DEFAULT NULL)
-      `,
+    `,
+  );
+
+  await db.execAsync(
+    `PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS scansPosition (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        vin TEXT NOT NULL,
+        sector TEXT NOT NULL,
+        fila INTEGER NOT NULL,
+        position_user TEXT NOT NULL,
+        position_date TEXT NOT NULL)
+    `,
   );
 
   dbReady = true;
@@ -99,12 +111,34 @@ export const deleteTable = async () => {
       DROP TABLE IF EXISTS tableForPendingImages;
       DROP TABLE IF EXISTS scans;
       DROP TABLE IF EXISTS damages;
+      DROP TABLE IF EXISTS scansPosition;
     `);
   } catch (error) {
     console.log("Error al eliminar tablas, ", error);
   }
 
   await initDB();
+};
+
+// Guardar scan posicionamiento en playa
+export const saveScanPosition = async (vin, sector, fila, user) => {
+  const db = await getDb();
+
+  try {
+    const result = await db.runAsync(
+      `INSERT INTO scansPosition (vin, sector, fila, position_user, position_date) VALUES (?, ?, ?, ?, ?);`,
+      vin,
+      sector,
+      fila,
+      user,
+      new Date().toISOString(),
+    );
+
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error("Error al guardar scan para posicionamiento: ", error);
+    throw error;
+  }
 };
 
 // Guardar un escaneo
