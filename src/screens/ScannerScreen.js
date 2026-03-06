@@ -82,6 +82,7 @@ const CHECK_DIGIT_EXCEPTIONS = {
   // WMI : array de dígitos permitidos aunque no coincidan con ISO
   "9BD": ["2", "N", "4", "K", "S", "U", "B", "F", "1", "3"], // Fiat Brasil
   "93H": ["0"], // Honda Brasil
+  "9BG": ["0"], // GM Brasil
 };
 
 // --- VIN helpers ---
@@ -412,7 +413,7 @@ export default function ScannerScreen() {
   // Manejo de scans
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
-    console.log(data);
+    console.log(type, data);
     if (scanLock.current || errorLock.current) return;
 
     if (movimientoError) {
@@ -564,7 +565,10 @@ export default function ScannerScreen() {
       <CameraView
         onBarcodeScanned={scanned ? undefined : handleScan}
         style={StyleSheet.absoluteFillObject}
-        autoFocus={false}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "datamatrix", "code128", "code39"],
+        }}
+        //autoFocus={false}
       />
 
       <View style={styles.toggleContainer}>
