@@ -16,7 +16,7 @@ import { useFocusEffect } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { saveScanPosition } from "../database/Database";
 
-export default function Posicionamiento() {
+export default function Posicionamiento({ onScan }) {
   const { user } = useAuth();
 
   const [sector, setSector] = useState("");
@@ -88,8 +88,6 @@ export default function Posicionamiento() {
         showSoftInputOnFocus={false}
         onSubmitEditing={(e) => procesarVIN(e.nativeEvent.text)}
       />
-
-      <Text style={styles.title}>📍 Posicionamiento de Vehículos</Text>
 
       {/* sector */}
       <View style={styles.inputRow}>

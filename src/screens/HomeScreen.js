@@ -95,7 +95,7 @@ export default function HomeScreen() {
     {
       title: "Posiciones",
       description: "Posicionamiento de unidades",
-      href: "/(app)/PosicionesScreen",
+      href: "/(app)/ScannerScreen",
       backgroundColor: "rgba(179, 178, 91, 0.38)",
       icon: (
         <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />

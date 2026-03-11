@@ -1,9 +1,6 @@
 import { useRouter } from "expo-router";
-import LottieView from "lottie-react-native";
 import { StyleSheet, View } from "react-native";
-import { Appbar, Text } from "react-native-paper";
-import InfoBar from "../screens/InfoBar";
-import LocationStatusbar from "./LocationStatusBar";
+import { Appbar } from "react-native-paper";
 
 export default function AppHeader({ syncing, logout }) {
   const router = useRouter();
@@ -29,7 +26,7 @@ export default function AppHeader({ syncing, logout }) {
           size={30}
           onPress={() => router.replace("/(app)/HistoryScreen")}
         /> */}
-
+        {/* 
         {syncing && (
           <View style={styles.lottieContainer}>
             <Text style={{ color: "white" }}>SYNC</Text>
@@ -40,24 +37,24 @@ export default function AppHeader({ syncing, logout }) {
               style={{ width: 30, height: 30 }}
             />
           </View>
-        )}
+        )} */}
 
         <View style={{ flex: 1 }} />
-        <Appbar.Action icon="logout" color="white" size={30} onPress={logout} />
+        {/* <Appbar.Action icon="logout" color="white" size={30} onPress={logout} /> */}
       </View>
 
-      <View style={styles.appBarDate}>
+      {/* <View style={styles.appBarDate}>
         <InfoBar />
-      </View>
+      </View> */}
 
-      <View style={styles.appBarInfoAndLocation}>
-        {/* <View style={{ width: "75%" }}>
+      {/* <View style={styles.appBarInfoAndLocation}> */}
+      {/* <View style={{ width: "75%" }}>
           <TransportBar />
         </View> */}
-        <View style={styles.location}>
+      {/* <View style={styles.location}>
           <LocationStatusbar />
-        </View>
-      </View>
+        </View> */}
+      {/* </View> */}
 
       {/* <View style={styles.appBarWeather}>
         <WeatherCondition />
@@ -73,7 +70,7 @@ const styles = StyleSheet.create({
   appBarContainer: {
     backgroundColor: "rgba(0,0,0,0.25)",
     flexDirection: "column",
-    height: 205,
+    //height: 205,
     //zIndex: 999999,
   },
   appBarDate: {

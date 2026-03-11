@@ -1,6 +1,5 @@
 import { Camera, CameraView } from "expo-camera";
 import { useKeepAwake } from "expo-keep-awake";
-import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -8,7 +7,6 @@ import {
   Easing,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   TouchableWithoutFeedback,
   Vibration,
@@ -17,11 +15,7 @@ import {
 import { IconButton, Button as PaperButton } from "react-native-paper";
 import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
-import { useAuth } from "../context/AuthContext";
-import { useScans } from "../context/ScanContext";
-import { useAppStatus } from "../context/TransportAndLocationContext";
-import { saveScan, scanExists } from "../database/Database";
-import { requestSync } from "../services/syncTrigger";
+import PositionPanel from "../components/PositionPanel";
 
 // ---------------------------
 // VIN validation
@@ -83,6 +77,7 @@ const CHECK_DIGIT_EXCEPTIONS = {
   "9BD": ["2", "N", "4", "K", "S", "U", "B", "F", "1", "3"], // Fiat Brasil
   "93H": ["0"], // Honda Brasil
   "9BG": ["0"], // GM Brasil
+  "8AJ": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "X"], // Toyota Argentina
 };
 
 // --- VIN helpers ---
@@ -208,43 +203,21 @@ function AnimatedButton({ label, onPress, color, textColor, style }) {
 // ScannerScreen
 // ---------------------------
 export default function ScannerScreen() {
-  const router = useRouter();
   useKeepAwake(); // Mantener pantalla activa
   const [hasPermission, setHasPermission] = useState(null);
-  const [scanned, setScanned] = useState(false);
   const [lastResult, setLastResult] = useState("");
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const [aligned, setAligned] = useState(false);
-  const [localScanId, setLocalScanId] = useState("");
-  const [unidadTransito, setUnidadTransito] = useState(false);
   const scanLock = useRef(false);
   const errorLock = useRef(false);
-  const {
-    refreshTotalScans,
-    incrementTransportScan,
-    weatherCondition,
-    movimiento,
-    movimientoError,
-    transportUnit,
-    transportError,
-    setWeatherError,
-    setMovimientoError,
-  } = useScans();
-  const { user } = useAuth();
-  const { lugar, destino, lugarGPS, lugarManual } = useAppStatus();
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
   const keyboardTranslateY = useRef(new Animated.Value(370)).current;
   const inputTranslateY = useRef(new Animated.Value(0)).current;
+  const lastVinRef = useRef(null);
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (movimiento) {
-      errorLock.current = false;
-    }
-  }, [movimiento]);
 
   useEffect(() => {}, [lastResult]);
 
@@ -416,45 +389,6 @@ export default function ScannerScreen() {
     console.log(type, data);
     if (scanLock.current || errorLock.current) return;
 
-    if (movimientoError) {
-      return;
-    }
-
-    if (transportError) {
-      errorLock.current = true;
-      Vibration.vibrate(120);
-      await playSound("error");
-      setTimeout(() => {
-        errorLock.current = false;
-      }, 800);
-      return;
-    }
-
-    if (!weatherCondition) {
-      errorLock.current = true;
-      setWeatherError("Seleccionar condición climática");
-      await playSound("error");
-      setTimeout(() => (errorLock.current = false), 800);
-      return;
-    }
-
-    if (!movimiento) {
-      errorLock.current = true;
-      setMovimientoError("Seleccionar ingreso o despacho");
-      await playSound("error");
-      setTimeout(() => (errorLock.current = false), 800);
-      return;
-    }
-
-    const sinZona = !lugarGPS && !lugarManual;
-
-    if (sinZona) {
-      errorLock.current = true;
-      await playSound("error");
-      setTimeout(() => (errorLock.current = false), 800);
-      return;
-    }
-
     // 🔹 Normalización inicial
     let vinOriginal = data?.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
@@ -510,47 +444,19 @@ export default function ScannerScreen() {
       if (!inside) return;
     }
 
+    if (vinFinal === lastVinRef.current) return;
     scanLock.current = true;
 
-    setScanned(true);
+    lastVinRef.current = vinFinal;
     setLastResult(vinFinal);
     Vibration.vibrate(120);
 
-    const alreadyScanned = await scanExists(vinFinal, movimiento);
+    await playSound("success");
 
-    if (!alreadyScanned) {
-      await playSound("success");
-
-      const savedScanId = await saveScan(
-        vinFinal,
-        type,
-        weatherCondition,
-        movimiento,
-        lugar,
-        unidadTransito,
-        transportUnit,
-        user?.email,
-        destino === "Sin destino" ? null : destino,
-      );
-
-      setLocalScanId(savedScanId);
-
-      requestSync();
-      setTimeout(() => {
-        scanLock.current = false;
-        setAligned(false);
-        refreshTotalScans();
-        incrementTransportScan();
-        setUnidadTransito(false);
-      }, 1200);
-    } else {
-      await playSound("error");
-      const vin = vinFinal;
-      router.push({
-        pathname: "/(app)/HistoryScreen",
-        params: { vin },
-      });
-    }
+    setTimeout(() => {
+      scanLock.current = false;
+      setAligned(false);
+    }, 400);
   };
 
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
@@ -563,33 +469,23 @@ export default function ScannerScreen() {
   return (
     <View style={styles.container}>
       <CameraView
-        onBarcodeScanned={scanned ? undefined : handleScan}
+        onBarcodeScanned={handleScan}
         style={StyleSheet.absoluteFillObject}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "datamatrix", "code128", "code39"],
         }}
-        //autoFocus={false}
+        autoFocus="on"
+        enableTorch={false}
       />
-
-      <View style={styles.toggleContainer}>
-        <Text style={styles.toggleLabel}>UNIDAD EN TRANSITO</Text>
-        <Switch
-          value={unidadTransito}
-          onValueChange={setUnidadTransito}
-          trackColor={{ false: "#767577", true: "#34C759" }}
-          thumbColor={unidadTransito ? "#ffffff" : "#f4f3f4"}
-        />
-      </View>
-
-      {movimientoError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{movimientoError}</Text>
-        </View>
-      ) : null}
 
       <Text style={styles.helperText}>Alinee el código dentro del marco</Text>
 
       {/* ////////////////////////////////////////////////////// */}
+      {/* Panel de posicionamiento */}
+
+      <View style={styles.positionPanelContainer}>
+        <PositionPanel vin={lastResult} />
+      </View>
 
       <Animated.View
         style={[
@@ -737,56 +633,6 @@ export default function ScannerScreen() {
         </View>
         <View style={[styles.mask, { height: TOP }]} />
       </View>
-
-      {/* Resultado */}
-      {scanned && (
-        <View style={styles.result}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.resultText}>{lastResult}</Text>
-          </View>
-
-          <AnimatedButton
-            label="Daños"
-            onPress={() => {
-              router.replace({
-                pathname: "/(app)/DanoScreen",
-                params: { vinFromRouter: lastResult, localScanId: localScanId },
-              });
-            }}
-            color="rgba(222, 101, 101, 0.95)"
-            textColor="rgba(41, 30, 30, 0.89)"
-            style={styles.button}
-          />
-
-          <AnimatedButton
-            label="Tomar fotos"
-            onPress={() => {
-              router.replace({
-                pathname: "/(app)/CameraScreen",
-                params: { vinFromRouter: lastResult, localScanId: localScanId },
-              });
-            }}
-            color="rgba(104, 137, 198, 0.93)"
-            textColor="rgba(41, 30, 30, 0.89)"
-            style={styles.button}
-          />
-
-          <AnimatedButton
-            label="Escanear otro"
-            onPress={() => {
-              setScanned(false);
-              scanLock.current = false;
-              setAligned(false);
-              setHandInput("");
-              setShowKeyboard(false);
-              setLocalScanId("");
-            }}
-            color="rgba(115, 175, 98, 1)"
-            textColor="rgba(41, 30, 30, 0.89)"
-            style={styles.button}
-          />
-        </View>
-      )}
     </View>
   );
 }
