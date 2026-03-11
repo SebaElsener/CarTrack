@@ -12,7 +12,7 @@ import {
   Vibration,
   View,
 } from "react-native";
-import { IconButton, Button as PaperButton } from "react-native-paper";
+import { IconButton } from "react-native-paper";
 import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import PositionPanel from "../components/PositionPanel";
@@ -160,44 +160,44 @@ function attemptVinAutoFixOEM(vin) {
 // ---------------------------
 // Animated Button
 // ---------------------------
-function AnimatedButton({ label, onPress, color, textColor, style }) {
-  const scale = useRef(new Animated.Value(1)).current;
+// function AnimatedButton({ label, onPress, color, textColor, style }) {
+//   const scale = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.95,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-  };
+//   const handlePressIn = () => {
+//     Animated.spring(scale, {
+//       toValue: 0.95,
+//       friction: 3,
+//       useNativeDriver: true,
+//     }).start();
+//   };
+//   const handlePressOut = () => {
+//     Animated.spring(scale, {
+//       toValue: 1,
+//       friction: 3,
+//       useNativeDriver: true,
+//     }).start();
+//   };
 
-  return (
-    <TouchableWithoutFeedback
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={onPress}
-    >
-      <Animated.View style={[{ transform: [{ scale }] }, style]}>
-        <PaperButton
-          mode="contained"
-          buttonColor={color}
-          textColor={textColor}
-          style={{ borderRadius: 12, paddingVertical: 10 }}
-          labelStyle={{ fontSize: 18 }}
-        >
-          {label}
-        </PaperButton>
-      </Animated.View>
-    </TouchableWithoutFeedback>
-  );
-}
+//   return (
+//     <TouchableWithoutFeedback
+//       onPressIn={handlePressIn}
+//       onPressOut={handlePressOut}
+//       onPress={onPress}
+//     >
+//       <Animated.View style={[{ transform: [{ scale }] }, style]}>
+//         <PaperButton
+//           mode="contained"
+//           buttonColor={color}
+//           textColor={textColor}
+//           style={{ borderRadius: 12, paddingVertical: 10 }}
+//           labelStyle={{ fontSize: 18 }}
+//         >
+//           {label}
+//         </PaperButton>
+//       </Animated.View>
+//     </TouchableWithoutFeedback>
+//   );
+// }
 
 // ---------------------------
 // ScannerScreen
@@ -289,8 +289,9 @@ export default function ScannerScreen() {
   // ---------------------------
   // Calcular área de escaneo dinámicamente
   // ---------------------------
-  const SCAN_SIZE = dimensions.width * 0.7;
-  const TOP = (dimensions.height - SCAN_SIZE) / 2 - 150;
+  const SCAN_SIZE = dimensions.width * 1;
+  const SCAN_HEIGHT = SCAN_SIZE * 0.4; // reduce altura
+  const TOP = (dimensions.height - SCAN_SIZE) / 1 - 120;
   const LEFT = (dimensions.width - SCAN_SIZE) / 2;
 
   // ---------------------------
@@ -311,7 +312,7 @@ export default function ScannerScreen() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanLineAnim, {
-          toValue: SCAN_SIZE - 4,
+          toValue: SCAN_HEIGHT - 4,
           duration: 1400,
           useNativeDriver: true,
         }),
@@ -323,6 +324,13 @@ export default function ScannerScreen() {
       ]),
     ).start();
   }, [SCAN_SIZE]);
+
+  useEffect(() => {
+    if (!showKeyboard) {
+      inputTranslateY.setValue(0);
+      setHandInput("");
+    }
+  }, [showKeyboard]);
 
   useEffect(() => {
     if (showKeyboard) {
@@ -463,6 +471,25 @@ export default function ScannerScreen() {
   if (hasPermission === false)
     return <Text>No se tiene permiso de cámara</Text>;
 
+  const closeKeyboard = () => {
+    setShowKeyboard(false);
+
+    Animated.parallel([
+      Animated.timing(keyboardTranslateY, {
+        toValue: 300,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(inputTranslateY, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   // ---------------------------
   // Render
   // ---------------------------
@@ -478,7 +505,7 @@ export default function ScannerScreen() {
         enableTorch={false}
       />
 
-      <Text style={styles.helperText}>Alinee el código dentro del marco</Text>
+      {/* <Text style={styles.helperText}>Alinee el código dentro del marco</Text> */}
 
       {/* ////////////////////////////////////////////////////// */}
       {/* Panel de posicionamiento */}
@@ -562,7 +589,7 @@ export default function ScannerScreen() {
       {/* ////////////////////////////////////////////////////// */}
       {/* TAP FUERA PARA CERRAR TECLADO */}
       {showKeyboard && (
-        <TouchableWithoutFeedback onPress={() => setShowKeyboard(false)}>
+        <TouchableWithoutFeedback onPress={closeKeyboard}>
           <View
             style={{
               position: "absolute",
@@ -604,7 +631,7 @@ export default function ScannerScreen() {
               styles.scanArea,
               {
                 width: SCAN_SIZE,
-                height: SCAN_SIZE,
+                height: SCAN_HEIGHT,
                 borderColor: aligned ? "#00ff88" : "rgba(255,255,255,0.3)",
                 borderWidth: 2,
                 transform: [

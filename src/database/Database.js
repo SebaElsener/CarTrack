@@ -90,7 +90,6 @@ export const initDB = async () => {
         vin TEXT NOT NULL,
         sector TEXT NOT NULL,
         fila INTEGER NOT NULL,
-        position_user TEXT NOT NULL,
         position_date TEXT NOT NULL)
     `,
   );
@@ -107,30 +106,25 @@ export const deleteTable = async () => {
   const db = await getDb();
   try {
     await db.execAsync(`
-      DROP TABLE IF EXISTS pictures;
-      DROP TABLE IF EXISTS tableForPendingImages;
-      DROP TABLE IF EXISTS scans;
-      DROP TABLE IF EXISTS damages;
       DROP TABLE IF EXISTS scansPosition;
     `);
   } catch (error) {
-    console.log("Error al eliminar tablas, ", error);
+    console.log("Error al eliminar tabla, ", error);
   }
 
   await initDB();
 };
 
 // Guardar scan posicionamiento en playa
-export const saveScanPosition = async (vin, sector, fila, user) => {
+export const saveScanPosition = async (vin, sector, fila) => {
   const db = await getDb();
 
   try {
     const result = await db.runAsync(
-      `INSERT INTO scansPosition (vin, sector, fila, position_user, position_date) VALUES (?, ?, ?, ?, ?);`,
+      `INSERT INTO scansPosition (vin, sector, fila, position_date) VALUES (?, ?, ?, ?);`,
       vin,
       sector,
       fila,
-      user,
       new Date().toISOString(),
     );
 

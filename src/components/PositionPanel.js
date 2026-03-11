@@ -9,11 +9,10 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
-import { useAuth } from "../context/AuthContext";
 import { saveScanPosition } from "../database/Database";
 
 export default function PositionPanel({ vin }) {
-  const { user } = useAuth();
+  const listRef = useRef(null);
 
   const [sector, setSector] = useState("");
   const [fila, setFila] = useState(1);
@@ -36,7 +35,7 @@ export default function PositionPanel({ vin }) {
   }, [vin]);
 
   const procesarVIN = async (vin) => {
-    await saveScanPosition(vin, sector, fila, user);
+    await saveScanPosition(vin, sector, fila);
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
@@ -44,15 +43,33 @@ export default function PositionPanel({ vin }) {
 
     setContador((c) => c + 1);
 
-    setUltimos((prev) => {
-      const list = [vin, ...prev];
+    const registro = {
+      vin,
+      sector,
+      fila,
+    };
 
-      return list.slice(0, 8);
+    setUltimos((prev) => {
+      const nuevaLista = [registro, ...prev];
+
+      setTimeout(() => {
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }, 50);
+
+      return nuevaLista;
     });
+    // setUltimos((prev) => {
+    //   const list = [registro, ...prev];
+    //   return list.slice(0, 8);
+    // });
   };
 
-  const cambiarFila = () => {
+  const filaAdelante = () => {
     setFila((f) => f + 1);
+  };
+
+  const filaAtras = () => {
+    setFila((f) => (f > 1 ? f - 1 : 1));
   };
 
   return (
@@ -61,22 +78,38 @@ export default function PositionPanel({ vin }) {
         value={sector}
         onChangeText={setSector}
         placeholder="Sector"
+        //color="white"
+        placeholderTextColor="white"
         style={styles.input}
       />
 
       <Text style={styles.fila}>Fila: {fila}</Text>
 
-      <Pressable style={styles.button} onPress={cambiarFila}>
-        <Text>Cambiar fila</Text>
-      </Pressable>
+      <View style={styles.filaButtons}>
+        <Pressable style={styles.buttonBack} onPress={filaAtras}>
+          <Text style={styles.buttonText}>Fila atrás</Text>
+        </Pressable>
+
+        <Pressable style={styles.buttonNext} onPress={filaAdelante}>
+          <Text style={styles.buttonText}>Fila adelante</Text>
+        </Pressable>
+      </View>
 
       <Text style={styles.contador}>Escaneados: {contador}</Text>
 
-      <FlatList
-        data={ultimos}
-        keyExtractor={(item, i) => item + i}
-        renderItem={({ item }) => <Text style={styles.item}>{item}</Text>}
-      />
+      <View style={styles.lista}>
+        <FlatList
+          data={ultimos}
+          ref={listRef}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item, i) => item.vin + i}
+          renderItem={({ item }) => (
+            <Text style={styles.item}>
+              {item.vin} | {item.sector} - {item.fila}
+            </Text>
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -121,5 +154,36 @@ const styles = StyleSheet.create({
 
   item: {
     color: "#151515f0",
+  },
+  filaButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+
+  buttonBack: {
+    backgroundColor: "#64748b",
+    padding: 6,
+    borderRadius: 6,
+    flex: 1,
+    marginRight: 5,
+    alignItems: "center",
+  },
+
+  buttonNext: {
+    backgroundColor: "#2563eb",
+    padding: 6,
+    borderRadius: 6,
+    flex: 1,
+    marginLeft: 5,
+    alignItems: "center",
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  lista: {
+    maxHeight: 65, // aprox 4 filas
   },
 });
