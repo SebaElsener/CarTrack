@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -9,10 +10,12 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
-import { saveScanPosition } from "../database/Database";
+import { findScanByLast6, saveScanPosition } from "../database/Database";
 
 export default function PositionPanel({ vin }) {
   const listRef = useRef(null);
+  const [vinSearch, setVinSearch] = useState("");
+  const [mostrarResultado, setMostrarResultado] = useState(false);
 
   const [sector, setSector] = useState("");
   const [fila, setFila] = useState(1);
@@ -64,6 +67,32 @@ export default function PositionPanel({ vin }) {
     // });
   };
 
+  const buscarVin = async (text) => {
+    if (text.length < 6) return;
+
+    const registro = await findScanByLast6(text);
+
+    if (registro) {
+      const fecha = new Date(registro.position_date).toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      setVinSearch(
+        `${registro.vin} | ${registro.sector}-${registro.fila} | ${fecha}`,
+      );
+
+      setMostrarResultado(true);
+      Keyboard.dismiss();
+    } else {
+      setVinSearch("Sin datos para el VIN consultado");
+      setMostrarResultado(true);
+      Keyboard.dismiss();
+    }
+  };
+
   const filaAdelante = () => {
     setFila((f) => f + 1);
   };
@@ -75,16 +104,35 @@ export default function PositionPanel({ vin }) {
   return (
     <View style={styles.container}>
       <TextInput
-        value={sector}
-        onChangeText={setSector}
-        placeholder="Sector"
-        //color="white"
+        value={vinSearch}
+        onChangeText={(text) => {
+          const soloNumeros = text.replace(/[^0-9]/g, "");
+          setVinSearch(soloNumeros);
+          setMostrarResultado(false);
+          buscarVin(soloNumeros);
+        }}
+        onFocus={() => {
+          setVinSearch("");
+          setMostrarResultado(false);
+        }}
+        placeholder="Buscar VIN (últimos 6)"
         placeholderTextColor="white"
-        style={styles.input}
+        keyboardType="number-pad"
+        maxLength={mostrarResultado ? undefined : 6}
+        style={styles.searchInput}
       />
+      <View style={styles.sectorWrap}>
+        <TextInput
+          value={sector}
+          onChangeText={setSector}
+          placeholder="Sector"
+          //color="white"
+          placeholderTextColor="white"
+          style={styles.input}
+        />
 
-      <Text style={styles.fila}>Fila: {fila}</Text>
-
+        <Text style={styles.fila}>Fila: {fila}</Text>
+      </View>
       <View style={styles.filaButtons}>
         <Pressable style={styles.buttonBack} onPress={filaAtras}>
           <Text style={styles.buttonText}>Fila atrás</Text>
@@ -94,9 +142,7 @@ export default function PositionPanel({ vin }) {
           <Text style={styles.buttonText}>Fila adelante</Text>
         </Pressable>
       </View>
-
       <Text style={styles.contador}>Escaneados: {contador}</Text>
-
       <View style={styles.lista}>
         <FlatList
           data={ultimos}
@@ -125,20 +171,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     //width: 180,
   },
-
-  input: {
+  searchInput: {
     backgroundColor: "#1e293b",
+    color: "#fff",
+    borderRadius: 6,
+    marginBottom: 10,
+    padding: 8,
+  },
+  input: {
+    backgroundColor: "#24a03d",
     color: "#fff",
     padding: 8,
     borderRadius: 6,
     marginBottom: 10,
+    width: 150,
   },
-
+  sectorWrap: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   fila: {
     color: "#22c55e",
     fontSize: 20,
+    flex: 1,
+    textAlign: "center",
   },
-
   button: {
     backgroundColor: "#2563eb",
     padding: 6,

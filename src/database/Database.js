@@ -135,6 +135,18 @@ export const saveScanPosition = async (vin, sector, fila) => {
   }
 };
 
+export async function findScanByLast6(vin6) {
+  const result = await db.getFirstAsync(
+    `SELECT vin, sector, fila, position_date
+     FROM scansPosition
+     WHERE substr(vin, -6) = ?
+     ORDER BY position_date DESC
+     LIMIT 1`,
+    [vin6],
+  );
+  return result;
+}
+
 // Guardar un escaneo
 export const saveScan = async (
   vin,
