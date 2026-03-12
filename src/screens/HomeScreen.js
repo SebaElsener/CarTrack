@@ -86,7 +86,7 @@ export default function HomeScreen() {
     <View style={styles.backContainer}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>
-          Car<Text style={styles.titleSpan}>Track</Text>
+          Car<Text style={styles.titleSpan}>Posiciones</Text>
         </Text>
       </View>
       <View style={styles.container}>
@@ -122,7 +122,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    //marginTop: 10,
+    marginTop: 20,
+    marginBottom: 20,
   },
   titleSpan: {
     fontStyle: "italic",
