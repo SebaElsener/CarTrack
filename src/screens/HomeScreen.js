@@ -3,7 +3,6 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
-import { useScans } from "../context/ScanContext";
 import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
@@ -13,7 +12,6 @@ export default function HomeScreen() {
       translateY: new Animated.Value(20),
     })),
   ).current;
-  const { resetAllScansState, refreshTotalScans } = useScans();
 
   useFocusEffect(
     useCallback(() => {
@@ -52,46 +50,9 @@ export default function HomeScreen() {
 
   const handleDeleteDatabase = async () => {
     await deleteTable(); // SQLite (DROP + CREATE)
-    resetAllScansState(); // UI inmediata
-    await refreshTotalScans();
   };
 
   const cards = [
-    // {
-    //   title: "Escanear VIN",
-    //   description: "Escaneo del código VIN",
-    //   href: "/(app)/ScannerScreen",
-    //   backgroundColor: "rgba(126, 249, 128, 0.28)",
-    //   icon: (
-    //     <MaterialCommunityIcons
-    //       name="barcode-scan"
-    //       size={55}
-    //       color="#2a2a2aba"
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Historial",
-    //   description: "Vehículos escaneados",
-    //   href: "/(app)/HistoryScreen",
-    //   backgroundColor: "rgba(143, 156, 143, 0.38)",
-    //   icon: (
-    //     <MaterialCommunityIcons
-    //       name="clipboard-list-outline"
-    //       size={55}
-    //       color="#2a2a2acb"
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Daños",
-    //   description: "Consulta de daños previos",
-    //   href: "/(app)/ConsultaDanoScreen",
-    //   backgroundColor: "rgba(91, 116, 179, 0.38)",
-    //   icon: (
-    //     <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
-    //   ),
-    // },
     {
       title: "Posiciones",
       description: "Posicionamiento de unidades",

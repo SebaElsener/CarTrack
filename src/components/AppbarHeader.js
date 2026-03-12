@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { Appbar } from "react-native-paper";
 
-export default function AppHeader({ syncing, logout }) {
+export default function AppHeader() {
   const router = useRouter();
 
   return (
@@ -14,51 +14,9 @@ export default function AppHeader({ syncing, logout }) {
           size={30}
           onPress={() => router.replace("/(app)/HomeScreen")}
         />
-        {/* <Appbar.Action
-          icon="barcode-scan"
-          color="white"
-          size={30}
-          onPress={() => router.replace("/(app)/ScannerScreen")}
-        />
-        <Appbar.Action
-          icon="clipboard-list-outline"
-          color="white"
-          size={30}
-          onPress={() => router.replace("/(app)/HistoryScreen")}
-        /> */}
-        {/* 
-        {syncing && (
-          <View style={styles.lottieContainer}>
-            <Text style={{ color: "white" }}>SYNC</Text>
-            <LottieView
-              source={require("../utils/Syncwhite.json")}
-              autoPlay
-              loop
-              style={{ width: 30, height: 30 }}
-            />
-          </View>
-        )} */}
 
         <View style={{ flex: 1 }} />
-        {/* <Appbar.Action icon="logout" color="white" size={30} onPress={logout} /> */}
       </View>
-
-      {/* <View style={styles.appBarDate}>
-        <InfoBar />
-      </View> */}
-
-      {/* <View style={styles.appBarInfoAndLocation}> */}
-      {/* <View style={{ width: "75%" }}>
-          <TransportBar />
-        </View> */}
-      {/* <View style={styles.location}>
-          <LocationStatusbar />
-        </View> */}
-      {/* </View> */}
-
-      {/* <View style={styles.appBarWeather}>
-        <WeatherCondition />
-      </View> */}
     </Appbar.Header>
   );
 }
