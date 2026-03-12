@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CarTrack",
-    "slug": "CarTrack",
+    "name": "CarPosiciones",
+    "slug": "carposiciones",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sebaelsener.CarTrack"
+      "bundleIdentifier": "com.sebaelsener.carposiciones"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sebaelsener.CarTrack",
+      "package": "com.sebaelsener.carposiciones",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
