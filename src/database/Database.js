@@ -78,6 +78,8 @@ export const saveScanPosition = async (vin, sector, fila) => {
 };
 
 export async function findScanByLast6(vin6) {
+  const db = await getDb();
+
   const result = await db.getFirstAsync(
     `SELECT vin, sector, fila, position_date
      FROM scansPosition
