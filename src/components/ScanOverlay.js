@@ -1,18 +1,16 @@
 import { useEffect, useRef } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 
-export default function ScanOverlay() {
+export default function ScanOverlay({ width, height, top, left }) {
   const scanLine = useRef(new Animated.Value(0)).current;
 
-  const { width, height } = Dimensions.get("window");
-
-  const SIZE = width * 0.7;
+  const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanLine, {
-          toValue: SIZE - 4,
+          toValue: height - 4,
           duration: 1400,
           useNativeDriver: true,
         }),
@@ -23,30 +21,58 @@ export default function ScanOverlay() {
         }),
       ]),
     ).start();
-  }, []);
+  }, [height]);
 
   return (
     <View style={styles.overlay}>
-      <View style={styles.maskTop} />
+      {/* máscara superior */}
+      <View
+        style={[
+          styles.mask,
+          { top: 0, left: 0, width: screenWidth, height: top },
+        ]}
+      />
 
-      <View style={styles.row}>
-        <View style={styles.maskSide} />
+      {/* máscara inferior */}
+      <View
+        style={[
+          styles.mask,
+          {
+            top: top + height,
+            left: 0,
+            width: screenWidth,
+            height: screenHeight - (top + height),
+          },
+        ]}
+      />
 
-        <View style={[styles.scanArea, { width: SIZE, height: SIZE }]}>
-          <Animated.View
-            style={[styles.scanLine, { transform: [{ translateY: scanLine }] }]}
-          />
+      {/* máscara izquierda */}
+      <View style={[styles.mask, { top, left: 0, width: left, height }]} />
 
-          <View style={[styles.corner, styles.tl]} />
-          <View style={[styles.corner, styles.tr]} />
-          <View style={[styles.corner, styles.bl]} />
-          <View style={[styles.corner, styles.br]} />
-        </View>
+      {/* máscara derecha */}
+      <View
+        style={[
+          styles.mask,
+          {
+            top,
+            left: left + width,
+            width: screenWidth - (left + width),
+            height,
+          },
+        ]}
+      />
 
-        <View style={styles.maskSide} />
+      {/* área de escaneo */}
+      <View style={[styles.scanArea, { top, left, width, height }]}>
+        <Animated.View
+          style={[styles.scanLine, { transform: [{ translateY: scanLine }] }]}
+        />
+
+        <View style={[styles.corner, styles.tl]} />
+        <View style={[styles.corner, styles.tr]} />
+        <View style={[styles.corner, styles.bl]} />
+        <View style={[styles.corner, styles.br]} />
       </View>
-
-      <View style={styles.maskBottom} />
     </View>
   );
 }
@@ -56,34 +82,18 @@ const CORNER = 28;
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
     pointerEvents: "none",
   },
 
-  maskTop: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-
-  maskBottom: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-
-  row: {
-    flexDirection: "row",
-  },
-
-  maskSide: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+  mask: {
+    position: "absolute",
+    backgroundColor: "rgba(234,231,231,0.96)",
   },
 
   scanArea: {
+    position: "absolute",
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(255,255,255,0.4)",
   },
 
   scanLine: {

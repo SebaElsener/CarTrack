@@ -16,6 +16,7 @@ import { IconButton } from "react-native-paper";
 import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import PositionPanel from "../components/PositionPanel";
+import ScanOverlay from "../components/ScanOverlay";
 
 // ---------------------------
 // VIN validation
@@ -276,8 +277,8 @@ export default function ScannerScreen() {
   // Detectar orientación
   // ---------------------------
   const [dimensions, setDimensions] = useState(Dimensions.get("window"));
-  const orientation =
-    dimensions.height >= dimensions.width ? "portrait" : "landscape";
+  // const orientation =
+  //   dimensions.height >= dimensions.width ? "portrait" : "landscape";
 
   useEffect(() => {
     const sub = Dimensions.addEventListener("change", ({ window }) =>
@@ -286,13 +287,11 @@ export default function ScannerScreen() {
     return () => sub?.remove();
   }, []);
 
-  // ---------------------------
-  // Calcular área de escaneo dinámicamente
-  // ---------------------------
-  const SCAN_SIZE = dimensions.width * 1;
-  const SCAN_HEIGHT = SCAN_SIZE * 0.4; // reduce altura
-  const TOP = (dimensions.height - SCAN_SIZE) / 1 - 120;
-  const LEFT = (dimensions.width - SCAN_SIZE) / 2;
+  const SCAN_WIDTH = dimensions.width * 1;
+  const SCAN_HEIGHT = SCAN_WIDTH * 0.35;
+
+  const SCAN_TOP = (dimensions.height - SCAN_HEIGHT) / 2;
+  const SCAN_LEFT = (dimensions.width - SCAN_WIDTH) / 2;
 
   // ---------------------------
   // Camera permissions
@@ -323,7 +322,7 @@ export default function ScannerScreen() {
         }),
       ]),
     ).start();
-  }, [SCAN_SIZE]);
+  }, []);
 
   useEffect(() => {
     if (!showKeyboard) {
@@ -439,16 +438,18 @@ export default function ScannerScreen() {
 
       const centerX =
         cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
+
       const centerY =
         cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
 
       const inside =
-        centerX > LEFT &&
-        centerX < LEFT + SCAN_SIZE &&
-        centerY > TOP &&
-        centerY < TOP + SCAN_SIZE;
+        centerX > SCAN_LEFT &&
+        centerX < SCAN_LEFT + SCAN_WIDTH &&
+        centerY > SCAN_TOP &&
+        centerY < SCAN_TOP + SCAN_HEIGHT;
 
       setAligned(inside);
+
       if (!inside) return;
     }
 
@@ -503,6 +504,13 @@ export default function ScannerScreen() {
         }}
         autoFocus="on"
         enableTorch={false}
+      />
+
+      <ScanOverlay
+        width={SCAN_WIDTH}
+        height={SCAN_HEIGHT}
+        top={SCAN_TOP}
+        left={SCAN_LEFT}
       />
 
       {/* <Text style={styles.helperText}>Alinee el código dentro del marco</Text> */}
@@ -620,46 +628,6 @@ export default function ScannerScreen() {
           />
         </Animated.View>
       )}
-
-      {/* Overlay */}
-      <View style={styles.overlay}>
-        <View style={[styles.mask, { height: TOP }]} />
-        <View style={styles.centerRow}>
-          <View style={[styles.mask, { width: LEFT }]} />
-          <View
-            style={[
-              styles.scanArea,
-              {
-                width: SCAN_SIZE,
-                height: SCAN_HEIGHT,
-                borderColor: aligned ? "#00ff88" : "rgba(255,255,255,0.3)",
-                borderWidth: 2,
-                transform: [
-                  { rotate: orientation === "landscape" ? "-90deg" : "0deg" },
-                ],
-              },
-            ]}
-          >
-            <Animated.View
-              style={[
-                styles.scanLine,
-                {
-                  transform: [
-                    { translateY: scanLineAnim },
-                    { rotate: orientation === "landscape" ? "-90deg" : "0deg" },
-                  ],
-                },
-              ]}
-            />
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-          </View>
-          <View style={[styles.mask, { width: LEFT }]} />
-        </View>
-        <View style={[styles.mask, { height: TOP }]} />
-      </View>
     </View>
   );
 }
@@ -667,9 +635,8 @@ export default function ScannerScreen() {
 // ---------------------------
 // Styles
 // ---------------------------
-const CORNER = 28;
 const styles = StyleSheet.create({
-  container: { flex: 1, position: "relative" },
+  container: { flex: 1, position: "relative", backgroundColor: "#ebe5e5ea" },
   result: {
     position: "absolute",
     bottom: 150,
@@ -697,15 +664,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     marginBottom: 16,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    pointerEvents: "none",
-  },
-  mask: { backgroundColor: "rgba(0,0,0,0.6)" },
-  centerRow: { flexDirection: "row" },
-  scanArea: { width: 0, height: 0 },
-  scanLine: { height: 2, width: "100%", backgroundColor: "#00ff88" },
   helperText: {
     position: "absolute",
     bottom: 505,
@@ -734,7 +692,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(249, 249, 249, 0.9)",
     borderWidth: 0.4,
     height: 65,
-    backgroundColor: "#aedbdcf2",
+    backgroundColor: "#aedbdcfe",
     //paddingLeft: 10,
     borderRadius: 20,
     zIndex: 999,
@@ -753,21 +711,6 @@ const styles = StyleSheet.create({
   //   zIndex: 10,
   // },
   // flashText: { color: "#fff", fontSize: 14 },
-  corner: {
-    position: "absolute",
-    width: CORNER,
-    height: CORNER,
-    borderColor: "#00ff88",
-  },
-  topLeft: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3 },
-  topRight: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3 },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-  },
   handInputBtn: {
     justifyContent: "center",
     //color: "gray",
