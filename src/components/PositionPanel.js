@@ -106,10 +106,10 @@ export default function PositionPanel({ vin }) {
       <TextInput
         value={vinSearch}
         onChangeText={(text) => {
-          const soloNumeros = text.replace(/[^0-9]/g, "");
-          setVinSearch(soloNumeros);
+          //   const soloNumeros = text.replace(/[^0-9]/g, "");
+          setVinSearch(text);
           setMostrarResultado(false);
-          buscarVin(soloNumeros);
+          buscarVin(text);
         }}
         onFocus={() => {
           setVinSearch("");
@@ -117,7 +117,6 @@ export default function PositionPanel({ vin }) {
         }}
         placeholder="Buscar VIN (últimos 6)"
         placeholderTextColor="white"
-        keyboardType="number-pad"
         maxLength={mostrarResultado ? undefined : 6}
         style={styles.searchInput}
       />
