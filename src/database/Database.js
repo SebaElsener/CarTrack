@@ -90,3 +90,15 @@ export async function findScanByLast6(vin6) {
   );
   return result;
 }
+
+export async function getAllScanPositions() {
+  const db = await getDb();
+
+  const result = await db.getAllAsync(`
+    SELECT vin, sector, fila, position_date
+    FROM scansPosition
+    ORDER BY position_date DESC
+  `);
+
+  return result;
+}

@@ -11,6 +11,7 @@ import {
 
 import * as Haptics from "expo-haptics";
 import { findScanByLast6, saveScanPosition } from "../database/Database";
+import { exportToExcel } from "./exportExcel";
 
 export default function PositionPanel({ vin }) {
   const listRef = useRef(null);
@@ -103,6 +104,9 @@ export default function PositionPanel({ vin }) {
 
   return (
     <View style={styles.container}>
+      <Pressable style={styles.exportButton} onPress={exportToExcel}>
+        <Text style={styles.buttonText}>Exportar Excel</Text>
+      </Pressable>
       <TextInput
         value={vinSearch}
         onChangeText={(text) => {
@@ -242,5 +246,15 @@ const styles = StyleSheet.create({
   },
   lista: {
     maxHeight: 65, // aprox 4 filas
+  },
+  exportButton: {
+    position: "absolute",
+    backgroundColor: "#16a34a",
+    padding: 8,
+    borderRadius: 6,
+    //marginTop: 10,
+    top: 165,
+    right: 10,
+    alignItems: "center",
   },
 });
