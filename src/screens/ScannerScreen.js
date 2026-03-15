@@ -80,9 +80,32 @@ const COMMON_CONFUSIONS = {
 
 const CHECK_DIGIT_EXCEPTIONS = {
   // WMI : array de dígitos permitidos aunque no coincidan con ISO
-  "9BD": ["2", "N", "4", "K", "S", "U", "B", "F", "1", "3"], // Fiat Brasil
-  "93H": ["0"], // Honda Brasil
-  "9BG": ["0"], // GM Brasil
+  "9BD": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "X",
+    "G",
+    "N",
+    "K",
+    "S",
+    "U",
+    "B",
+    "F",
+  ], // Fiat Brasil
+  "93H": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], // Honda Brasil
+  "9BG": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], // GM Brasil
+  "8AJ": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "X"], // Toyota Argentina
+  "93Y": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "X"], // Renault Brasil
+  "8A1": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "X", "G"], // Renault Argentina
+  "94D": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "X"], // Nissan Brasil
 };
 
 // --- VIN helpers ---
