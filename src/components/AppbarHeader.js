@@ -1,8 +1,10 @@
 import { useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
 import { StyleSheet, View } from "react-native";
-import { Appbar } from "react-native-paper";
+import { Appbar, Text } from "react-native-paper";
+import InfoBar from "../screens/InfoBar";
 
-export default function AppHeader() {
+export default function AppHeader({ syncing, logout }) {
   const router = useRouter();
 
   return (
@@ -15,7 +17,24 @@ export default function AppHeader() {
           onPress={() => router.replace("/(app)/HomeScreen")}
         />
 
+        {syncing && (
+          <View style={styles.lottieContainer}>
+            <Text style={{ color: "white" }}>SYNC</Text>
+            <LottieView
+              source={require("../utils/Syncwhite.json")}
+              autoPlay
+              loop
+              style={{ width: 30, height: 30 }}
+            />
+          </View>
+        )}
+
         <View style={{ flex: 1 }} />
+        <Appbar.Action icon="logout" color="white" size={30} onPress={logout} />
+      </View>
+
+      <View style={styles.appBarDate}>
+        <InfoBar />
       </View>
     </Appbar.Header>
   );
@@ -28,7 +47,7 @@ const styles = StyleSheet.create({
   appBarContainer: {
     backgroundColor: "rgba(0,0,0,0.25)",
     flexDirection: "column",
-    //height: 205,
+    height: 100,
     //zIndex: 999999,
   },
   appBarDate: {

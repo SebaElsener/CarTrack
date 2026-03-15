@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
 
     // Android
     //elevation: 16,
+    height: 300,
   },
 
   // 🟢 Blur sin sombra

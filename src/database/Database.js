@@ -22,12 +22,13 @@ export const initDB = async () => {
   const db = await getDb();
   await db.execAsync(
     `PRAGMA journal_mode = WAL;
-        CREATE TABLE IF NOT EXISTS scansPosition (
+        CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         vin TEXT UNIQUE,
-        sector TEXT NOT NULL,
-        fila INTEGER NOT NULL,
-        position_date TEXT NOT NULL)
+        transport_nbr TEXT NOT NULL,
+        lugar INTEGER NOT NULL,
+        gps_stamp JSONB NOT NULL,
+        synced INTEGER DEFAULT 0)
     `,
   );
 
@@ -43,7 +44,7 @@ export const deleteTable = async () => {
   const db = await getDb();
   try {
     await db.execAsync(`
-      DROP TABLE IF EXISTS scansPosition;
+      DROP TABLE IF EXISTS scans;
     `);
   } catch (error) {
     console.log("Error al eliminar tabla, ", error);
@@ -52,53 +53,27 @@ export const deleteTable = async () => {
   await initDB();
 };
 
-// Guardar scan posicionamiento en playa
-export const saveScanPosition = async (vin, sector, fila) => {
+// Guardar scan de unidad descargada
+export const saveScan = async (vin, lugar, transport_nbr, gps_stamp) => {
   const db = await getDb();
-  const fecha = new Date().toISOString();
 
   try {
     const result = await db.runAsync(
       `
-    INSERT INTO scansPosition (vin, sector, fila, position_date)
+    INSERT INTO scans (vin, lugar, transport_nbr, gps_stamp)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(vin) DO UPDATE SET
-      sector = excluded.sector,
-      fila = excluded.fila,
-      position_date = excluded.position_date
+      vin = excluded.vin,
+      lugar = excluded.lugar,
+      transport_nbr = excluded.transport_nbr,
+      gps_stamp = excluded.gps_stamp
     `,
-      [vin, sector, fila, fecha],
+      [vin, lugar, transport_nbr, gps_stamp],
     );
 
     return result.lastInsertRowId;
   } catch (error) {
-    console.error("Error al guardar scan para posicionamiento: ", error);
+    console.error("Error al guardar scan: ", error);
     throw error;
   }
 };
-
-export async function findScanByLast6(vin6) {
-  const db = await getDb();
-
-  const result = await db.getFirstAsync(
-    `SELECT vin, sector, fila, position_date
-     FROM scansPosition
-     WHERE substr(vin, -6) = ?
-     ORDER BY position_date DESC
-     LIMIT 1`,
-    [vin6],
-  );
-  return result;
-}
-
-export async function getAllScanPositions() {
-  const db = await getDb();
-
-  const result = await db.getAllAsync(`
-    SELECT vin, sector, fila, position_date
-    FROM scansPosition
-    ORDER BY position_date DESC
-  `);
-
-  return result;
-}

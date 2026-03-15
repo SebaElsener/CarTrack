@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CarPosiciones",
-    "slug": "carposiciones",
+    "name": "CarPointer",
+    "slug": "carpointer",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sebaelsener.carposiciones"
+      "bundleIdentifier": "com.sebaelsener.carpointer"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sebaelsener.carposiciones",
+      "package": "com.sebaelsener.carpointer",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

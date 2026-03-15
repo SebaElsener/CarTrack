@@ -197,6 +197,7 @@ export default function ScannerScreen() {
   const keyboardTranslateY = useRef(new Animated.Value(370)).current;
   const inputTranslateY = useRef(new Animated.Value(0)).current;
   const lastVinRef = useRef(null);
+  const [destino, setDestino] = useState("0");
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
@@ -497,10 +498,18 @@ export default function ScannerScreen() {
 
       {/* ////////////////////////////////////////////////////// */}
       {/* Panel de posicionamiento */}
-
-      <View style={styles.positionPanelContainer}>
-        <PositionPanel vin={lastResult} />
+      <View style={styles.vinResultContainer}>
+        <Text style={styles.vinResultLabel}>VIN</Text>
+        <Text style={styles.vinResultText}>
+          {lastResult || "Esperando escaneo..."}
+        </Text>
       </View>
+
+      {lastResult && (
+        <View style={styles.positionPanelContainer}>
+          <PositionPanel destino={destino} onDestinoChange={setDestino} />
+        </View>
+      )}
 
       <Animated.View
         style={[
@@ -665,41 +674,18 @@ const styles = StyleSheet.create({
   handInputVINContainer: {
     position: "absolute",
     bottom: 130,
-    //left: 0,
-    //right: 0,
+
     alignSelf: "center",
     flexDirection: "row",
     borderColor: "rgba(249, 249, 249, 0.9)",
     borderWidth: 0.4,
     height: 65,
     backgroundColor: "#aedbdcfe",
-    //paddingLeft: 10,
     borderRadius: 20,
     zIndex: 999,
-    //justifyContent: "space-between",
-    //alignContent: "center",
-    //display: "flex",
-    //alignItems: "center",
   },
-  // flashButton: {
-  //   position: "absolute",
-  //   top: 20,
-  //   right: 20,
-  //   backgroundColor: "rgba(0,0,0,0.6)",
-  //   padding: 10,
-  //   borderRadius: 20,
-  //   zIndex: 10,
-  // },
-  // flashText: { color: "#fff", fontSize: 14 },
   handInputBtn: {
     justifyContent: "center",
-    //color: "gray",
-  },
-  textInputVIN: {
-    // width: 270,
-    //height: 55,
-    // justifyContent: "center",
-    //backgroundColor: "yellow",
   },
   fakeInputWrapper: {
     flexDirection: "row",
@@ -772,5 +758,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginRight: 10,
+  },
+  vinResultContainer: {
+    position: "absolute",
+    top: 40,
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    minWidth: "85%",
+    shadowOffset: { width: 0, height: 4 },
+  },
+
+  vinResultLabel: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 2,
+  },
+
+  vinResultText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    letterSpacing: 2,
+    color: "#111",
+  },
+  positionPanelContainer: {
+    position: "absolute",
+    top: 150,
+    alignSelf: "center",
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
 });

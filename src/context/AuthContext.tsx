@@ -1,4 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
+import * as SecureStore from "expo-secure-store";
 import {
   createContext,
   ReactNode,
@@ -21,6 +22,10 @@ const AuthContext = createContext<{
   session: Session | null;
   user: User | null;
   loading: boolean;
+  transportNbr: string | null;
+  setTransportNbr: (v: string | null) => Promise<void>;
+  operatorName: string | null;
+  setOperatorName: (v: string | null) => void;
   logout: () => Promise<void>;
   setLoading: (value: boolean) => void;
 
@@ -33,6 +38,10 @@ const AuthContext = createContext<{
   session: null,
   user: null,
   loading: true,
+  transportNbr: null,
+  setTransportNbr: async () => {},
+  operatorName: null,
+  setOperatorName: () => {},
   logout: async () => {},
   setLoading: () => {},
 
@@ -48,6 +57,8 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
+  const [transportNbr, setTransportNbr] = useState<string | null>(null);
+  const [operatorName, setOperatorName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
@@ -57,16 +68,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
     type: "success",
   });
 
+  const setTransportNbrPersist = async (value: string | null) => {
+    setTransportNbr(value);
+
+    if (value) {
+      await SecureStore.setItemAsync("transportNbr", value);
+    } else {
+      await SecureStore.deleteItemAsync("transportNbr");
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      const savedTransport = await SecureStore.getItemAsync("transportNbr");
+
       setSession(data.session);
+      setTransportNbr(savedTransport);
       setLoading(false);
-    });
+    };
+
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-      }
+      },
     );
 
     return () => listener.subscription.unsubscribe();
@@ -77,6 +105,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await supabase.auth.signOut();
       setSession(null);
       setLoading(false);
+      await SecureStore.deleteItemAsync("transportNbr");
+      setTransportNbr(null);
       showToast("Sesión cerrada correctamente", "info");
     } catch (err: any) {
       showToast(err.message || "Error al cerrar sesión", "error");
@@ -112,6 +142,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         loading,
         logout,
         setLoading,
+        transportNbr,
+        setTransportNbr: setTransportNbrPersist,
+        operatorName,
+        setOperatorName,
         snackbar,
         showSuccess,
         showError,

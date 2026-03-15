@@ -1,7 +1,7 @@
 {
-  "name": "posiciones",
+  "name": "carpointer",
   "main": "expo-router/entry",
-  "version": "posiciones_110326.apk",
+  "version": "carpointer-v1-150326.apk",
   "scripts": {
     "start": "expo start",
     "resetcache": "expo start --clear",

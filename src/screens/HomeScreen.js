@@ -54,39 +54,34 @@ export default function HomeScreen() {
 
   const cards = [
     {
-      title: "Posiciones",
-      description: "Posicionamiento de unidades",
+      title: "Registrar unidad",
+      description: "Descarga de unidades en destino",
       href: "/(app)/ScannerScreen",
       backgroundColor: "rgba(179, 178, 91, 0.38)",
       icon: (
-        <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
+        <MaterialCommunityIcons
+          name="barcode-scan"
+          size={55}
+          color="#2a2a2acb"
+        />
       ),
     },
-    {
-      title: "Inventario",
-      description: "Inventariar unidades",
-      href: "/(app)/InventarioScreen",
-      backgroundColor: "rgba(35, 21, 219, 0.38)",
-      icon: (
-        <MaterialCommunityIcons name="car-wrench" size={55} color="#2a2a2acb" />
-      ),
-    },
-    {
-      title: "Reset",
-      description: "Eliminar tablas locales",
-      backgroundColor: "rgba(206, 104, 104, 0.38)",
-      icon: (
-        <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
-      ),
-      onPress: handleDeleteDatabase,
-    },
+    // {
+    //   title: "Reset",
+    //   description: "Eliminar tablas locales",
+    //   backgroundColor: "rgba(206, 104, 104, 0.38)",
+    //   icon: (
+    //     <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
+    //   ),
+    //   onPress: handleDeleteDatabase,
+    // },
   ];
 
   return (
     <View style={styles.backContainer}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>
-          Car<Text style={styles.titleSpan}>Posiciones</Text>
+          Car<Text style={styles.titleSpan}>Pointer</Text>
         </Text>
       </View>
       <View style={styles.container}>
@@ -122,7 +117,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 50,
     marginBottom: 20,
   },
   titleSpan: {
@@ -143,17 +138,17 @@ const styles = StyleSheet.create({
     width: 300,
   },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    flexDirection: "column",
+    //flexWrap: "wrap",
+    justifyContent: "center",
     //rowGap: 16,
-    width: "100%",
+    width: "80%",
     flex: 1,
     //marginTop: 30,
   },
   cardWrapper: {
-    flexBasis: "48%", // dos por fila
-    height: 175,
+    //flexBasis: "48%", // dos por fila
+    height: 500,
     //aspectRatio: 1, // cuadrada
   },
 });

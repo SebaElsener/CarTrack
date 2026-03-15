@@ -8,25 +8,52 @@ import { supabase } from "../services/supabase";
 
 export default function LoginScreen() {
   const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { loading, setLoading } = useAuth();
+  const [transportNbr, setTransportNbrLocal] = useState("");
+  const { loading, setLoading, setTransportNbr, setOperatorName } = useAuth();
   const { showToast } = useToast();
 
   const login = async () => {
-    setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-
-    if (error) {
-      showToast("Usuario o clave inválidos", "error");
+    if (!transportNbr?.trim()) {
+      showToast("Ingrese número de transporte", "error");
       return;
     }
+
+    setLoading(true);
+
+    // 1️⃣ Login técnico en Supabase
+    const { error } = await supabase.auth.signInWithPassword({
+      email: "transportistas@cooptacor.com.ar",
+      password: "Transportistas1234",
+    });
+
+    if (error) {
+      setLoading(false);
+      showToast("Error al iniciar sesión", "error");
+      return;
+    }
+
+    // 2️⃣ Buscar operador
+    const { data, error: operatorError } = await supabase
+      .schema("carpointer")
+      .from("transportistas")
+      .select("name")
+      .eq("transport_nbr", transportNbr.trim())
+      .single();
+
+    console.log("operatorError:", operatorError);
+    console.log("data:", data);
+
+    if (operatorError || !data) {
+      setLoading(false);
+      showToast("Transportista no encontrado", "error");
+      return;
+    }
+
+    // 3️⃣ Guardar datos en el contexto
+    setOperatorName(data.name);
+    await setTransportNbr(transportNbr);
+
+    setLoading(false);
 
     router.replace("/(app)");
   };
@@ -34,18 +61,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        style={styles.input}
-      />
-
-      <TextInput
-        label="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
+        label="Nro. de transporte"
+        value={transportNbr}
+        onChangeText={setTransportNbrLocal}
         mode="outlined"
         style={styles.input}
       />
