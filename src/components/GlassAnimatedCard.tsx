@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
 
     // Android
     //elevation: 16,
-    height: 300,
+    //height: 300,
   },
 
   // 🟢 Blur sin sombra
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
 
   glassFill: {
-    height: 160,
+    minHeight: 220,
     //flex: 1,
     padding: 16,
     alignItems: "center",

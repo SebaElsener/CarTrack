@@ -3,7 +3,6 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
-import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
   const animations = useRef(
@@ -48,20 +47,33 @@ export default function HomeScreen() {
     }, [animations]),
   );
 
-  const handleDeleteDatabase = async () => {
-    await deleteTable(); // SQLite (DROP + CREATE)
-  };
+  // const handleDeleteDatabase = async () => {
+  //   await deleteTable(); // SQLite (DROP + CREATE)
+  // };
 
   const cards = [
     {
-      title: "Registrar unidad",
-      description: "Descarga de unidades en destino",
+      title: "Registrar carga",
+      description: "Carga de unidades en origen",
       href: "/(app)/ScannerScreen",
-      backgroundColor: "rgba(179, 178, 91, 0.38)",
+      backgroundColor: "rgba(103, 205, 83, 0.4)",
       icon: (
         <MaterialCommunityIcons
-          name="barcode-scan"
-          size={55}
+          name="car-arrow-left"
+          size={100}
+          color="#2a2a2acb"
+        />
+      ),
+    },
+    {
+      title: "Registrar descarga",
+      description: "Descarga de unidades en destino",
+      href: "/(app)/ScannerScreen",
+      backgroundColor: "rgba(64, 74, 165, 0.38)",
+      icon: (
+        <MaterialCommunityIcons
+          name="car-arrow-right"
+          size={100}
           color="#2a2a2acb"
         />
       ),
@@ -111,7 +123,7 @@ const styles = StyleSheet.create({
     flex: 1,
     //justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    //paddingHorizontal: 20,
     //paddingTop: 20,
   },
   title: { fontSize: 28, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
@@ -140,15 +152,15 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "column",
     //flexWrap: "wrap",
-    justifyContent: "center",
-    //rowGap: 16,
-    width: "80%",
+    //justifyContent: "space-around",
+    rowGap: 40,
+    width: "85%",
     flex: 1,
     //marginTop: 30,
   },
   cardWrapper: {
-    //flexBasis: "48%", // dos por fila
-    height: 500,
+    //flexBasis: "60%", // dos por fila
+    //height: 500,
     //aspectRatio: 1, // cuadrada
   },
 });

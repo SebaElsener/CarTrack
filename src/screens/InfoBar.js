@@ -3,7 +3,7 @@ import { Text } from "react-native-paper";
 import { useAuth } from "../context/AuthContext";
 
 export default function InfoBar() {
-  const { transportNbr, operatorName } = useAuth();
+  const { operator } = useAuth();
 
   return (
     <View
@@ -18,7 +18,7 @@ export default function InfoBar() {
     >
       <View>
         <Text style={{ color: "#eeeeeeff", fontWeight: 700, fontSize: 15 }}>
-          EQUIPO: {transportNbr} / {operatorName}
+          EQUIPO: {operator?.transport_nbr} / {operator?.name}
         </Text>
       </View>
     </View>

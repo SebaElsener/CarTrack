@@ -17,15 +17,18 @@ type SnackbarState = {
   message: string;
   type: SnackbarType;
 };
+type Operator = {
+  id: string;
+  name: string;
+  transport_nbr: string;
+};
 
 const AuthContext = createContext<{
   session: Session | null;
   user: User | null;
   loading: boolean;
-  transportNbr: string | null;
-  setTransportNbr: (v: string | null) => Promise<void>;
-  operatorName: string | null;
-  setOperatorName: (v: string | null) => void;
+  operator: Operator | null;
+  setOperator: (op: Operator | null) => Promise<void>;
   logout: () => Promise<void>;
   setLoading: (value: boolean) => void;
 
@@ -38,10 +41,8 @@ const AuthContext = createContext<{
   session: null,
   user: null,
   loading: true,
-  transportNbr: null,
-  setTransportNbr: async () => {},
-  operatorName: null,
-  setOperatorName: () => {},
+  operator: null,
+  setOperator: async () => {},
   logout: async () => {},
   setLoading: () => {},
 
@@ -57,8 +58,7 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
-  const [transportNbr, setTransportNbr] = useState<string | null>(null);
-  const [operatorName, setOperatorName] = useState<string | null>(null);
+  const [operator, setOperatorState] = useState<Operator | null>(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
@@ -68,13 +68,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     type: "success",
   });
 
-  const setTransportNbrPersist = async (value: string | null) => {
-    setTransportNbr(value);
+  const setOperator = async (op: Operator | null) => {
+    setOperatorState(op);
 
-    if (value) {
-      await SecureStore.setItemAsync("transportNbr", value);
+    if (op) {
+      await SecureStore.setItemAsync("operator", JSON.stringify(op));
     } else {
-      await SecureStore.deleteItemAsync("transportNbr");
+      await SecureStore.deleteItemAsync("operator");
     }
   };
 
@@ -82,10 +82,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const init = async () => {
       const { data } = await supabase.auth.getSession();
 
-      const savedTransport = await SecureStore.getItemAsync("transportNbr");
+      const savedOperator = await SecureStore.getItemAsync("operator");
 
+      setOperatorState(savedOperator ? JSON.parse(savedOperator) : null);
       setSession(data.session);
-      setTransportNbr(savedTransport);
       setLoading(false);
     };
 
@@ -105,8 +105,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await supabase.auth.signOut();
       setSession(null);
       setLoading(false);
-      await SecureStore.deleteItemAsync("transportNbr");
-      setTransportNbr(null);
+      await SecureStore.deleteItemAsync("operator");
+      setOperatorState(null);
+
       showToast("Sesión cerrada correctamente", "info");
     } catch (err: any) {
       showToast(err.message || "Error al cerrar sesión", "error");
@@ -142,10 +143,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         loading,
         logout,
         setLoading,
-        transportNbr,
-        setTransportNbr: setTransportNbrPersist,
-        operatorName,
-        setOperatorName,
+        operator,
+        setOperator,
         snackbar,
         showSuccess,
         showError,

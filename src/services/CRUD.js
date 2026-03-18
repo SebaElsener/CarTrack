@@ -14,3 +14,26 @@ export const fetchDamageInfo = async (vin) => {
   }
   return data;
 };
+
+export const getVIN = async (vin, transportNbr) => {
+  const { data, error } = await supabase
+    .schema("carpointer")
+    .from("movimientos")
+    .select("idtequipo, nombreorigen, nombredestino")
+    .eq("vin", vin)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false };
+  }
+
+  if (String(data.idtequipo) !== String(transportNbr)) {
+    return { ok: false, mismatch: true };
+  }
+
+  return {
+    ok: true,
+    origen: data.nombreorigen,
+    destino: data.nombredestino,
+  };
+};

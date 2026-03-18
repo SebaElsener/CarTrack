@@ -7,27 +7,19 @@ import { AppStatusProvider } from "../../src/context/TransportAndLocationContext
 import SyncManager from "./SyncManager";
 
 export default function AppLayout() {
-  const { logout, loading, session, transportNbr } = useAuth();
+  const { logout, loading, session, operator } = useAuth();
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
-
-  // useEffect(() => {
-  //   if (!loading && session) {
-  //     router.replace("/(app)/HomeScreen");
-  //   } else if (!loading && !session) {
-  //     router.replace("/(auth)/login");
-  //   }
-  // }, [session, loading, router]);
 
   useEffect(() => {
     if (loading) return;
 
-    if (!session || !transportNbr) {
+    if (!session || !operator) {
       router.replace("/(auth)/login");
     }
-  }, [session, transportNbr, loading]);
+  }, [session, operator, loading]);
 
-  if (loading || !session || !transportNbr) {
+  if (loading || !session || !operator) {
     return null;
   }
 

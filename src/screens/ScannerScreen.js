@@ -12,11 +12,19 @@ import {
   Vibration,
   View,
 } from "react-native";
-import { IconButton } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Dialog,
+  IconButton,
+  Portal,
+} from "react-native-paper";
 import CustomKeyboard from "../components/CustomKeyboard";
 import playSound from "../components/plySound";
 import PositionPanel from "../components/PositionPanel";
 import ScanOverlay from "../components/ScanOverlay";
+import { useAuth } from "../context/AuthContext";
+import { getVIN } from "../services/CRUD";
 
 // ---------------------------
 // VIN validation
@@ -196,10 +204,25 @@ export default function ScannerScreen() {
   const [showKeyboard, setShowKeyboard] = useState(false);
   const keyboardTranslateY = useRef(new Animated.Value(370)).current;
   const inputTranslateY = useRef(new Animated.Value(0)).current;
-  const lastVinRef = useRef(null);
   const [destino, setDestino] = useState("0");
+  const [saveDialog, setSaveDialog] = useState({
+    visible: false,
+    success: true,
+    message: "",
+  });
+  const [origen, setOrigen] = useState(null);
+  const [destinoNombre, setDestinoNombre] = useState(null);
+  const [errorModal, setErrorModal] = useState(false);
+  const [scannerEnabled, setScannerEnabled] = useState(true);
+  const [loadingScan, setLoadingScan] = useState(false);
+  const lastVinRef = useRef(null);
+  const { operator } = useAuth();
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
+
+  async function validarMovimiento(vin) {
+    return await getVIN(vin, operator.transport_nbr);
+  }
 
   useEffect(() => {}, [lastResult]);
 
@@ -271,7 +294,7 @@ export default function ScannerScreen() {
   const SCAN_WIDTH = dimensions.width * 1;
   const SCAN_HEIGHT = SCAN_WIDTH * 0.35;
 
-  const SCAN_TOP = (dimensions.height - SCAN_HEIGHT) / 2;
+  const SCAN_TOP = (dimensions.height - SCAN_HEIGHT) / 2 - 60;
   const SCAN_LEFT = (dimensions.width - SCAN_WIDTH) / 2;
 
   // ---------------------------
@@ -370,83 +393,116 @@ export default function ScannerScreen() {
     });
   };
 
+  // const handleDestinoChange = async (destino) => {
+  //   setDestino(destino);
+
+  //   // const { error } = await supabase
+  //   //   .schema("carpointer")
+  //   //   .from("scans")
+  //   //   .insert({
+  //   //     vin: lastResult,
+  //   //     lugar: destino,
+  //   //     transport_nbr,
+  //   //   });
+
+  //   const error = await saveScan(
+  //     lastResult,
+  //     destino,
+  //     transportNbr,
+  //     operatorName,
+  //   );
+
+  //   if (error) {
+  //     setSaveDialog({
+  //       visible: true,
+  //       success: false,
+  //       message: "Error al guardar los datos",
+  //     });
+  //     return;
+  //   }
+
+  //   setSaveDialog({
+  //     visible: true,
+  //     success: true,
+  //     message: "Datos guardados correctamente",
+  //   });
+  // };
+
+  const resetScanner = () => {
+    scanLock.current = false;
+    errorLock.current = false;
+
+    setAligned(false);
+    setScannerEnabled(true);
+  };
+
   // ---------------------------
   // Manejo de scans
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
-    console.log(type, data);
-    if (scanLock.current || errorLock.current) return;
+    console.log("dsfsdfsdfd", {
+      scannerEnabled,
+      scanLock: scanLock.current,
+      errorLock: errorLock.current,
+    });
+    if (!scannerEnabled || scanLock.current || errorLock.current) return;
 
-    // 🔹 Normalización inicial
-    let vinOriginal = data?.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    setScannerEnabled(false); // 🔥 BLOQUEA NUEVOS SCANS
+    scanLock.current = true;
 
-    // 🔹 Tomar solo los primeros 17 caracteres (ignorar extras)
-    vinOriginal = vinOriginal.slice(0, 17);
+    let vin = data
+      ?.toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 17);
 
-    if (!vinOriginal || vinOriginal.length !== 17) {
+    if (vin === lastVinRef.current) return;
+    lastVinRef.current = vin;
+
+    if (!vin || vin.length !== 17) {
       await playSound("error");
+      resetScanner();
       return;
     }
 
-    let vinFinal = vinOriginal;
-
-    // Validar ingreso manual sin dígito verificador
-    if (type === "handInput") {
-      if (!isValidVINSoft(vinOriginal)) {
+    // Validación
+    if (type !== "handInput" && !isValidVIN(vin)) {
+      const fixed = attemptVinAutoFixOEM(vin);
+      if (!fixed) {
         await playSound("error");
+        resetScanner();
         return;
       }
+      vin = fixed;
     }
 
-    // Validar ingreso por scanner con dígito verificador
-    if (type !== "handInput") {
-      if (!isValidVIN(vinOriginal)) {
-        const fixedVin = attemptVinAutoFixOEM(vinOriginal);
-
-        if (fixedVin && fixedVin !== vinOriginal) {
-          console.log("VIN autocorregido:", vinOriginal, "→", fixedVin);
-          vinFinal = fixedVin;
-        } else {
-          await playSound("error");
-          return;
-        }
-      }
-    }
-
-    // 🔹 Validación geométrica SOLO para cámara
-    if (type !== "handInput") {
-      if (!cornerPoints) return;
-
-      const centerX =
-        cornerPoints.reduce((s, p) => s + p.x, 0) / cornerPoints.length;
-
-      const centerY =
-        cornerPoints.reduce((s, p) => s + p.y, 0) / cornerPoints.length;
-
-      const inside =
-        centerX > SCAN_LEFT &&
-        centerX < SCAN_LEFT + SCAN_WIDTH &&
-        centerY > SCAN_TOP &&
-        centerY < SCAN_TOP + SCAN_HEIGHT;
-
-      setAligned(inside);
-
-      if (!inside) return;
-    }
-
-    if (vinFinal === lastVinRef.current) return;
-    scanLock.current = true;
-
-    lastVinRef.current = vinFinal;
-    setLastResult(vinFinal);
+    setLastResult(vin);
     Vibration.vibrate(120);
+    playSound("success");
 
-    await playSound("success");
+    setLoadingScan(true);
+    setTimeout(async () => {
+      const result = await validarMovimiento(vin);
 
-    setTimeout(() => {
-      scanLock.current = false;
-      setAligned(false);
-    }, 400);
+      setLoadingScan(false);
+
+      if (!result.ok) {
+        errorLock.current = true;
+        setErrorModal(true);
+        playSound("error");
+
+        setTimeout(() => {
+          setErrorModal(false);
+          resetScanner();
+        }, 2000);
+
+        return;
+      }
+
+      setOrigen(result.origen);
+      setDestinoNombre(result.destino);
+
+      resetScanner();
+    }, 0);
   };
 
   if (hasPermission === null) return <Text>Solicitando permisos...</Text>;
@@ -478,7 +534,7 @@ export default function ScannerScreen() {
   return (
     <View style={styles.container}>
       <CameraView
-        onBarcodeScanned={handleScan}
+        onBarcodeScanned={scannerEnabled ? handleScan : undefined}
         style={StyleSheet.absoluteFillObject}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "datamatrix", "code128", "code39"],
@@ -505,9 +561,21 @@ export default function ScannerScreen() {
         </Text>
       </View>
 
+      {loadingScan && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>Validando...</Text>
+        </View>
+      )}
+
       {lastResult && (
         <View style={styles.positionPanelContainer}>
-          <PositionPanel destino={destino} onDestinoChange={setDestino} />
+          <PositionPanel
+            destino={destino}
+            // onDestinoChange={handleDestinoChange}
+            origen={origen}
+            destinoNombre={destinoNombre}
+          />
         </View>
       )}
 
@@ -617,6 +685,40 @@ export default function ScannerScreen() {
           />
         </Animated.View>
       )}
+
+      <Portal>
+        <Dialog
+          visible={saveDialog.visible}
+          onDismiss={() =>
+            setSaveDialog((prev) => ({ ...prev, visible: false }))
+          }
+        >
+          <Dialog.Title>
+            {saveDialog.success ? "Registro guardado" : "Error"}
+          </Dialog.Title>
+
+          <Dialog.Content>
+            <Text>{saveDialog.message}</Text>
+          </Dialog.Content>
+
+          <Dialog.Actions>
+            <Button
+              onPress={() =>
+                setSaveDialog((prev) => ({ ...prev, visible: false }))
+              }
+            >
+              OK
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog visible={errorModal}>
+          <Dialog.Content>
+            <Text style={{ color: "red", fontWeight: "bold" }}>
+              LA UNIDAD NO CORRESPONDE A SU CARGA - VERIFICAR
+            </Text>
+          </Dialog.Content>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -674,7 +776,6 @@ const styles = StyleSheet.create({
   handInputVINContainer: {
     position: "absolute",
     bottom: 130,
-
     alignSelf: "center",
     flexDirection: "row",
     borderColor: "rgba(249, 249, 249, 0.9)",
@@ -771,8 +872,8 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 10,
-    minWidth: "85%",
     shadowOffset: { width: 0, height: 4 },
+    minWidth: "90%",
   },
 
   vinResultLabel: {
@@ -789,11 +890,27 @@ const styles = StyleSheet.create({
   },
   positionPanelContainer: {
     position: "absolute",
-    top: 150,
+    top: 115,
     alignSelf: "center",
     width: "100%",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: "50%",
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    zIndex: 9999,
+  },
+
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

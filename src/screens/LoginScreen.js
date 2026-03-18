@@ -9,7 +9,7 @@ import { supabase } from "../services/supabase";
 export default function LoginScreen() {
   const router = useRouter();
   const [transportNbr, setTransportNbrLocal] = useState("");
-  const { loading, setLoading, setTransportNbr, setOperatorName } = useAuth();
+  const { loading, setLoading, setOperator } = useAuth();
   const { showToast } = useToast();
 
   const login = async () => {
@@ -36,12 +36,9 @@ export default function LoginScreen() {
     const { data, error: operatorError } = await supabase
       .schema("carpointer")
       .from("transportistas")
-      .select("name")
+      .select("id, name, transport_nbr")
       .eq("transport_nbr", transportNbr.trim())
       .single();
-
-    console.log("operatorError:", operatorError);
-    console.log("data:", data);
 
     if (operatorError || !data) {
       setLoading(false);
@@ -50,8 +47,7 @@ export default function LoginScreen() {
     }
 
     // 3️⃣ Guardar datos en el contexto
-    setOperatorName(data.name);
-    await setTransportNbr(transportNbr);
+    await setOperator(data);
 
     setLoading(false);
 
@@ -65,6 +61,7 @@ export default function LoginScreen() {
         value={transportNbr}
         onChangeText={setTransportNbrLocal}
         mode="outlined"
+        keyboardType="numeric"
         style={styles.input}
       />
 
