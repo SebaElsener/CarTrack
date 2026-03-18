@@ -10,6 +10,7 @@ export const AppStatusProvider = ({ children }) => {
   const [lugarGPS, setLugarGPS] = useState(null);
   const [lugarManual, setLugarManual] = useState(null);
   const [destino, setDestino] = useState(null);
+  const [coords, setCoords] = useState(null);
 
   const zonaActualRef = useRef(null);
   const salidaConfirmRef = useRef(0);
@@ -20,8 +21,14 @@ export const AppStatusProvider = ({ children }) => {
   useEffect(() => {
     let sub;
 
-    const procesar = (coords) => {
-      const nuevaZona = resolverLocacion(coords, zonaActualRef.current);
+    const procesar = (locationCoords) => {
+      setCoords({
+        lat: locationCoords.latitude,
+        lon: locationCoords.longitude,
+        accuracy: locationCoords.accuracy,
+        timestamp: Date.now(),
+      });
+      const nuevaZona = resolverLocacion(locationCoords, zonaActualRef.current);
 
       // 🟢 ENTRA EN ZONA
       if (nuevaZona && nuevaZona !== zonaActualRef.current) {
@@ -83,6 +90,7 @@ export const AppStatusProvider = ({ children }) => {
         setLugarManual,
         destino,
         setDestino,
+        coords,
       }}
     >
       {children}

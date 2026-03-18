@@ -24,6 +24,7 @@ import playSound from "../components/plySound";
 import PositionPanel from "../components/PositionPanel";
 import ScanOverlay from "../components/ScanOverlay";
 import { useAuth } from "../context/AuthContext";
+import { useAppStatus } from "../context/TransportAndLocationContext";
 import { saveScan } from "../database/Database";
 import { getVIN } from "../services/CRUD";
 import { requestSync } from "../services/syncTrigger";
@@ -221,8 +222,9 @@ export default function ScannerScreen() {
   });
   const [scannerEnabled, setScannerEnabled] = useState(true);
   const [loadingScan, setLoadingScan] = useState(false);
-  const lastVinRef = useRef(null);
+  const [waitingGPS, setWaitingGPS] = useState(false);
   const { operator } = useAuth();
+  const { coords, lugar } = useAppStatus();
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
@@ -231,6 +233,12 @@ export default function ScannerScreen() {
   }
 
   useEffect(() => {}, [lastResult]);
+
+  useEffect(() => {
+    if (waitingGPS && coords) {
+      setWaitingGPS(false);
+    }
+  }, [coords, waitingGPS]);
 
   useEffect(() => {
     Animated.loop(
@@ -446,6 +454,8 @@ export default function ScannerScreen() {
   // Manejo de scans
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
+    console.log(data);
+
     if (!scannerEnabled || scanLock.current || errorLock.current) return;
 
     setScannerEnabled(false); // 🔥 BLOQUEA NUEVOS SCANS
@@ -456,11 +466,24 @@ export default function ScannerScreen() {
       .replace(/[^A-Z0-9]/g, "")
       .slice(0, 17);
 
+    if (!coords) {
+      setWaitingGPS(true);
+
+      // 🔓 liberar locks para permitir reintentar
+      scanLock.current = false;
+      setScannerEnabled(true);
+
+      return;
+    }
+
     const now = Date.now();
 
     // ⏱️ evita múltiples scans seguidos
-    if (now - lastScanTime.current < 1500) return;
-
+    if (now - lastScanTime.current < 1500) {
+      scanLock.current = false;
+      setScannerEnabled(true);
+      return;
+    }
     lastScanTime.current = now;
 
     // if (vin === lastVinRef.current) return;
@@ -513,6 +536,8 @@ export default function ScannerScreen() {
         });
 
         playSound("error");
+        scanLock.current = false;
+        setScannerEnabled(false);
 
         return;
       }
@@ -520,16 +545,29 @@ export default function ScannerScreen() {
       setOrigen(result.origen);
       setDestinoNombre(result.destino);
 
-      await saveScan(
+      const resultSave = await saveScan(
         vin,
         result.origen,
         result.destino,
         operator.transport_nbr,
-        "GPS_stamp",
+        JSON.stringify(coords),
         "SCAN",
       );
-      requestSync();
 
+      if (resultSave.duplicated) {
+        setErrorModal({
+          visible: true,
+          message: "VIN YA FUE REGISTRADO PARA ESTA CARGA",
+        });
+
+        await playSound("error");
+        scanLock.current = false;
+        setScannerEnabled(false);
+        resetScanner();
+        return;
+      }
+
+      requestSync();
       resetScanner();
     }, 0);
   };
@@ -563,7 +601,9 @@ export default function ScannerScreen() {
   return (
     <View style={styles.container}>
       <CameraView
-        onBarcodeScanned={scannerEnabled ? handleScan : undefined}
+        onBarcodeScanned={
+          scannerEnabled && !waitingGPS ? handleScan : undefined
+        }
         style={StyleSheet.absoluteFillObject}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "datamatrix", "code128", "code39"],
@@ -594,6 +634,15 @@ export default function ScannerScreen() {
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
           <Text style={styles.loadingText}>Validando...</Text>
+        </View>
+      )}
+
+      {waitingGPS && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>
+            Obteniendo posicionamiento GPS...
+          </Text>
         </View>
       )}
 
@@ -752,6 +801,7 @@ export default function ScannerScreen() {
               mode="contained"
               onPress={() => {
                 setErrorModal({ visible: false, message: "" });
+                errorLock.current = false;
                 resetScanner();
               }}
             >
@@ -943,8 +993,8 @@ const styles = StyleSheet.create({
     top: "30%",
     alignSelf: "center",
     backgroundColor: "rgba(0, 0, 0, 0.89)",
-    paddingHorizontal: 40,
-    paddingVertical: 30,
+    paddingHorizontal: 80,
+    paddingVertical: 60,
     borderRadius: 10,
     zIndex: 9999,
     //width: 200,
@@ -952,7 +1002,7 @@ const styles = StyleSheet.create({
 
   loadingText: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: "600",
   },
   errorDialog: {

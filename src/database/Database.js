@@ -67,22 +67,25 @@ export const saveScan = async (
   const db = await getDb();
 
   try {
+    // 🔍 Verificar duplicado
+    const existing = await db.getFirstAsync(
+      `SELECT id FROM scans WHERE vin = ?`,
+      [vin],
+    );
+
+    if (existing) {
+      return { duplicated: true };
+    }
+
     const result = await db.runAsync(
       `
-    INSERT INTO scans (vin, origen, destino, transport_nbr, gps_stamp, movimiento)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(vin) DO UPDATE SET
-      vin = excluded.vin,
-      origen = excluded.origen,
-      destino = excluded.destino,
-      transport_nbr = excluded.transport_nbr,
-      gps_stamp = excluded.gps_stamp,
-      movimiento = excluded.movimiento
-    `,
+      INSERT INTO scans (vin, origen, destino, transport_nbr, gps_stamp, movimiento)
+      VALUES (?, ?, ?, ?, ?, ?)
+      `,
       [vin, origen, destino, transport_nbr, gps_stamp, movimiento],
     );
 
-    return result.lastInsertRowId;
+    return { duplicated: false, id: result.lastInsertRowId };
   } catch (error) {
     console.error("Error al guardar scan: ", error);
     throw error;
