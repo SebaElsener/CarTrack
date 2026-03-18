@@ -23,14 +23,17 @@ export const getVIN = async (vin, transportNbr) => {
     .eq("vin", vin)
     .maybeSingle();
 
+  // ❌ VIN no existe
   if (error || !data) {
-    return { ok: false };
+    return { ok: false, type: "not_found" };
   }
 
+  // ❌ No corresponde a la carga
   if (String(data.idtequipo) !== String(transportNbr)) {
-    return { ok: false, mismatch: true };
+    return { ok: false, type: "wrong_transport" };
   }
 
+  // ✅ OK
   return {
     ok: true,
     origen: data.nombreorigen,

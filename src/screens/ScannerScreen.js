@@ -212,7 +212,10 @@ export default function ScannerScreen() {
   });
   const [origen, setOrigen] = useState(null);
   const [destinoNombre, setDestinoNombre] = useState(null);
-  const [errorModal, setErrorModal] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: "",
+  });
   const [scannerEnabled, setScannerEnabled] = useState(true);
   const [loadingScan, setLoadingScan] = useState(false);
   const lastVinRef = useRef(null);
@@ -440,11 +443,6 @@ export default function ScannerScreen() {
   // Manejo de scans
   // ---------------------------
   const handleScan = async ({ cornerPoints, type, data }) => {
-    console.log("dsfsdfsdfd", {
-      scannerEnabled,
-      scanLock: scanLock.current,
-      errorLock: errorLock.current,
-    });
     if (!scannerEnabled || scanLock.current || errorLock.current) return;
 
     setScannerEnabled(false); // 🔥 BLOQUEA NUEVOS SCANS
@@ -487,13 +485,24 @@ export default function ScannerScreen() {
 
       if (!result.ok) {
         errorLock.current = true;
-        setErrorModal(true);
-        playSound("error");
 
-        setTimeout(() => {
-          setErrorModal(false);
-          resetScanner();
-        }, 2000);
+        let message = "";
+
+        if (result.type === "not_found") {
+          message = "VIN NO EXISTE - VERIFICAR AL COLECTAR UNIDAD";
+        } else if (result.type === "wrong_transport") {
+          message =
+            "UNIDAD NO CORRESPONDE A ESTE EQUIPO - VERIFICAR ANTES DE CARGARLA";
+        } else {
+          message = "ERROR DESCONOCIDO";
+        }
+
+        setErrorModal({
+          visible: true,
+          message,
+        });
+
+        playSound("error");
 
         return;
       }
@@ -711,12 +720,24 @@ export default function ScannerScreen() {
             </Button>
           </Dialog.Actions>
         </Dialog>
-        <Dialog visible={errorModal}>
+        <Dialog visible={errorModal.visible} style={styles.errorDialog}>
+          <Dialog.Title style={{ textAlign: "center" }}>ATENCION</Dialog.Title>
+
           <Dialog.Content>
-            <Text style={{ color: "red", fontWeight: "bold" }}>
-              LA UNIDAD NO CORRESPONDE A SU CARGA - VERIFICAR
-            </Text>
+            <Text style={styles.errorModalText}>{errorModal.message}</Text>
           </Dialog.Content>
+
+          <Dialog.Actions style={{ justifyContent: "center" }}>
+            <Button
+              mode="contained"
+              onPress={() => {
+                setErrorModal({ visible: false, message: "" });
+                resetScanner();
+              }}
+            >
+              CONTINUAR
+            </Button>
+          </Dialog.Actions>
         </Dialog>
       </Portal>
     </View>
@@ -912,5 +933,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  errorDialog: {
+    paddingVertical: 30,
+    paddingHorizontal: 10,
+  },
+
+  errorModalText: {
+    color: "red",
+    fontWeight: "bold",
+    fontSize: 20,
+    textAlign: "center",
   },
 });
