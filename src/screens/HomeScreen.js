@@ -2,7 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
+import { Button } from "react-native-paper";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
+import { deleteTable } from "../database/Database";
 
 export default function HomeScreen() {
   const animations = useRef(
@@ -47,9 +49,9 @@ export default function HomeScreen() {
     }, [animations]),
   );
 
-  // const handleDeleteDatabase = async () => {
-  //   await deleteTable(); // SQLite (DROP + CREATE)
-  // };
+  const handleDeleteDatabase = async () => {
+    await deleteTable(); // SQLite (DROP + CREATE)
+  };
 
   const cards = [
     {
@@ -114,6 +116,11 @@ export default function HomeScreen() {
           ))}
         </View>
       </View>
+      <View>
+        <Button style={styles.deleteTable} onPress={() => handleDeleteDatabase}>
+          ELIMINAR TABLA
+        </Button>
+      </View>
     </View>
   );
 }
@@ -162,5 +169,10 @@ const styles = StyleSheet.create({
     //flexBasis: "60%", // dos por fila
     //height: 500,
     //aspectRatio: 1, // cuadrada
+  },
+  deleteTable: {
+    position: "absolute",
+    bottom: 50,
+    left: 30,
   },
 });

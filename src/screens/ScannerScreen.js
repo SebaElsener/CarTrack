@@ -24,7 +24,9 @@ import playSound from "../components/plySound";
 import PositionPanel from "../components/PositionPanel";
 import ScanOverlay from "../components/ScanOverlay";
 import { useAuth } from "../context/AuthContext";
+import { saveScan } from "../database/Database";
 import { getVIN } from "../services/CRUD";
+import { requestSync } from "../services/syncTrigger";
 
 // ---------------------------
 // VIN validation
@@ -199,6 +201,7 @@ export default function ScannerScreen() {
   const [aligned, setAligned] = useState(false);
   const scanLock = useRef(false);
   const errorLock = useRef(false);
+  const lastScanTime = useRef(0);
   const [handInput, setHandInput] = useState("");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -453,8 +456,15 @@ export default function ScannerScreen() {
       .replace(/[^A-Z0-9]/g, "")
       .slice(0, 17);
 
-    if (vin === lastVinRef.current) return;
-    lastVinRef.current = vin;
+    const now = Date.now();
+
+    // ⏱️ evita múltiples scans seguidos
+    if (now - lastScanTime.current < 1500) return;
+
+    lastScanTime.current = now;
+
+    // if (vin === lastVinRef.current) return;
+    // lastVinRef.current = vin;
 
     if (!vin || vin.length !== 17) {
       await playSound("error");
@@ -509,6 +519,16 @@ export default function ScannerScreen() {
 
       setOrigen(result.origen);
       setDestinoNombre(result.destino);
+
+      await saveScan(
+        vin,
+        result.origen,
+        result.destino,
+        operator.transport_nbr,
+        "GPS_stamp",
+        "SCAN",
+      );
+      requestSync();
 
       resetScanner();
     }, 0);
@@ -920,18 +940,19 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     position: "absolute",
-    top: "50%",
+    top: "30%",
     alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.7)",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.89)",
+    paddingHorizontal: 40,
+    paddingVertical: 30,
     borderRadius: 10,
     zIndex: 9999,
+    //width: 200,
   },
 
   loadingText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: "600",
   },
   errorDialog: {

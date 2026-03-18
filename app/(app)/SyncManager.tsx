@@ -4,9 +4,7 @@ import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { initDB } from "../../src/database/Database";
 import {
-  danoCloudUpdate,
-  deleteDamagePerVINandID,
-  syncPendingPicts,
+  // syncPendingPicts,
   syncPendingScans,
 } from "../../src/services/sync";
 
@@ -44,20 +42,12 @@ export default function SyncManager({ onSyncChange }: Props) {
       const pendingScans = await syncPendingScans();
       console.log("Scans pendientes: ", pendingScans);
 
-      const pendingPicts = await syncPendingPicts();
-      console.log("Fotos pendientes: ", pendingPicts);
-
-      const pendingDanos = await danoCloudUpdate();
-      console.log("Daños pendientes: ", pendingDanos);
-
-      const pendingDamagesToDelete = await deleteDamagePerVINandID();
-      console.log("Daños pendientes de eliminar: ", pendingDamagesToDelete);
+      // const pendingPicts = await syncPendingPicts();
+      // console.log("Fotos pendientes: ", pendingPicts);
 
       if (
-        pendingScans === 0 &&
-        pendingPicts === 0 &&
-        pendingDanos === 0 &&
-        pendingDamagesToDelete === 0
+        pendingScans === 0
+        // pendingPicts === 0 &&
       ) {
         console.log("✅ Sync complete");
         stopRetry();

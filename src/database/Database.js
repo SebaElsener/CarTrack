@@ -26,8 +26,10 @@ export const initDB = async () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         vin TEXT UNIQUE,
         transport_nbr TEXT NOT NULL,
-        lugar INTEGER NOT NULL,
+        origen TEXT NOT NULL,
+        destino TEXT NOT NULL,
         gps_stamp JSONB NOT NULL,
+        movimiento TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
     `,
   );
@@ -54,21 +56,30 @@ export const deleteTable = async () => {
 };
 
 // Guardar scan de unidad descargada
-export const saveScan = async (vin, lugar, transport_nbr, gps_stamp) => {
+export const saveScan = async (
+  vin,
+  origen,
+  destino,
+  transport_nbr,
+  gps_stamp,
+  movimiento,
+) => {
   const db = await getDb();
 
   try {
     const result = await db.runAsync(
       `
-    INSERT INTO scans (vin, lugar, transport_nbr, gps_stamp)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO scans (vin, origen, destino, transport_nbr, gps_stamp, movimiento)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT(vin) DO UPDATE SET
       vin = excluded.vin,
-      lugar = excluded.lugar,
+      origen = excluded.origen,
+      destino = excluded.destino,
       transport_nbr = excluded.transport_nbr,
-      gps_stamp = excluded.gps_stamp
+      gps_stamp = excluded.gps_stamp,
+      movimiento = excluded.movimiento
     `,
-      [vin, lugar, transport_nbr, gps_stamp],
+      [vin, origen, destino, transport_nbr, gps_stamp, movimiento],
     );
 
     return result.lastInsertRowId;
