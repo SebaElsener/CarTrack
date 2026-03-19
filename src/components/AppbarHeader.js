@@ -1,20 +1,32 @@
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import InfoBar from "../screens/InfoBar";
 
+let isEstadoScreen;
+
 export default function AppHeader({ syncing, logout }) {
   const router = useRouter();
+  const pathname = usePathname();
+  isEstadoScreen = pathname.includes("EstadoViajeScreen");
 
   return (
-    <Appbar.Header style={styles.appBarContainer}>
+    <Appbar.Header
+      style={[styles.appBarContainer, isEstadoScreen && { height: 60 }]}
+    >
       <View style={styles.appBarItemsContainer}>
         <Appbar.Action
           icon="home"
           color="white"
           size={30}
           onPress={() => router.replace("/(app)/HomeScreen")}
+        />
+        <Appbar.Action
+          icon="barcode-scan"
+          color="white"
+          size={30}
+          onPress={() => router.replace("/(app)/ScannerScreen")}
         />
 
         {syncing && (
@@ -33,9 +45,28 @@ export default function AppHeader({ syncing, logout }) {
         <Appbar.Action icon="logout" color="white" size={30} onPress={logout} />
       </View>
 
-      <View style={styles.appBarDate}>
-        <InfoBar />
-      </View>
+      {!isEstadoScreen && (
+        <View style={styles.appBarDate}>
+          <InfoBar />
+        </View>
+      )}
+
+      {!isEstadoScreen && (
+        <Pressable
+          style={styles.appBarActionsRow}
+          onPress={() => router.push("/(app)/EstadoViajeScreen")}
+        >
+          <Appbar.Action
+            icon="clipboard-text-search-outline"
+            color="white"
+            size={28}
+          />
+
+          <Text style={styles.actionLabel}>
+            REVISAR ESTADO DE CARGA / DESCARGA
+          </Text>
+        </Pressable>
+      )}
     </Appbar.Header>
   );
 }
@@ -47,8 +78,7 @@ const styles = StyleSheet.create({
   appBarContainer: {
     backgroundColor: "rgba(0,0,0,0.25)",
     flexDirection: "column",
-    height: 100,
-    //zIndex: 999999,
+    height: 140,
   },
   appBarDate: {
     width: "100%",
@@ -76,5 +106,21 @@ const styles = StyleSheet.create({
   },
   appBarWeather: {
     width: "100%",
+  },
+  appBarActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    //paddingHorizontal: 12,
+    //paddingVertical: 6,
+    borderTopWidth: 0.3,
+    borderTopColor: "#edededc5",
+  },
+
+  actionLabel: {
+    color: "white",
+    fontSize: 13,
+    //marginLeft: 6,
+    fontWeight: "700",
   },
 });

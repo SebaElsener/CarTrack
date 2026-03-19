@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, color: "rgba(70, 45, 45, 0.84)", fontWeight: "bold" },
   titleContainer: {
     alignItems: "center",
-    marginTop: 50,
+    marginTop: 30,
     marginBottom: 20,
   },
   titleSpan: {
