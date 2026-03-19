@@ -91,3 +91,20 @@ export const saveScan = async (
     throw error;
   }
 };
+
+export const existsCargaForVIN = async (vin) => {
+  const db = await getDb();
+
+  const result = await db.getFirstAsync(
+    `
+    SELECT id 
+    FROM scans 
+    WHERE vin = ? 
+      AND movimiento = 'CARGA'
+    LIMIT 1
+    `,
+    [vin],
+  );
+
+  return !!result;
+};

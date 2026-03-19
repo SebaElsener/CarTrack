@@ -1,5 +1,6 @@
 import { Camera, CameraView } from "expo-camera";
 import { useKeepAwake } from "expo-keep-awake";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -25,7 +26,7 @@ import PositionPanel from "../components/PositionPanel";
 import ScanOverlay from "../components/ScanOverlay";
 import { useAuth } from "../context/AuthContext";
 import { useAppStatus } from "../context/TransportAndLocationContext";
-import { saveScan } from "../database/Database";
+import { existsCargaForVIN, saveScan } from "../database/Database";
 import { getVIN } from "../services/CRUD";
 import { requestSync } from "../services/syncTrigger";
 
@@ -225,6 +226,8 @@ export default function ScannerScreen() {
   const [waitingGPS, setWaitingGPS] = useState(false);
   const { operator } = useAuth();
   const { coords, lugar } = useAppStatus();
+  const { movimiento } = useLocalSearchParams();
+  const tipoMovimiento = movimiento || "CARGA";
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
@@ -545,13 +548,34 @@ export default function ScannerScreen() {
       setOrigen(result.origen);
       setDestinoNombre(result.destino);
 
+      // VALIDACIÓN DE DESCARGA
+      if (tipoMovimiento === "DESCARGA") {
+        const existeCarga = await existsCargaForVIN(vin);
+
+        if (!existeCarga) {
+          errorLock.current = true;
+
+          setErrorModal({
+            visible: true,
+            message: "LA UNIDAD NO FUE REGISTRADA A LA CARGA - VERIFICAR VIN",
+          });
+
+          await playSound("error");
+
+          scanLock.current = false;
+          setScannerEnabled(false);
+
+          return;
+        }
+      }
+
       const resultSave = await saveScan(
         vin,
         result.origen,
         result.destino,
         operator.transport_nbr,
         JSON.stringify(coords),
-        "SCAN",
+        tipoMovimiento,
       );
 
       if (resultSave.duplicated) {

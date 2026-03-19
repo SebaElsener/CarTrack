@@ -57,7 +57,7 @@ export default function HomeScreen() {
     {
       title: "Registrar carga",
       description: "Carga de unidades en origen",
-      href: "/(app)/ScannerScreen",
+      href: "/(app)/ScannerScreen?movimiento=CARGA",
       backgroundColor: "rgba(103, 205, 83, 0.4)",
       icon: (
         <MaterialCommunityIcons
@@ -70,7 +70,7 @@ export default function HomeScreen() {
     {
       title: "Registrar descarga",
       description: "Descarga de unidades en destino",
-      href: "/(app)/ScannerScreen",
+      href: "/(app)/ScannerScreen?movimiento=DESCARGA",
       backgroundColor: "rgba(64, 74, 165, 0.38)",
       icon: (
         <MaterialCommunityIcons
@@ -117,7 +117,7 @@ export default function HomeScreen() {
         </View>
       </View>
       <View>
-        <Button style={styles.deleteTable} onPress={() => handleDeleteDatabase}>
+        <Button style={styles.deleteTable} onPress={handleDeleteDatabase}>
           ELIMINAR TABLA
         </Button>
       </View>
