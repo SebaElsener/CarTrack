@@ -19,7 +19,6 @@ export const syncPendingScans = async () => {
   }
   let syncedCount = 0;
   for (const item of unsyncedScans) {
-    console.log(item);
     const { error } = await supabase
       .schema("carpointer")
       .from("scans")

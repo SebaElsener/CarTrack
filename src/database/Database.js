@@ -24,7 +24,7 @@ export const initDB = async () => {
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        vin TEXT UNIQUE,
+        vin TEXT NOT NULL,
         transport_nbr TEXT NOT NULL,
         origen TEXT NOT NULL,
         destino TEXT NOT NULL,
@@ -55,7 +55,7 @@ export const deleteTable = async () => {
   await initDB();
 };
 
-// Guardar scan de unidad descargada
+// Guardar scan de unidad
 export const saveScan = async (
   vin,
   origen,
@@ -67,16 +67,32 @@ export const saveScan = async (
   const db = await getDb();
 
   try {
-    // 🔍 Verificar duplicado
-    const existing = await db.getFirstAsync(
-      `SELECT id FROM scans WHERE vin = ?`,
-      [vin],
+    // 🔍 Buscar registros existentes del mismo VIN + equipo
+    const existing = await db.getAllAsync(
+      `
+      SELECT movimiento 
+      FROM scans 
+      WHERE vin = ? 
+      AND transport_nbr = ?
+      `,
+      [vin, transport_nbr],
     );
 
-    if (existing) {
+    const alreadyCarga = existing.some((r) => r.movimiento === "CARGA");
+
+    const alreadyDescarga = existing.some((r) => r.movimiento === "DESCARGA");
+
+    // 🚫 No permitir doble carga
+    if (movimiento === "CARGA" && alreadyCarga) {
       return { duplicated: true };
     }
 
+    // 🚫 No permitir doble descarga
+    if (movimiento === "DESCARGA" && alreadyDescarga) {
+      return { duplicated: true };
+    }
+
+    // ✅ Insert válido
     const result = await db.runAsync(
       `
       INSERT INTO scans (vin, origen, destino, transport_nbr, gps_stamp, movimiento)

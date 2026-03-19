@@ -579,19 +579,33 @@ export default function ScannerScreen() {
       );
 
       if (resultSave.duplicated) {
+        const message =
+          tipoMovimiento === "CARGA"
+            ? "VIN YA FUE REGISTRADO PARA ESTA CARGA"
+            : "VIN YA FUE REGISTRADO PARA ESTA DESCARGA";
+
         setErrorModal({
           visible: true,
-          message: "VIN YA FUE REGISTRADO PARA ESTA CARGA",
+          message,
         });
 
         await playSound("error");
+
         scanLock.current = false;
         setScannerEnabled(false);
-        resetScanner();
-        return;
+
+        return; // 👈 IMPORTANTE: sacá el resetScanner de acá
       }
 
       requestSync();
+      setSaveDialog({
+        visible: true,
+        success: true,
+        message:
+          tipoMovimiento === "CARGA"
+            ? "UNIDAD REGISTRADA A LA CARGA"
+            : "UNIDAD REGISTRADA A LA DESCARGA",
+      });
       resetScanner();
     }, 0);
   };
