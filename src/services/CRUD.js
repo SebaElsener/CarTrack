@@ -46,3 +46,28 @@ export const getMovimientosByEquipo = async (transport_nbr) => {
     return { ok: false, data: [], error: err };
   }
 };
+
+export const getViajeByVin = async (vin) => {
+  const { data, error } = await supabase
+    .schema("carpointer")
+    .from("movimientos")
+    .select("idtviaje")
+    .eq("vin", vin)
+    .single();
+
+  if (error) return { ok: false };
+
+  return { ok: true, data };
+};
+
+export const getVinsByViaje = async (idtviaje) => {
+  const { data, error } = await supabase
+    .schema("carpointer")
+    .from("movimientos")
+    .select("vin")
+    .eq("idtviaje", idtviaje);
+
+  if (error) return { ok: false };
+
+  return { ok: true, data };
+};

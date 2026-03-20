@@ -64,7 +64,7 @@ export const resolverLocacion = (coords, zonaActual) => {
       loc.longitude,
     );
 
-    console.log("Zona:", loc.nombre, "Distancia:", d);
+    //console.log("Zona:", loc.nombre, "Distancia:", d);
 
     // 🟢 Mantener zona actual con histéresis
     if (zonaActual === loc.nombre) {

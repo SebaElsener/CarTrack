@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -35,6 +34,7 @@ export default function EstadoViajeScreen() {
   const [viajesNotificados, setViajesNotificados] = useState([]);
 
   useEffect(() => {
+    if (!viajesEstado || Object.keys(viajesEstado).length === 0) return;
     for (const viaje of Object.keys(viajesEstado)) {
       if (viajesNotificados.includes(viaje)) continue;
 
@@ -77,6 +77,7 @@ export default function EstadoViajeScreen() {
   }, []);
 
   const loadData = async () => {
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -339,20 +340,20 @@ export default function EstadoViajeScreen() {
           </Pressable>
         </View>
 
-        <Picker
-          selectedValue={viajeFiltro}
-          style={styles.picker}
-          onValueChange={(itemValue) => setViajeFiltro(itemValue)}
-        >
-          <Picker.Item
-            label="Viajes"
-            value="ALL"
-            style={styles.pickerContent}
-          />
-          {viajes.map((v) => (
-            <Picker.Item key={v} label={v.slice(-8)} value={v} />
-          ))}
-        </Picker>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={viajeFiltro}
+            style={styles.picker}
+            onValueChange={(itemValue) => setViajeFiltro(itemValue)}
+            dropdownIconColor="#333"
+            mode="dropdown"
+          >
+            <Picker.Item label="Viajes" value="ALL" />
+            {viajes.map((v) => (
+              <Picker.Item key={v} label={v.slice(-8)} value={v} />
+            ))}
+          </Picker>
+        </View>
 
         <View style={styles.stats}>
           {/* <Text style={styles.stat}>TOTAL: {stats.total}</Text> */}
@@ -363,19 +364,17 @@ export default function EstadoViajeScreen() {
       </View>
 
       {/* 📊 TABLA */}
-      <ScrollView horizontal>
-        <View>
-          <TableHeader />
+      <View>
+        <TableHeader />
 
-          <FlatList
-            data={data}
-            keyExtractor={(item) => item.vin}
-            renderItem={renderItem}
-            refreshing={loading}
-            onRefresh={loadData}
-          />
-        </View>
-      </ScrollView>
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.vin}
+          renderItem={renderItem}
+          refreshing={loading}
+          onRefresh={loadData}
+        />
+      </View>
 
       <Portal>
         <Dialog visible={!!modalInfo}>
@@ -413,19 +412,26 @@ const styles = StyleSheet.create({
   },
 
   search: {
-    backgroundColor: "#fff",
+    backgroundColor: "#e0e0e0",
     paddingHorizontal: 10,
     borderRadius: 6,
     width: 200,
+    height: 38,
+  },
+
+  pickerWrapper: {
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: "#e0e0e0",
+    //borderWidth: 1,
+    //borderColor: "#bbb",
+    paddingHorizontal: 5,
+    justifyContent: "center",
   },
 
   picker: {
     width: 150,
-    //backgroundColor: "#fff",
-  },
-
-  pickerContent: {
-    padding: 10,
+    color: "#121111",
   },
 
   stats: {
@@ -440,7 +446,7 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: "row",
-    backgroundColor: "#111",
+    backgroundColor: "#1e1d1de7",
     paddingVertical: 10,
   },
 

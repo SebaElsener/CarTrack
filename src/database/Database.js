@@ -124,3 +124,16 @@ export const existsCargaForVIN = async (vin) => {
 
   return !!result;
 };
+
+export const getScansByVins = async (vins) => {
+  const db = await getDb();
+
+  if (!vins.length) return [];
+
+  const placeholders = vins.map(() => "?").join(",");
+
+  return await db.getAllAsync(
+    `SELECT vin, movimiento FROM scans WHERE vin IN (${placeholders})`,
+    vins,
+  );
+};

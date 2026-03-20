@@ -26,8 +26,12 @@ import PositionPanel from "../components/PositionPanel";
 import ScanOverlay from "../components/ScanOverlay";
 import { useAuth } from "../context/AuthContext";
 import { useAppStatus } from "../context/TransportAndLocationContext";
-import { existsCargaForVIN, saveScan } from "../database/Database";
-import { getVIN } from "../services/CRUD";
+import {
+  existsCargaForVIN,
+  getScansByVins,
+  saveScan,
+} from "../database/Database";
+import { getVIN, getViajeByVin, getVinsByViaje } from "../services/CRUD";
 import { requestSync } from "../services/syncTrigger";
 
 // ---------------------------
@@ -220,6 +224,7 @@ export default function ScannerScreen() {
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: "",
+    type: "",
   });
   const [scannerEnabled, setScannerEnabled] = useState(true);
   const [loadingScan, setLoadingScan] = useState(false);
@@ -228,12 +233,57 @@ export default function ScannerScreen() {
   const { coords, lugar } = useAppStatus();
   const { movimiento } = useLocalSearchParams();
   const tipoMovimiento = movimiento || "CARGA";
+  const notifiedRef = useRef(new Set());
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   async function validarMovimiento(vin) {
     return await getVIN(vin, operator.transport_nbr);
   }
+
+  const checkViajeCompleto = async (vin) => {
+    try {
+      // 🔹 viaje
+      const viajeRes = await getViajeByVin(vin);
+
+      if (!viajeRes.ok || !viajeRes.data) return null;
+
+      const idtviaje = viajeRes.data.idtviaje;
+
+      // 🔹 VINs del viaje
+      const vinsRes = await getVinsByViaje(idtviaje);
+
+      if (!vinsRes.ok || !vinsRes.data) return null;
+
+      const vins = vinsRes.data.map((v) => v.vin);
+
+      // 🔹 scans locales
+      const scans = await getScansByVins(vins);
+
+      const cargas = new Set(
+        scans.filter((s) => s.movimiento === "CARGA").map((s) => s.vin),
+      );
+
+      const descargas = new Set(
+        scans.filter((s) => s.movimiento === "DESCARGA").map((s) => s.vin),
+      );
+
+      const total = vins.length;
+
+      if (descargas.size === total && cargas.size === total) {
+        return { tipo: "DESCARGA", idtviaje };
+      }
+
+      if (cargas.size === total) {
+        return { tipo: "CARGA", idtviaje };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("checkViajeCompleto error:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {}, [lastResult]);
 
@@ -325,6 +375,13 @@ export default function ScannerScreen() {
     getCameraPermissions();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      scanLock.current = true;
+      setScannerEnabled(false);
+    };
+  }, []);
+
   // ---------------------------
   // Animación de línea
   // ---------------------------
@@ -409,41 +466,6 @@ export default function ScannerScreen() {
       data: handInput,
     });
   };
-
-  // const handleDestinoChange = async (destino) => {
-  //   setDestino(destino);
-
-  //   // const { error } = await supabase
-  //   //   .schema("carpointer")
-  //   //   .from("scans")
-  //   //   .insert({
-  //   //     vin: lastResult,
-  //   //     lugar: destino,
-  //   //     transport_nbr,
-  //   //   });
-
-  //   const error = await saveScan(
-  //     lastResult,
-  //     destino,
-  //     transportNbr,
-  //     operatorName,
-  //   );
-
-  //   if (error) {
-  //     setSaveDialog({
-  //       visible: true,
-  //       success: false,
-  //       message: "Error al guardar los datos",
-  //     });
-  //     return;
-  //   }
-
-  //   setSaveDialog({
-  //     visible: true,
-  //     success: true,
-  //     message: "Datos guardados correctamente",
-  //   });
-  // };
 
   const resetScanner = () => {
     scanLock.current = false;
@@ -536,6 +558,7 @@ export default function ScannerScreen() {
         setErrorModal({
           visible: true,
           message,
+          type: "error",
         });
 
         playSound("error");
@@ -558,6 +581,7 @@ export default function ScannerScreen() {
           setErrorModal({
             visible: true,
             message: "LA UNIDAD NO FUE REGISTRADA A LA CARGA - VERIFICAR VIN",
+            type: "error",
           });
 
           await playSound("error");
@@ -578,6 +602,26 @@ export default function ScannerScreen() {
         tipoMovimiento,
       );
 
+      const estadoViaje = await checkViajeCompleto(vin);
+
+      if (estadoViaje && !notifiedRef.current.has(estadoViaje.idtviaje)) {
+        notifiedRef.current.add(estadoViaje.idtviaje);
+
+        const message =
+          estadoViaje.tipo === "CARGA"
+            ? `CARGA COMPLETA\nVIAJE ${estadoViaje.idtviaje}`
+            : `DESCARGA COMPLETA\nVIAJE ${estadoViaje.idtviaje}`;
+
+        setErrorModal({
+          visible: true,
+          message,
+          type: "success",
+        });
+
+        await playSound("success");
+        Vibration.vibrate([200, 100, 200]);
+      }
+
       if (resultSave.duplicated) {
         const message =
           tipoMovimiento === "CARGA"
@@ -587,6 +631,7 @@ export default function ScannerScreen() {
         setErrorModal({
           visible: true,
           message,
+          type: "error",
         });
 
         await playSound("error");
@@ -828,17 +873,26 @@ export default function ScannerScreen() {
           </Dialog.Actions>
         </Dialog>
         <Dialog visible={errorModal.visible} style={styles.errorDialog}>
-          <Dialog.Title style={{ textAlign: "center" }}>ATENCION</Dialog.Title>
+          <Dialog.Title style={{ textAlign: "center" }}>
+            {errorModal.type === "success" ? "INFORMACION" : "ATENCION"}
+          </Dialog.Title>
 
           <Dialog.Content>
-            <Text style={styles.errorModalText}>{errorModal.message}</Text>
+            <Text
+              style={[
+                styles.errorModalText,
+                errorModal.type === "success" && { color: "green" },
+              ]}
+            >
+              {errorModal.message}
+            </Text>
           </Dialog.Content>
 
           <Dialog.Actions style={{ justifyContent: "center" }}>
             <Button
               mode="contained"
               onPress={() => {
-                setErrorModal({ visible: false, message: "" });
+                setErrorModal({ visible: false, message: "", type: "" });
                 errorLock.current = false;
                 resetScanner();
               }}
