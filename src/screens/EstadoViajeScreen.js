@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Button, Dialog, Portal } from "react-native-paper";
 import { useAuth } from "../context/AuthContext";
 import { getDb } from "../database/Database";
 import { getMovimientosByEquipo } from "../services/CRUD";
@@ -21,6 +22,7 @@ export default function EstadoViajeScreen() {
 
   const [movimientos, setMovimientos] = useState([]);
   const [scans, setScans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [viajeFiltro, setViajeFiltro] = useState("ALL");
@@ -28,6 +30,29 @@ export default function EstadoViajeScreen() {
 
   //const [soloPendientes, setSoloPendientes] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState("TODOS");
+
+  const [modalInfo, setModalInfo] = useState(null);
+  const [viajesNotificados, setViajesNotificados] = useState([]);
+
+  useEffect(() => {
+    for (const viaje of Object.keys(viajesEstado)) {
+      if (viajesNotificados.includes(viaje)) continue;
+
+      const estado = viajesEstado[viaje];
+
+      if (estado.total === estado.descargas) {
+        setModalInfo({ viaje, tipo: "DESCARGA" });
+        setViajesNotificados((prev) => [...prev, viaje]);
+        break;
+      }
+
+      if (estado.total === estado.cargas) {
+        setModalInfo({ viaje, tipo: "CARGA" });
+        setViajesNotificados((prev) => [...prev, viaje]);
+        break;
+      }
+    }
+  }, [viajesEstado]);
 
   // 🔒 Landscape
   useEffect(() => {
@@ -37,16 +62,7 @@ export default function EstadoViajeScreen() {
 
   useEffect(() => {
     NavigationBar.setVisibilityAsync("hidden");
-    NavigationBar.setBehaviorAsync("overlay-swipe");
-
-    return () => {
-      NavigationBar.setVisibilityAsync("visible"); // 👈 restaurar al salir
-    };
-  }, []);
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync("hidden");
-    NavigationBar.setBehaviorAsync("overlay-swipe");
+    //NavigationBar.setBehaviorAsync("overlay-swipe");
 
     return () => {
       NavigationBar.setVisibilityAsync("visible");
@@ -61,21 +77,53 @@ export default function EstadoViajeScreen() {
   }, []);
 
   const loadData = async () => {
-    const result = await getMovimientosByEquipo(operator.transport_nbr);
+    setLoading(true);
 
-    if (result.ok) setMovimientos(result.data);
+    try {
+      // ---------------------------
+      // 🔹 Movimientos (Supabase)
+      // ---------------------------
+      const result = await getMovimientosByEquipo(operator.transport_nbr);
 
-    const db = await getDb();
-    const localScans = await db.getAllAsync(
-      `SELECT vin, movimiento FROM scans WHERE transport_nbr = ?`,
-      [operator.transport_nbr],
-    );
+      if (!result.ok) {
+        throw new Error("Error obteniendo movimientos");
+      }
 
-    setScans(localScans || []);
+      setMovimientos(result.data || []);
 
-    // 🔥 último scan (para highlight)
-    const last = localScans[localScans.length - 1];
-    if (last) setLastScanVin(last.vin);
+      // ---------------------------
+      // 🔹 Scans (SQLite local)
+      // ---------------------------
+      const db = await getDb();
+
+      const localScans = await db.getAllAsync(
+        `SELECT vin, movimiento FROM scans WHERE transport_nbr = ?`,
+        [operator.transport_nbr],
+      );
+
+      const scansSafe = localScans || [];
+
+      setScans(scansSafe);
+
+      // ---------------------------
+      // 🔹 Último scan (highlight)
+      // ---------------------------
+      if (scansSafe.length > 0) {
+        const last = scansSafe[scansSafe.length - 1];
+        setLastScanVin(last.vin);
+      } else {
+        setLastScanVin(null);
+      }
+    } catch (error) {
+      console.error("Error en loadData:", error);
+
+      // 🔥 fallback seguro
+      setMovimientos([]);
+      setScans([]);
+      setLastScanVin(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ---------------------------
@@ -135,6 +183,42 @@ export default function EstadoViajeScreen() {
       });
   }, [movimientos, scans, search, viajeFiltro, filtroEstado]);
 
+  const viajesEstado = useMemo(() => {
+    const map = {};
+
+    movimientos.forEach((mov) => {
+      if (!map[mov.idtviaje]) {
+        map[mov.idtviaje] = {
+          total: 0,
+          cargas: new Set(),
+          descargas: new Set(),
+        };
+      }
+
+      map[mov.idtviaje].total += 1;
+
+      if (scans.some((s) => s.vin === mov.vin && s.movimiento === "CARGA")) {
+        map[mov.idtviaje].cargas.add(mov.vin);
+      }
+
+      if (scans.some((s) => s.vin === mov.vin && s.movimiento === "DESCARGA")) {
+        map[mov.idtviaje].descargas.add(mov.vin);
+      }
+    });
+
+    return map;
+  }, [movimientos, scans]);
+
+  const viajesCargaCompleta = Object.entries(viajesEstado)
+    .filter(([_, v]) => v.cargas.size === v.total)
+    .map(([idtviaje]) => idtviaje);
+
+  const viajesDescargaCompleta = Object.entries(viajesEstado)
+    .filter(
+      ([_, v]) => v.descargas.size === v.total && v.cargas.size === v.total,
+    )
+    .map(([idtviaje]) => idtviaje);
+
   // ---------------------------
   // Stats
   // ---------------------------
@@ -165,15 +249,32 @@ export default function EstadoViajeScreen() {
   // Row
   // ---------------------------
   const renderItem = ({ item }) => {
-    const completed = item.carga && item.descarga;
+    const completed =
+      item.carga && item.descarga && !isCargaCompleta && !isDescargaCompleta;
     const isLast = item.vin === lastScanVin;
+
+    const isCargaCompleta = viajesCargaCompleta.includes(item.idtviaje);
+    const isDescargaCompleta = viajesDescargaCompleta.includes(item.idtviaje);
+
+    let rowBg = styles.row;
+
+    if (isDescargaCompleta) {
+      rowBg = styles.rowDescargaCompleta;
+    } else if (isCargaCompleta) {
+      rowBg = styles.rowCargaCompleta;
+    } else if (item.carga && item.descarga) {
+      rowBg = styles.rowCompleted;
+    }
 
     return (
       <View
         style={[
           styles.row,
-          completed && styles.rowCompleted,
-          isLast && styles.rowHighlight,
+          rowBg,
+          isLast &&
+            !isDescargaCompleta &&
+            !isCargaCompleta &&
+            styles.rowHighlight,
         ]}
       >
         <Text style={[styles.cell, styles.colVin]}>{item.vin}</Text>
@@ -243,9 +344,13 @@ export default function EstadoViajeScreen() {
           style={styles.picker}
           onValueChange={(itemValue) => setViajeFiltro(itemValue)}
         >
-          <Picker.Item label="Viajes" value="ALL" />
+          <Picker.Item
+            label="Viajes"
+            value="ALL"
+            style={styles.pickerContent}
+          />
           {viajes.map((v) => (
-            <Picker.Item key={v} label={v.slice(-5)} value={v} />
+            <Picker.Item key={v} label={v.slice(-8)} value={v} />
           ))}
         </Picker>
 
@@ -266,9 +371,33 @@ export default function EstadoViajeScreen() {
             data={data}
             keyExtractor={(item) => item.vin}
             renderItem={renderItem}
+            refreshing={loading}
+            onRefresh={loadData}
           />
         </View>
       </ScrollView>
+
+      <Portal>
+        <Dialog visible={!!modalInfo}>
+          <Dialog.Title style={{ textAlign: "center" }}>
+            OPERACIÓN COMPLETA
+          </Dialog.Title>
+
+          <Dialog.Content>
+            <Text style={{ textAlign: "center", fontSize: 18 }}>
+              {modalInfo?.tipo} COMPLETA
+            </Text>
+
+            <Text style={{ textAlign: "center", marginTop: 10 }}>
+              VIAJE {modalInfo?.viaje}
+            </Text>
+          </Dialog.Content>
+
+          <Dialog.Actions style={{ justifyContent: "center" }}>
+            <Button onPress={() => setModalInfo(null)}>OK</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -291,8 +420,12 @@ const styles = StyleSheet.create({
   },
 
   picker: {
-    width: 120,
-    backgroundColor: "#fff",
+    width: 150,
+    //backgroundColor: "#fff",
+  },
+
+  pickerContent: {
+    padding: 10,
   },
 
   stats: {
@@ -375,5 +508,13 @@ const styles = StyleSheet.create({
 
   toggleTextActive: {
     color: "#fff",
+  },
+
+  rowCargaCompleta: {
+    backgroundColor: "#2597e9", // azul claro
+  },
+
+  rowDescargaCompleta: {
+    backgroundColor: "#0cce13f7", // verde claro
   },
 });
