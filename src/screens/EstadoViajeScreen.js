@@ -2,7 +2,7 @@ import { Picker } from "@react-native-picker/picker";
 import * as NavigationBar from "expo-navigation-bar";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -21,7 +21,7 @@ export default function EstadoViajeScreen() {
 
   const [movimientos, setMovimientos] = useState([]);
   const [scans, setScans] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [viajeFiltro, setViajeFiltro] = useState("ALL");
@@ -32,6 +32,8 @@ export default function EstadoViajeScreen() {
 
   const [modalInfo, setModalInfo] = useState(null);
   const [viajesNotificados, setViajesNotificados] = useState([]);
+
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (!viajesEstado || Object.keys(viajesEstado).length === 0) return;
@@ -77,7 +79,9 @@ export default function EstadoViajeScreen() {
   }, []);
 
   const loadData = async () => {
-    if (loading) return;
+    if (loadingRef.current) return;
+
+    loadingRef.current = true;
     setLoading(true);
 
     try {
@@ -123,6 +127,7 @@ export default function EstadoViajeScreen() {
       setScans([]);
       setLastScanVin(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -135,44 +140,53 @@ export default function EstadoViajeScreen() {
     return unique;
   }, [movimientos]);
 
+  const scanMap = useMemo(() => {
+    const map = {};
+
+    scans.forEach((s) => {
+      const vin = s.vin;
+
+      if (!map[vin]) {
+        map[vin] = { carga: false, descarga: false };
+      }
+
+      if (s.movimiento === "CARGA") map[vin].carga = true;
+      if (s.movimiento === "DESCARGA") map[vin].descarga = true;
+    });
+
+    return map;
+  }, [scans]);
+
   // ---------------------------
   // Merge + filtros
   // ---------------------------
   const data = useMemo(() => {
-    return movimientos
-      .map((mov) => {
-        const carga = scans.some(
-          (s) => s.vin === mov.vin && s.movimiento === "CARGA",
-        );
+    return movimientos.map((mov) => {
+      const estado = scanMap[mov.vin] || {};
 
-        const descarga = scans.some(
-          (s) => s.vin === mov.vin && s.movimiento === "DESCARGA",
-        );
+      return {
+        ...mov,
+        carga: estado.carga || false,
+        descarga: estado.descarga || false,
+      };
+    });
+  }, [movimientos, scanMap]);
 
-        return {
-          ...mov,
-          carga,
-          descarga,
-        };
-      })
+  const filteredData = useMemo(() => {
+    const searchClean = search.trim().toUpperCase();
+
+    return data
       .filter((item) => {
         if (viajeFiltro !== "ALL" && item.idtviaje !== viajeFiltro)
           return false;
 
-        if (search && !item.vin.includes(search.toUpperCase())) return false;
+        if (searchClean && !item.vin.includes(searchClean)) return false;
 
-        // 🔥 FILTRO TRIPLE CORREGIDO
-        switch (filtroEstado) {
-          case "CARGA":
-            return !item.carga;
+        if (filtroEstado === "CARGA") return !item.carga;
 
-          case "DESCARGA":
-            return item.carga && !item.descarga;
+        if (filtroEstado === "DESCARGA") return item.carga && !item.descarga;
 
-          case "TODOS":
-          default:
-            return true;
-        }
+        return true;
       })
       .sort((a, b) => {
         const score = (x) => {
@@ -180,9 +194,13 @@ export default function EstadoViajeScreen() {
           if (x.carga && !x.descarga) return 1;
           return 2;
         };
-        return score(a) - score(b);
+
+        const diff = score(a) - score(b);
+        if (diff !== 0) return diff;
+
+        return a.vin.localeCompare(b.vin);
       });
-  }, [movimientos, scans, search, viajeFiltro, filtroEstado]);
+  }, [data, search, viajeFiltro, filtroEstado]);
 
   const viajesEstado = useMemo(() => {
     const map = {};
@@ -191,34 +209,29 @@ export default function EstadoViajeScreen() {
       if (!map[mov.idtviaje]) {
         map[mov.idtviaje] = {
           total: 0,
-          cargas: new Set(),
-          descargas: new Set(),
+          cargas: 0,
+          descargas: 0,
         };
       }
 
       map[mov.idtviaje].total += 1;
 
-      if (scans.some((s) => s.vin === mov.vin && s.movimiento === "CARGA")) {
-        map[mov.idtviaje].cargas.add(mov.vin);
-      }
+      const estado = scanMap[mov.vin];
 
-      if (scans.some((s) => s.vin === mov.vin && s.movimiento === "DESCARGA")) {
-        map[mov.idtviaje].descargas.add(mov.vin);
-      }
+      if (estado?.carga) map[mov.idtviaje].cargas += 1;
+      if (estado?.descarga) map[mov.idtviaje].descargas += 1;
     });
 
     return map;
-  }, [movimientos, scans]);
+  }, [movimientos, scanMap]);
 
   const viajesCargaCompleta = Object.entries(viajesEstado)
-    .filter(([_, v]) => v.cargas.size === v.total)
-    .map(([idtviaje]) => idtviaje);
+    .filter(([_, v]) => v.cargas === v.total)
+    .map(([id]) => id);
 
   const viajesDescargaCompleta = Object.entries(viajesEstado)
-    .filter(
-      ([_, v]) => v.descargas.size === v.total && v.cargas.size === v.total,
-    )
-    .map(([idtviaje]) => idtviaje);
+    .filter(([_, v]) => v.descargas === v.total && v.cargas === v.total)
+    .map(([id]) => id);
 
   // ---------------------------
   // Stats
@@ -250,34 +263,47 @@ export default function EstadoViajeScreen() {
   // Row
   // ---------------------------
   const renderItem = ({ item }) => {
-    const completed =
-      item.carga && item.descarga && !isCargaCompleta && !isDescargaCompleta;
-    const isLast = item.vin === lastScanVin;
+    // const completed =
+    //   item.carga && item.descarga && !isCargaCompleta && !isDescargaCompleta;
+    // const isLast = item.vin === lastScanVin;
 
     const isCargaCompleta = viajesCargaCompleta.includes(item.idtviaje);
     const isDescargaCompleta = viajesDescargaCompleta.includes(item.idtviaje);
 
-    let rowBg = styles.row;
+    const isLast = item.vin === lastScanVin;
 
-    if (isDescargaCompleta) {
-      rowBg = styles.rowDescargaCompleta;
-    } else if (isCargaCompleta) {
-      rowBg = styles.rowCargaCompleta;
-    } else if (item.carga && item.descarga) {
-      rowBg = styles.rowCompleted;
-    }
+    // let rowBg = styles.row;
+
+    // if (isDescargaCompleta) {
+    //   rowBg = styles.rowDescargaCompleta;
+    // } else if (isCargaCompleta) {
+    //   rowBg = styles.rowCargaCompleta;
+    // } else if (item.carga && item.descarga) {
+    //   rowBg = styles.rowCompleted;
+    // }
+
+    const getRowStyle = () => {
+      if (isLast && !isDescargaCompleta && !isCargaCompleta) {
+        return [styles.row, styles.rowHighlight];
+      }
+
+      if (isDescargaCompleta) {
+        return [styles.row, styles.rowDescargaCompleta];
+      }
+
+      if (isCargaCompleta) {
+        return [styles.row, styles.rowCargaCompleta];
+      }
+
+      if (item.carga && item.descarga) {
+        return [styles.row, styles.rowCompleted];
+      }
+
+      return [styles.row];
+    };
 
     return (
-      <View
-        style={[
-          styles.row,
-          rowBg,
-          isLast &&
-            !isDescargaCompleta &&
-            !isCargaCompleta &&
-            styles.rowHighlight,
-        ]}
-      >
+      <View style={getRowStyle()}>
         <Text style={[styles.cell, styles.colVin]}>{item.vin}</Text>
         <Text style={styles.cell}>{item.idtviaje}</Text>
         <Text style={styles.cell}>{item.nombreorigen}</Text>
@@ -364,15 +390,18 @@ export default function EstadoViajeScreen() {
       </View>
 
       {/* 📊 TABLA */}
-      <View>
+      <View style={{ flex: 1 }}>
         <TableHeader />
-
         <FlatList
-          data={data}
+          data={filteredData}
+          extraData={lastScanVin}
           keyExtractor={(item) => item.vin}
           renderItem={renderItem}
           refreshing={loading}
           onRefresh={loadData}
+          removeClippedSubviews={false}
+          //contentContainerStyle={{ paddingBottom: 80 }}
+          style={{ flex: 1 }}
         />
       </View>
 
