@@ -1,12 +1,18 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-paper";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Animated, StyleSheet, View } from "react-native";
+import { Button, Dialog, Portal, Text } from "react-native-paper";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
-import { deleteTable } from "../database/Database";
+import { useToast } from "../components/ToastProvider";
+import { deleteTable, hasPendingData } from "../database/Database";
+import { requestSync } from "../services/syncTrigger";
 
 export default function HomeScreen() {
+  const [deleting, setDeleting] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const { showToast } = useToast();
+
   const animations = useRef(
     Array.from({ length: 6 }).map(() => ({
       opacity: new Animated.Value(0),
@@ -50,7 +56,31 @@ export default function HomeScreen() {
   );
 
   const handleDeleteDatabase = async () => {
-    await deleteTable(); // SQLite (DROP + CREATE)
+    try {
+      setDeleting(true);
+
+      const hasPending = await hasPendingData();
+
+      if (hasPending) {
+        showToast(
+          "Hay datos pendientes. Sincronizando antes de eliminar...",
+          "info",
+        );
+
+        requestSync();
+
+        return;
+      }
+
+      await deleteTable();
+
+      showToast("Tablas eliminadas correctamente", "success");
+    } catch (error) {
+      console.log(error);
+      showToast("Error al eliminar tablas", "error");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const cards = [
@@ -116,11 +146,48 @@ export default function HomeScreen() {
           ))}
         </View>
       </View>
-      <View>
-        <Button style={styles.deleteTable} onPress={handleDeleteDatabase}>
-          ELIMINAR TABLA
+      <View style={styles.deleteTable}>
+        <Button
+          //style={styles.deleteTable}
+          onPress={() => setConfirmVisible(true)}
+          loading={deleting}
+          disabled={deleting}
+        >
+          {deleting ? "Eliminando..." : "NUEVA COLECCION"}
         </Button>
       </View>
+
+      {deleting && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" />
+          <Text style={{ color: "white", fontWeight: 600, fontSize: 20 }}>
+            Eliminando tablas...
+          </Text>
+        </View>
+      )}
+
+      <Portal>
+        <Dialog
+          visible={confirmVisible}
+          onDismiss={() => setConfirmVisible(false)}
+        >
+          <Dialog.Title>Confirmar</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">¿COMENZAR NUEVA COLECCION?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmVisible(false)}>Cancelar</Button>
+            <Button
+              onPress={async () => {
+                setConfirmVisible(false);
+                await handleDeleteDatabase();
+              }}
+            >
+              Eliminar
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -172,7 +239,20 @@ const styles = StyleSheet.create({
   },
   deleteTable: {
     position: "absolute",
-    bottom: 50,
-    left: 30,
+    bottom: 0,
+    left: 20,
+  },
+  overlay: {
+    position: "absolute",
+    top: 190,
+    width: 250,
+    height: 200,
+    left: 60,
+    //right: 0,
+    //bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.87)",
+    zIndex: 999999,
   },
 });

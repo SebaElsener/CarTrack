@@ -1,6 +1,6 @@
 import { Camera, CameraView } from "expo-camera";
 import { useKeepAwake } from "expo-keep-awake";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -201,6 +201,8 @@ function attemptVinAutoFixOEM(vin) {
 // ---------------------------
 export default function ScannerScreen() {
   useKeepAwake(); // Mantener pantalla activa
+  const router = useRouter();
+
   const [hasPermission, setHasPermission] = useState(null);
   const [lastResult, setLastResult] = useState("");
   const scanLineAnim = useRef(new Animated.Value(0)).current;
@@ -707,6 +709,28 @@ export default function ScannerScreen() {
       {/* ////////////////////////////////////////////////////// */}
       {/* Panel de posicionamiento */}
       <View style={styles.vinResultContainer}>
+        {lastResult && (
+          <IconButton
+            size={30}
+            icon="camera-plus"
+            iconColor="rgb(34, 144, 117)"
+            style={{
+              backgroundColor: "transparent",
+              position: "absolute",
+              left: -10,
+              top: -10,
+            }}
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/CameraScreen",
+                params: {
+                  vinFromRouter: lastResult,
+                  // localScanId: item.scan_id_local,
+                },
+              })
+            }
+          />
+        )}
         <Text style={styles.vinResultLabel}>VIN</Text>
         <Text style={styles.vinResultText}>
           {lastResult || "Esperando escaneo..."}

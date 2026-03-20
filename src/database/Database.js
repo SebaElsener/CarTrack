@@ -34,6 +34,31 @@ export const initDB = async () => {
     `,
   );
 
+  await db.execAsync(
+    `PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS pictures (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        local_scan_id INTEGER,
+        scan_id INTEGER,
+        vin TEXT NOT NULL,
+        metadata TEXT NOT NULL,
+        pictureurl TEXT,
+        user TEXT NOT NULL,
+        synced INTEGER DEFAULT NULL)
+      `,
+  );
+
+  await db.execAsync(
+    `PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS tableForPendingImages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        id_heredado INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        binary BLOB NOT NULL,
+        synced INTEGER DEFAULT 0)
+      `,
+  );
+
   dbReady = true;
 };
 
@@ -47,6 +72,8 @@ export const deleteTable = async () => {
   try {
     await db.execAsync(`
       DROP TABLE IF EXISTS scans;
+      DROP TABLE IF EXISTS pictures;
+      DROP TABLE IF EXISTS tableForPendingImages;
     `);
   } catch (error) {
     console.log("Error al eliminar tabla, ", error);
@@ -136,4 +163,64 @@ export const getScansByVins = async (vins) => {
     `SELECT vin, movimiento FROM scans WHERE vin IN (${placeholders})`,
     vins,
   );
+};
+
+export const savePict = async (vin, local_ScanId, metadata, user) => {
+  const db = await getDb();
+  // buscar el scan
+  const scan = await db.getFirstAsync(
+    `SELECT remote_id, synced FROM scans WHERE id = ?`,
+    local_ScanId,
+  );
+
+  const hasRemoteScan = scan?.synced === 1 && scan?.remote_id != null;
+
+  try {
+    const id = await db.runAsync(
+      `INSERT INTO pictures (vin, local_scan_id, scan_id, metadata, user, synced) VALUES (?, ?, ?, ?, ?, ?);`,
+      vin,
+      local_ScanId,
+      hasRemoteScan ? scan.remote_id : null,
+      metadata,
+      user,
+      hasRemoteScan ? 0 : null,
+    );
+    return id.lastInsertRowId;
+  } catch (error) {
+    console.log("Error al esribir en tabla pictures", error);
+  }
+};
+
+export const savePendingImage = async (pictId, nombre, binary) => {
+  /// pictId es heredado de savePict
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO tableForPendingImages (id_heredado, name, binary, synced) VALUES (?, ?, ?, 0);`,
+    pictId,
+    nombre,
+    binary,
+  );
+};
+
+export const hasPendingData = async () => {
+  const db = await getDb();
+
+  try {
+    const scans = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM scans WHERE synced = 0`,
+    );
+
+    const pictures = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM pictures WHERE synced = 0`,
+    );
+
+    const pendingImages = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM tableForPendingImages WHERE synced = 0`,
+    );
+
+    return scans?.count > 0 || pictures?.count > 0 || pendingImages?.count > 0;
+  } catch (e) {
+    console.log("Error checking pending data", e);
+    return true;
+  }
 };

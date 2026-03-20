@@ -73,8 +73,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (op) {
       await SecureStore.setItemAsync("operator", JSON.stringify(op));
+
+      await supabase.auth.updateUser({
+        data: {
+          transport_nbr: op.transport_nbr,
+        },
+      });
+      await supabase.auth.refreshSession();
     } else {
       await SecureStore.deleteItemAsync("operator");
+
+      // opcional: limpiar metadata
+      await supabase.auth.updateUser({
+        data: {
+          transport_nbr: null,
+        },
+      });
     }
   };
 
@@ -102,6 +116,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
+      await supabase.auth.updateUser({
+        data: {
+          transport_nbr: null,
+        },
+      });
       await supabase.auth.signOut();
       setSession(null);
       setLoading(false);

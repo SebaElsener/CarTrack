@@ -111,7 +111,7 @@ export default function CameraScreen() {
       // guardar metadatos
       const metadatos = {
         fecha: new Date().toISOString(),
-        codigo: null, // se puede actualizar luego
+        codigo: "carpointer", // se puede actualizar luego
         carpeta,
       };
 
