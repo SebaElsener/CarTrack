@@ -24,6 +24,7 @@ export const initDB = async () => {
     `PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        remote_id INTEGER,
         vin TEXT NOT NULL,
         transport_nbr TEXT NOT NULL,
         origen TEXT NOT NULL,
@@ -224,3 +225,23 @@ export const hasPendingData = async () => {
     return true;
   }
 };
+
+export async function markToSyncHelper(table, remoteScanId, localScanId) {
+  console.log("PARAMS markToSyncHelper: ", table, remoteScanId, localScanId);
+  const db = await getDb();
+
+  try {
+    const result = await db.runAsync(
+      `
+      UPDATE ${table}
+      SET scan_id = ?, synced = 0
+      WHERE local_scan_id = ? AND (synced IS NULL OR synced != 0)
+      `,
+      parseInt(remoteScanId),
+      parseInt(localScanId),
+    );
+    console.log("Registros listos para sync: ", result.changes);
+  } catch (error) {
+    console.log("Error al marcar registros para sync, ", error);
+  }
+}

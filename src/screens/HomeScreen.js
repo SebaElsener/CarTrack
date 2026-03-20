@@ -63,7 +63,7 @@ export default function HomeScreen() {
 
       if (hasPending) {
         showToast(
-          "Hay datos pendientes. Sincronizando antes de eliminar...",
+          "Hay datos pendientes. Sincronizando antes comenzar nueva colección...",
           "info",
         );
 
@@ -74,10 +74,10 @@ export default function HomeScreen() {
 
       await deleteTable();
 
-      showToast("Tablas eliminadas correctamente", "success");
+      showToast("Nueva colección iniciada correctamente", "success");
     } catch (error) {
       console.log(error);
-      showToast("Error al eliminar tablas", "error");
+      showToast("Error al inicar nueva colección", "error");
     } finally {
       setDeleting(false);
     }
@@ -110,15 +110,6 @@ export default function HomeScreen() {
         />
       ),
     },
-    // {
-    //   title: "Reset",
-    //   description: "Eliminar tablas locales",
-    //   backgroundColor: "rgba(206, 104, 104, 0.38)",
-    //   icon: (
-    //     <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
-    //   ),
-    //   onPress: handleDeleteDatabase,
-    // },
   ];
 
   return (
@@ -153,7 +144,7 @@ export default function HomeScreen() {
           loading={deleting}
           disabled={deleting}
         >
-          {deleting ? "Eliminando..." : "NUEVA COLECCION"}
+          {deleting ? "INICIANDO NUEVA COLECCION..." : "NUEVA COLECCION"}
         </Button>
       </View>
 
@@ -161,7 +152,7 @@ export default function HomeScreen() {
         <View style={styles.overlay}>
           <ActivityIndicator size="large" />
           <Text style={{ color: "white", fontWeight: 600, fontSize: 20 }}>
-            Eliminando tablas...
+            Nueva colección...
           </Text>
         </View>
       )}

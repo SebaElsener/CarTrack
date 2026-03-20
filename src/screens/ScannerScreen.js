@@ -236,6 +236,7 @@ export default function ScannerScreen() {
   const { movimiento } = useLocalSearchParams();
   const tipoMovimiento = movimiento || "CARGA";
   const notifiedRef = useRef(new Set());
+  const [localScanId, setLocalScanId] = useState("");
 
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
@@ -603,6 +604,8 @@ export default function ScannerScreen() {
         JSON.stringify(coords),
         tipoMovimiento,
       );
+
+      setLocalScanId(resultSave);
 
       const estadoViaje = await checkViajeCompleto(vin);
 

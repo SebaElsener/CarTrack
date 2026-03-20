@@ -31,7 +31,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState(null);
   const [fotos, setFotos] = useState([]);
-  const { user } = useAuth();
+  const { operator } = useAuth();
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
   const { vinFromRouter, localScanId } = useLocalSearchParams();
   const vin = vinFromRouter;
@@ -135,7 +135,7 @@ export default function CameraScreen() {
         vin,
         local_ScanId,
         JSON.stringify(metadatos),
-        user?.email,
+        operator?.transport_nbr,
       );
 
       //  Guardar name + binary en tabla local para subir luego a supabase bucket
@@ -219,7 +219,7 @@ export default function CameraScreen() {
         vin,
         local_ScanId,
         JSON.stringify(metadatos),
-        user?.email,
+        operator?.transport_nbr,
       );
 
       await savePendingImage(pictId, nombre, binary);
