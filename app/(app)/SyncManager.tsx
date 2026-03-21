@@ -1,12 +1,10 @@
+import { supabase } from "@/src/services/supabase";
 import { registerSyncTrigger } from "@/src/services/syncTrigger";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { initDB } from "../../src/database/Database";
-import {
-  // syncPendingPicts,
-  syncPendingScans,
-} from "../../src/services/sync";
+import { syncPendingPicts, syncPendingScans } from "../../src/services/sync";
 
 interface Props {
   onSyncChange?: (syncing: boolean) => void;
@@ -30,6 +28,15 @@ export default function SyncManager({ onSyncChange }: Props) {
     const state = await NetInfo.fetch();
     if (!state.isConnected) return;
 
+    const { data } = await supabase.auth.getSession();
+    const transport = data.session?.user?.user_metadata?.transport_nbr;
+    console.log("SESSION:", data.session);
+    console.log("TANSPORTE NBR: ", transport);
+    if (!transport) {
+      console.log("⛔ JWT no listo → skip sync");
+      return;
+    }
+
     if (isSyncing) return;
 
     isSyncing = true;
@@ -42,13 +49,10 @@ export default function SyncManager({ onSyncChange }: Props) {
       const pendingScans = await syncPendingScans();
       console.log("Scans pendientes: ", pendingScans);
 
-      // const pendingPicts = await syncPendingPicts();
-      // console.log("Fotos pendientes: ", pendingPicts);
+      const pendingPicts = await syncPendingPicts();
+      console.log("Fotos pendientes: ", pendingPicts);
 
-      if (
-        pendingScans === 0
-        // pendingPicts === 0 &&
-      ) {
+      if (pendingScans === 0 && pendingPicts === 0) {
         console.log("✅ Sync complete");
         stopRetry();
       } else {

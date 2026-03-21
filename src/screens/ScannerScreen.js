@@ -605,7 +605,9 @@ export default function ScannerScreen() {
         tipoMovimiento,
       );
 
-      setLocalScanId(resultSave);
+      console.log(resultSave);
+
+      setLocalScanId(resultSave.id);
 
       const estadoViaje = await checkViajeCompleto(vin);
 
@@ -728,7 +730,7 @@ export default function ScannerScreen() {
                 pathname: "/(app)/CameraScreen",
                 params: {
                   vinFromRouter: lastResult,
-                  // localScanId: item.scan_id_local,
+                  localScanId: localScanId,
                 },
               })
             }

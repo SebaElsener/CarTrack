@@ -38,10 +38,10 @@ export const syncPendingScans = async () => {
       continue;
     }
     await db.runAsync(
-      `UPDATE scans SET remote_id = ${scan.supabase_id} WHERE id = ?`,
+      `UPDATE scans SET remote_id = ${scan.id} WHERE id = ?`,
       item.id,
     );
-    await markToSyncHelper("pictures", scan.supabase_id, item.id);
+    await markToSyncHelper("pictures", scan.id, item.id);
     await db.runAsync(`UPDATE scans SET synced = 1 WHERE id = ?`, item.id);
     syncedCount++;
   }
@@ -91,6 +91,7 @@ export const syncPendingImages = async () => {
 export const syncPendingPicts = async () => {
   await waitForDb();
   const db = await getDb();
+
   try {
     await syncPendingImages();
   } catch (e) {
@@ -99,18 +100,23 @@ export const syncPendingPicts = async () => {
   const unsyncedPicts = await db.getAllAsync(
     `SELECT * FROM pictures WHERE synced = 0`,
   );
+
+  console.log("fotos a sincronizar: ", unsyncedPicts);
   if (!unsyncedPicts || unsyncedPicts.length === 0) {
     return 0; // nada pendiente
   }
   let syncedCount = 0;
+
   for (const picts of unsyncedPicts) {
-    const { error } = await supabase.from("pictures").insert({
-      vin: picts.vin,
-      scan_id: picts.scan_id,
-      pictureurl: picts.pictureurl,
-      metadata: picts.metadata,
-      user: picts.user,
-    });
+    const { error } = await supabase
+      .schema("carpointer")
+      .from("carpointer_pictures")
+      .insert({
+        vin: picts.vin,
+        scan_id: picts.scan_id,
+        pictureurl: picts.pictureurl,
+        metadata: picts.metadata,
+      });
     if (error) {
       console.log("❌ picture sync error", picts.scan_id, error);
       continue;

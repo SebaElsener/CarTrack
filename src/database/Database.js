@@ -167,6 +167,7 @@ export const getScansByVins = async (vins) => {
 };
 
 export const savePict = async (vin, local_ScanId, metadata, user) => {
+  console.log(vin, local_ScanId, metadata, user);
   const db = await getDb();
   // buscar el scan
   const scan = await db.getFirstAsync(
@@ -227,7 +228,6 @@ export const hasPendingData = async () => {
 };
 
 export async function markToSyncHelper(table, remoteScanId, localScanId) {
-  console.log("PARAMS markToSyncHelper: ", table, remoteScanId, localScanId);
   const db = await getDb();
 
   try {
