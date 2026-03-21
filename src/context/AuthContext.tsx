@@ -73,13 +73,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (op) {
       await SecureStore.setItemAsync("operator", JSON.stringify(op));
-
-      await supabase.auth.updateUser({
-        data: {
-          transport_nbr: op.transport_nbr,
-        },
-      });
-      await supabase.auth.refreshSession();
     } else {
       await SecureStore.deleteItemAsync("operator");
 
@@ -125,6 +118,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(null);
       setLoading(false);
       await SecureStore.deleteItemAsync("operator");
+      await SecureStore.deleteItemAsync("supabase.auth.token");
       setOperatorState(null);
 
       showToast("Sesión cerrada correctamente", "info");

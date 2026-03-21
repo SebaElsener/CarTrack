@@ -605,8 +605,6 @@ export default function ScannerScreen() {
         tipoMovimiento,
       );
 
-      console.log(resultSave);
-
       setLocalScanId(resultSave.id);
 
       const estadoViaje = await checkViajeCompleto(vin);

@@ -30,8 +30,7 @@ export default function SyncManager({ onSyncChange }: Props) {
 
     const { data } = await supabase.auth.getSession();
     const transport = data.session?.user?.user_metadata?.transport_nbr;
-    console.log("SESSION:", data.session);
-    console.log("TANSPORTE NBR: ", transport);
+
     if (!transport) {
       console.log("⛔ JWT no listo → skip sync");
       return;

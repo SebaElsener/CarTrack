@@ -37,6 +37,7 @@ export const syncPendingScans = async () => {
       console.log("❌ scan sync error", item.id, error);
       continue;
     }
+
     await db.runAsync(
       `UPDATE scans SET remote_id = ${scan.id} WHERE id = ?`,
       item.id,
@@ -101,11 +102,13 @@ export const syncPendingPicts = async () => {
     `SELECT * FROM pictures WHERE synced = 0`,
   );
 
-  console.log("fotos a sincronizar: ", unsyncedPicts);
   if (!unsyncedPicts || unsyncedPicts.length === 0) {
     return 0; // nada pendiente
   }
   let syncedCount = 0;
+
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session.user.id;
 
   for (const picts of unsyncedPicts) {
     const { error } = await supabase
@@ -116,7 +119,10 @@ export const syncPendingPicts = async () => {
         scan_id: picts.scan_id,
         pictureurl: picts.pictureurl,
         metadata: picts.metadata,
+        user: picts.user,
+        user_id: userId,
       });
+
     if (error) {
       console.log("❌ picture sync error", picts.scan_id, error);
       continue;

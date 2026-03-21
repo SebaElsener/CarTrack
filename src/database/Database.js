@@ -95,10 +95,9 @@ export const saveScan = async (
   const db = await getDb();
 
   try {
-    // 🔍 Buscar registros existentes del mismo VIN + equipo
     const existing = await db.getAllAsync(
       `
-      SELECT movimiento 
+      SELECT movimiento, id
       FROM scans 
       WHERE vin = ? 
       AND transport_nbr = ?
@@ -106,18 +105,20 @@ export const saveScan = async (
       [vin, transport_nbr],
     );
 
-    const alreadyCarga = existing.some((r) => r.movimiento === "CARGA");
+    const cargaRecord = existing.find((r) => r.movimiento === "CARGA");
+    const descargaRecord = existing.find((r) => r.movimiento === "DESCARGA");
 
-    const alreadyDescarga = existing.some((r) => r.movimiento === "DESCARGA");
+    const alreadyCarga = !!cargaRecord;
+    const alreadyDescarga = !!descargaRecord;
 
     // 🚫 No permitir doble carga
     if (movimiento === "CARGA" && alreadyCarga) {
-      return { duplicated: true };
+      return { duplicated: true, id: cargaRecord.id };
     }
 
     // 🚫 No permitir doble descarga
     if (movimiento === "DESCARGA" && alreadyDescarga) {
-      return { duplicated: true };
+      return { duplicated: true, id: descargaRecord.id };
     }
 
     // ✅ Insert válido
@@ -167,7 +168,6 @@ export const getScansByVins = async (vins) => {
 };
 
 export const savePict = async (vin, local_ScanId, metadata, user) => {
-  console.log(vin, local_ScanId, metadata, user);
   const db = await getDb();
   // buscar el scan
   const scan = await db.getFirstAsync(

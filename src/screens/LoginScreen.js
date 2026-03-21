@@ -26,9 +26,17 @@ export default function LoginScreen() {
       password: "Transportistas1234",
     });
 
+    await supabase.auth.updateUser({
+      data: {
+        transport_nbr: transportNbr,
+      },
+    });
+    await supabase.auth.refreshSession();
+
     if (error) {
       setLoading(false);
       showToast("Error al iniciar sesión", "error");
+      console.log(error);
       return;
     }
 
