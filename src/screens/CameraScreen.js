@@ -4,7 +4,14 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Button } from "react-native-paper";
 import { useToast } from "../components/ToastProvider";
 import { useAuth } from "../context/AuthContext";
@@ -31,6 +38,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraRef, setCameraRef] = useState(null);
   const [fotos, setFotos] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { operator } = useAuth();
   const carpetaBase = FileSystem.documentDirectory + "fotos/";
   const { vinFromRouter, localScanId } = useLocalSearchParams();
@@ -90,6 +98,7 @@ export default function CameraScreen() {
   // -------------------------------------------------------
   const tomarYGuardar = async () => {
     try {
+      setLoading(true);
       const foto = await cameraRef.takePictureAsync();
 
       const year = new Date().getFullYear();
@@ -148,11 +157,14 @@ export default function CameraScreen() {
     } catch (error) {
       console.log("Error al tomar/guardar foto:", error);
       showToast("Error al tomar/guardar foto", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadLocalPict = async () => {
     try {
+      setLoading(true);
       // Permiso galería
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -231,6 +243,8 @@ export default function CameraScreen() {
     } catch (error) {
       console.error(error);
       showToast("Error al cargar la imagen", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,6 +267,26 @@ export default function CameraScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: "rgba(172, 180, 196, 1)" }}>
       <View style={{ height: 350 }}>
         <CameraView ref={setCameraRef} style={{ flex: 1 }} />
+
+        {loading && (
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={{ color: "#fff", marginTop: 10 }}>
+              Procesando foto...
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={{ flexDirection: "row" }}>
@@ -264,6 +298,7 @@ export default function CameraScreen() {
           }}
           titleStyle={{ fontSize: 18 }}
           buttonColor="green"
+          disabled={loading}
           onPress={() => loadLocalPict()}
         >
           Cargar foto...
@@ -274,6 +309,7 @@ export default function CameraScreen() {
           style={{
             width: "60%",
           }}
+          disabled={loading}
           titleStyle={{ fontSize: 18 }}
           onPress={() => tomarYGuardar()}
         >

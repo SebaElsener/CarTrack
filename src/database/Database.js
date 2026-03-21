@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system/legacy";
 import * as SQLite from "expo-sqlite";
 
 let db = null;
@@ -71,6 +72,30 @@ export function isDbReady() {
 export const deleteTable = async () => {
   const db = await getDb();
   try {
+    const images = await db.getAllAsync(
+      `SELECT metadata FROM pictures WHERE metadata IS NOT NULL`,
+    );
+
+    for (const img of images) {
+      try {
+        const metadata = JSON.parse(img.metadata);
+        const folder = metadata.carpeta;
+
+        if (folder) {
+          const exists = await FileSystem.getInfoAsync(folder);
+
+          if (exists.exists) {
+            await FileSystem.deleteAsync(folder, { idempotent: true });
+            console.log("Eliminando:", folder);
+            const deletedFolder = await FileSystem.getInfoAsync(folder).exists;
+            console.log(deletedFolder);
+          }
+        }
+      } catch (e) {
+        console.log("Error eliminando carpeta:", e);
+      }
+    }
+
     await db.execAsync(`
       DROP TABLE IF EXISTS scans;
       DROP TABLE IF EXISTS pictures;
