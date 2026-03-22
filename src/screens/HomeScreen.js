@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     //flexWrap: "wrap",
     //justifyContent: "space-around",
-    rowGap: 40,
+    rowGap: 30,
     width: "85%",
     flex: 1,
     //marginTop: 30,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   },
   deleteTable: {
     position: "absolute",
-    bottom: 0,
+    bottom: 55,
     left: 20,
   },
   overlay: {
