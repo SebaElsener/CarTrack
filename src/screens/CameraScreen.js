@@ -2,8 +2,9 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -44,6 +45,12 @@ export default function CameraScreen() {
   const { vinFromRouter, localScanId } = useLocalSearchParams();
   const vin = vinFromRouter;
   const local_ScanId = localScanId;
+
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }, []),
+  );
 
   useEffect(() => {
     listarFotos();

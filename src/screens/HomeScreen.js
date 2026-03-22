@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Animated, StyleSheet, View } from "react-native";
 import { Button, Dialog, Portal, Text } from "react-native-paper";
@@ -19,6 +20,12 @@ export default function HomeScreen() {
       translateY: new Animated.Value(20),
     })),
   ).current;
+
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }, []),
+  );
 
   useFocusEffect(
     useCallback(() => {

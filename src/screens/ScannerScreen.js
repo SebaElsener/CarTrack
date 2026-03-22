@@ -1,7 +1,8 @@
 import { Camera, CameraView } from "expo-camera";
 import { useKeepAwake } from "expo-keep-awake";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -287,6 +288,12 @@ export default function ScannerScreen() {
       return null;
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }, []),
+  );
 
   useEffect(() => {}, [lastResult]);
 
@@ -750,7 +757,7 @@ export default function ScannerScreen() {
       {waitingGPS && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loadingText}>
+          <Text style={styles.loadingTextGPS}>
             Obteniendo posicionamiento GPS...
           </Text>
         </View>
@@ -1122,6 +1129,11 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#fff",
     fontSize: 30,
+    fontWeight: "600",
+  },
+  loadingTextGPS: {
+    color: "#fff",
+    fontSize: 20,
     fontWeight: "600",
   },
   errorDialog: {

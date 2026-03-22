@@ -1,8 +1,9 @@
 import { Picker } from "@react-native-picker/picker";
 import * as NavigationBar from "expo-navigation-bar";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -17,6 +18,7 @@ import { getDb } from "../database/Database";
 import { getMovimientosByEquipo } from "../services/CRUD";
 
 export default function EstadoViajeScreen() {
+  const router = useRouter();
   const { operator } = useAuth();
 
   const [movimientos, setMovimientos] = useState([]);
@@ -57,10 +59,11 @@ export default function EstadoViajeScreen() {
   }, [viajesEstado]);
 
   // 🔒 Landscape
-  useEffect(() => {
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-    return () => ScreenOrientation.unlockAsync();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    }, []),
+  );
 
   useEffect(() => {
     NavigationBar.setVisibilityAsync("hidden");
@@ -102,7 +105,7 @@ export default function EstadoViajeScreen() {
       const db = await getDb();
 
       const localScans = await db.getAllAsync(
-        `SELECT vin, movimiento FROM scans WHERE transport_nbr = ?`,
+        `SELECT id, vin, movimiento FROM scans WHERE transport_nbr = ?`,
         [operator.transport_nbr],
       );
 
@@ -147,11 +150,23 @@ export default function EstadoViajeScreen() {
       const vin = s.vin;
 
       if (!map[vin]) {
-        map[vin] = { carga: false, descarga: false };
+        map[vin] = {
+          carga: false,
+          descarga: false,
+          idCarga: null,
+          idDescarga: null,
+        };
       }
 
-      if (s.movimiento === "CARGA") map[vin].carga = true;
-      if (s.movimiento === "DESCARGA") map[vin].descarga = true;
+      if (s.movimiento === "CARGA") {
+        map[vin].carga = true;
+        map[vin].idCarga = s.id;
+      }
+
+      if (s.movimiento === "DESCARGA") {
+        map[vin].descarga = true;
+        map[vin].idDescarga = s.id;
+      }
     });
 
     return map;
@@ -168,6 +183,8 @@ export default function EstadoViajeScreen() {
         ...mov,
         carga: estado.carga || false,
         descarga: estado.descarga || false,
+        idCarga: estado.idCarga || null,
+        idDescarga: estado.idDescarga || null,
       };
     });
   }, [movimientos, scanMap]);
@@ -272,16 +289,6 @@ export default function EstadoViajeScreen() {
 
     const isLast = item.vin === lastScanVin;
 
-    // let rowBg = styles.row;
-
-    // if (isDescargaCompleta) {
-    //   rowBg = styles.rowDescargaCompleta;
-    // } else if (isCargaCompleta) {
-    //   rowBg = styles.rowCargaCompleta;
-    // } else if (item.carga && item.descarga) {
-    //   rowBg = styles.rowCompleted;
-    // }
-
     const getRowStyle = () => {
       if (isLast && !isDescargaCompleta && !isCargaCompleta) {
         return [styles.row, styles.rowHighlight];
@@ -309,13 +316,50 @@ export default function EstadoViajeScreen() {
         <Text style={styles.cell}>{item.nombreorigen}</Text>
         <Text style={styles.cell}>{item.nombredestino}</Text>
 
-        <Text style={[styles.cell, item.carga && styles.ok]}>
+        {/* <Text style={[styles.cell, item.carga && styles.ok]}>
           {item.carga ? "✔" : "-"}
         </Text>
 
         <Text style={[styles.cell, item.descarga && styles.ok]}>
           {item.descarga ? "✔" : "-"}
-        </Text>
+        </Text> */}
+        {item.carga ? (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/CameraScreen",
+                params: {
+                  vinFromRouter: item.vin,
+                  localScanId: item.idCarga,
+                },
+              })
+            }
+            style={({ pressed }) => [styles.cell, pressed && { opacity: 0.5 }]}
+          >
+            <Text style={[styles.ok]}>✔</Text>
+          </Pressable>
+        ) : (
+          <Text style={styles.cell}>-</Text>
+        )}
+
+        {item.descarga ? (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/CameraScreen",
+                params: {
+                  vinFromRouter: item.vin,
+                  localScanId: item.idDescarga,
+                },
+              })
+            }
+            style={({ pressed }) => [styles.cell, pressed && { opacity: 0.5 }]}
+          >
+            <Text style={[styles.ok]}>✔</Text>
+          </Pressable>
+        ) : (
+          <Text style={styles.cell}>-</Text>
+        )}
       </View>
     );
   };
@@ -516,7 +560,8 @@ const styles = StyleSheet.create({
   ok: {
     color: "green",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 22,
+    textAlign: "center",
   },
   toggleContainer: {
     flexDirection: "row",
