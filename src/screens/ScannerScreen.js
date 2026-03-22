@@ -247,38 +247,62 @@ export default function ScannerScreen() {
 
   const checkViajeCompleto = async (vin) => {
     try {
-      // 🔹 viaje
       const viajeRes = await getViajeByVin(vin);
-
       if (!viajeRes.ok || !viajeRes.data) return null;
 
       const idtviaje = viajeRes.data.idtviaje;
 
-      // 🔹 VINs del viaje
       const vinsRes = await getVinsByViaje(idtviaje);
-
       if (!vinsRes.ok || !vinsRes.data) return null;
 
       const vins = vinsRes.data.map((v) => v.vin);
 
-      // 🔹 scans locales
       const scans = await getScansByVins(vins);
 
-      const cargas = new Set(
-        scans.filter((s) => s.movimiento === "CARGA").map((s) => s.vin),
-      );
+      const scanMap = {};
 
-      const descargas = new Set(
-        scans.filter((s) => s.movimiento === "DESCARGA").map((s) => s.vin),
-      );
+      scans.forEach((s) => {
+        if (!scanMap[s.vin]) {
+          scanMap[s.vin] = {
+            carga: false,
+            descarga: false,
+          };
+        }
+
+        if (s.movimiento === "CARGA") scanMap[s.vin].carga = true;
+        if (s.movimiento === "DESCARGA") scanMap[s.vin].descarga = true;
+      });
 
       const total = vins.length;
 
-      if (descargas.size === total && cargas.size === total) {
+      let cargas = 0;
+      let descargas = 0;
+
+      vins.forEach((vin) => {
+        const estado = scanMap[vin];
+
+        if (estado?.carga) cargas++;
+        if (estado?.descarga) descargas++;
+      });
+
+      console.log("DEBUG:", {
+        total,
+        cargas,
+        descargas,
+      });
+
+      // ✅ 1. prioridad: descarga completa
+      if (descargas === total) {
         return { tipo: "DESCARGA", idtviaje };
       }
 
-      if (cargas.size === total) {
+      // 🔥 2. si ya empezó descarga → no mostrar nada
+      if (descargas > 0) {
+        return null;
+      }
+
+      // ✅ 3. carga completa (solo si no empezó descarga)
+      if (cargas === total) {
         return { tipo: "CARGA", idtviaje };
       }
 
