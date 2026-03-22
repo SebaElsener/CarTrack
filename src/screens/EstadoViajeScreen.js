@@ -254,13 +254,19 @@ export default function EstadoViajeScreen() {
   // Stats
   // ---------------------------
   const stats = useMemo(() => {
-    const total = data.length;
-    const cargados = data.filter((d) => d.carga).length;
-    const descargados = data.filter((d) => d.descarga).length;
+    // 🔥 elegir dataset según filtro de viaje
+    const base =
+      viajeFiltro === "ALL"
+        ? data
+        : data.filter((d) => d.idtviaje === viajeFiltro);
+
+    const total = base.length;
+    const cargados = base.filter((d) => d.carga).length;
+    const descargados = base.filter((d) => d.descarga).length;
     const pendientes = total - descargados;
 
     return { total, cargados, descargados, pendientes };
-  }, [data]);
+  }, [data, viajeFiltro]);
 
   // ---------------------------
   // Header
