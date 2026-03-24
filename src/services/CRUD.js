@@ -4,7 +4,7 @@ export const getVIN = async (vin, transportNbr) => {
   const { data, error } = await supabase
     .schema("carpointer")
     .from("movimientos")
-    .select("idtequipo, nombreorigen, nombredestino")
+    .select("idtequipo, idtviaje, nombreorigen, nombredestino")
     .eq("vin", vin)
     .maybeSingle();
 
@@ -23,6 +23,7 @@ export const getVIN = async (vin, transportNbr) => {
     ok: true,
     origen: data.nombreorigen,
     destino: data.nombredestino,
+    idtviaje: data.idtviaje,
   };
 };
 

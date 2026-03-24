@@ -26,6 +26,7 @@ export const syncPendingScans = async () => {
         vin: item.vin,
         origen: item.origen,
         destino: item.destino,
+        id_viaje: item.viaje,
         transport_nbr: item.transport_nbr,
         gps_stamp: item.gps_stamp,
         movimiento: item.movimiento,

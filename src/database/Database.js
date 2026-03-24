@@ -30,6 +30,7 @@ export const initDB = async () => {
         transport_nbr TEXT NOT NULL,
         origen TEXT NOT NULL,
         destino TEXT NOT NULL,
+        viaje TEXT NOT NULL,
         gps_stamp JSONB NOT NULL,
         movimiento TEXT NOT NULL,
         synced INTEGER DEFAULT 0)
@@ -113,6 +114,7 @@ export const saveScan = async (
   vin,
   origen,
   destino,
+  viaje,
   transport_nbr,
   gps_stamp,
   movimiento,
@@ -149,10 +151,10 @@ export const saveScan = async (
     // ✅ Insert válido
     const result = await db.runAsync(
       `
-      INSERT INTO scans (vin, origen, destino, transport_nbr, gps_stamp, movimiento)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO scans (vin, origen, destino, viaje, transport_nbr, gps_stamp, movimiento)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       `,
-      [vin, origen, destino, transport_nbr, gps_stamp, movimiento],
+      [vin, origen, destino, viaje, transport_nbr, gps_stamp, movimiento],
     );
 
     return { duplicated: false, id: result.lastInsertRowId };

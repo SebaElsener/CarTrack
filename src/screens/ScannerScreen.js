@@ -631,6 +631,7 @@ export default function ScannerScreen() {
         vin,
         result.origen,
         result.destino,
+        result.idtviaje,
         operator.transport_nbr,
         JSON.stringify(coords),
         tipoMovimiento,
