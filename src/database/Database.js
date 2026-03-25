@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system/legacy";
 import * as SQLite from "expo-sqlite";
 
 let db = null;
@@ -91,9 +92,51 @@ export function isDbReady() {
 }
 
 // Eliminar tablas
+// export const deleteTable = async () => {
+//   const db = await getDb();
+//   try {
+//     await db.execAsync(`
+//       DROP TABLE IF EXISTS pictures;
+//       DROP TABLE IF EXISTS tableForPendingImages;
+//       DROP TABLE IF EXISTS scans;
+//       DROP TABLE IF EXISTS damages;
+//     `);
+//   } catch (error) {
+//     console.log("Error al eliminar tablas, ", error);
+//   }
+
+//   await initDB();
+// };
+
 export const deleteTable = async () => {
   const db = await getDb();
   try {
+    const images = await db.getAllAsync(
+      `SELECT metadata FROM pictures WHERE metadata IS NOT NULL`,
+    );
+
+    for (const img of images) {
+      try {
+        const metadata = JSON.parse(img.metadata);
+        const folder = metadata.carpeta;
+
+        console.log(folder);
+
+        if (folder) {
+          const exists = await FileSystem.getInfoAsync(folder);
+
+          if (exists.exists) {
+            await FileSystem.deleteAsync(folder, { idempotent: true });
+            console.log("Eliminando:", folder);
+            const deletedFolder = await FileSystem.getInfoAsync(folder).exists;
+            console.log(deletedFolder);
+          }
+        }
+      } catch (e) {
+        console.log("Error eliminando carpeta:", e);
+      }
+    }
+
     await db.execAsync(`
       DROP TABLE IF EXISTS pictures;
       DROP TABLE IF EXISTS tableForPendingImages;
@@ -105,6 +148,29 @@ export const deleteTable = async () => {
   }
 
   await initDB();
+};
+
+export const hasPendingData = async () => {
+  const db = await getDb();
+
+  try {
+    const scans = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM scans WHERE synced = 0`,
+    );
+
+    const pictures = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM pictures WHERE synced = 0`,
+    );
+
+    const pendingImages = await db.getFirstAsync(
+      `SELECT COUNT(*) as count FROM tableForPendingImages WHERE synced = 0`,
+    );
+
+    return scans?.count > 0 || pictures?.count > 0 || pendingImages?.count > 0;
+  } catch (e) {
+    console.log("Error checking pending data", e);
+    return true;
+  }
 };
 
 // Guardar un escaneo

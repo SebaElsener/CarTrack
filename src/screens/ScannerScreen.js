@@ -375,6 +375,12 @@ export default function ScannerScreen() {
   }, [SCAN_SIZE]);
 
   useEffect(() => {
+    if (!showKeyboard) {
+      inputTranslateY.setValue(0);
+    }
+  }, [showKeyboard]);
+
+  useEffect(() => {
     if (showKeyboard) {
       Animated.parallel([
         Animated.timing(keyboardTranslateY, {
@@ -580,6 +586,25 @@ export default function ScannerScreen() {
   if (hasPermission === false)
     return <Text>No se tiene permiso de cámara</Text>;
 
+  const closeKeyboard = () => {
+    setShowKeyboard(false);
+
+    Animated.parallel([
+      Animated.timing(keyboardTranslateY, {
+        toValue: 300,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(inputTranslateY, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   // ---------------------------
   // Render
   // ---------------------------
@@ -689,7 +714,7 @@ export default function ScannerScreen() {
       {/* ////////////////////////////////////////////////////// */}
       {/* TAP FUERA PARA CERRAR TECLADO */}
       {showKeyboard && (
-        <TouchableWithoutFeedback onPress={() => setShowKeyboard(false)}>
+        <TouchableWithoutFeedback onPress={closeKeyboard}>
           <View
             style={{
               position: "absolute",

@@ -1,19 +1,25 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { Button, Dialog, Portal, Text } from "react-native-paper";
 import GlassAnimatedCard from "../components/GlassAnimatedCard";
+import { useToast } from "../components/ToastProvider";
 import { useScans } from "../context/ScanContext";
-import { deleteTable } from "../database/Database";
+import { deleteTable, hasPendingData } from "../database/Database";
+import { requestSync } from "../services/syncTrigger";
 
 export default function HomeScreen() {
+  const { resetAllScansState, refreshTotalScans } = useScans();
+  const [deleting, setDeleting] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const { showToast } = useToast();
   const animations = useRef(
     Array.from({ length: 4 }).map(() => ({
       opacity: new Animated.Value(0),
       translateY: new Animated.Value(20),
     })),
   ).current;
-  const { resetAllScansState, refreshTotalScans } = useScans();
 
   useFocusEffect(
     useCallback(() => {
@@ -49,9 +55,34 @@ export default function HomeScreen() {
   );
 
   const handleDeleteDatabase = async () => {
-    await deleteTable(); // SQLite (DROP + CREATE)
-    resetAllScansState(); // UI inmediata
-    await refreshTotalScans();
+    try {
+      setDeleting(true);
+
+      const hasPending = await hasPendingData();
+
+      if (hasPending) {
+        showToast(
+          "Hay datos pendientes. Sincronizando antes comenzar nueva colección...",
+          "info",
+        );
+
+        requestSync();
+        setDeleting(false);
+
+        return;
+      }
+
+      await deleteTable();
+      resetAllScansState(); // UI inmediata
+      await refreshTotalScans();
+
+      showToast("Nueva colección iniciada correctamente", "success");
+    } catch (error) {
+      console.log(error);
+      showToast("Error al inicar nueva colección", "error");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const cards = [
@@ -91,13 +122,16 @@ export default function HomeScreen() {
       ),
     },
     {
-      title: "Reset",
-      description: "Eliminar tablas locales",
+      title: deleting ? "Procesando" : "Colección",
+      description: deleting
+        ? "Iniciando nueva colección..."
+        : "Comenzar una nueva colección",
       backgroundColor: "rgba(206, 104, 104, 0.38)",
       icon: (
         <MaterialCommunityIcons name="delete" size={55} color="#2a2a2acb" />
       ),
-      onPress: handleDeleteDatabase,
+      loading: deleting,
+      onPress: deleting ? undefined : () => setConfirmVisible(true),
     },
   ];
 
@@ -121,11 +155,38 @@ export default function HomeScreen() {
                 },
               ]}
             >
-              <GlassAnimatedCard {...card} />
+              <GlassAnimatedCard
+                {...card}
+                loading={card.loading}
+                disabled={deleting && !card.loading}
+              />
             </Animated.View>
           ))}
         </View>
       </View>
+
+      <Portal>
+        <Dialog
+          visible={confirmVisible}
+          onDismiss={() => setConfirmVisible(false)}
+        >
+          <Dialog.Title>Confirmar</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">¿COMENZAR NUEVA COLECCION?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmVisible(false)}>Cancelar</Button>
+            <Button
+              onPress={async () => {
+                setConfirmVisible(false);
+                await handleDeleteDatabase();
+              }}
+            >
+              Eliminar
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
