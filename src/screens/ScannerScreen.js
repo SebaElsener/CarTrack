@@ -633,7 +633,7 @@ export default function ScannerScreen() {
         result.destino,
         result.idtviaje,
         operator.transport_nbr,
-        JSON.stringify(coords),
+        coords,
         tipoMovimiento,
       );
 
